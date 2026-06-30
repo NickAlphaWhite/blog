@@ -1,0 +1,121 @@
+---
+interface Props {
+  lang: string;
+  categories: string[];
+  catLabel: (key: string) => string;
+  ddObj: Record<string, any>;
+  activeCat?: string;
+  showDropdowns?: boolean;
+  showSearch?: boolean;
+}
+
+const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, showSearch = true } = Astro.props;
+---
+<nav class="nav">
+  <div class="nav-inner">
+    <a href={`/${lang}/`} class="nav-brand"><img src="/logo.png" alt="NickAlphaWhite" /></a>
+    <!-- Desktop links — hidden on mobile -->
+    {categories.map(cat => (
+      <a href={`/${lang}/category/${cat}`} class={`nav-link${cat === activeCat ? " active" : ""}`} data-cat={cat}>{catLabel(cat)}</a>
+    ))}
+    <div class="nav-right">
+      <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+      </button>
+      {showSearch && (
+        <button class="search-btn" onclick="openSearch()">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </button>
+      )}
+      <!-- Hamburger — visible on mobile -->
+      <button class="hamburger" id="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</nav>
+
+<!-- Mobile fullscreen menu -->
+<div class="mobile-menu" id="mobileMenu">
+  <div class="mobile-menu-inner">
+    {categories.map(cat => {
+      const d = ddObj[cat];
+      const subs = d?.subcategories || [];
+      return (
+        <>
+          <a href={`/${lang}/category/${cat}`} class="mobile-cat" onclick="closeMobileMenu()">{catLabel(cat)}</a>
+          {subs.map((s: any) => (
+            <a href={s.url} class="mobile-sub" onclick="closeMobileMenu()">{s.name}</a>
+          ))}
+        </>
+      );
+    })}
+  </div>
+</div>
+
+{showDropdowns && (
+  <>
+    <div class="nav-dropdown" id="navDropdown">
+      <div class="mega-inner" id="megaInner"></div>
+    </div>
+    <div class="nav-backdrop" id="navBackdrop"></div>
+  </>
+)}
+
+<div id="__ddData" style="display:none" data-json={JSON.stringify(ddObj)}></div>
+<script>
+  function __loadDD() {
+    var el = document.getElementById('__ddData');
+    if (el) { try { window.__DD = JSON.parse(el.dataset.json); } catch(e) {} }
+  }
+  __loadDD();
+  document.addEventListener('astro:after-swap', __loadDD);
+</script>
+
+<script>
+  window.toggleMobileMenu = function() {
+    var menu = document.getElementById('mobileMenu');
+    var btn = document.getElementById('hamburger');
+    if (!menu || !btn) return;
+    menu.classList.toggle('open');
+    btn.classList.toggle('open');
+    document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+  };
+  window.closeMobileMenu = function() {
+    var menu = document.getElementById('mobileMenu');
+    var btn = document.getElementById('hamburger');
+    if (!menu || !btn) return;
+    menu.classList.remove('open');
+    btn.classList.remove('open');
+    document.body.style.overflow = '';
+  };
+</script>
+
+<style>
+/* Hamburger button */
+.hamburger{display:none;width:36px;height:36px;border:none;background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px;border-radius:50%;transition:background 0.2s var(--ease)}
+.hamburger:hover{background:var(--bg3)}
+.hamburger span{display:block;width:18px;height:2px;background:var(--txt2);border-radius:1px;transition:all 0.3s var(--ease)}
+.hamburger.open span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+.hamburger.open span:nth-child(2){opacity:0}
+.hamburger.open span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
+
+/* Mobile fullscreen menu */
+.mobile-menu{display:none;position:fixed;inset:0;top:52px;z-index:150;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch}
+.mobile-menu.open{display:block}
+.mobile-menu-inner{max-width:600px;margin:0 auto;padding:32px 32px 64px;display:flex;flex-direction:column}
+.mobile-cat{font-size:1.4rem;font-weight:700;color:var(--txt);letter-spacing:-0.02em;padding:16px 0;border-bottom:1px solid var(--hairline);text-decoration:none;transition:opacity 0.15s}
+.mobile-cat:hover{opacity:0.5}
+.mobile-sub{font-size:0.95rem;color:var(--txt2);padding:9px 0 9px 20px;text-decoration:none;transition:color 0.15s}
+.mobile-sub:hover{color:var(--txt)}
+
+/* Responsive */
+@media(max-width:900px){
+  .nav-inner{padding:0 20px;gap:12px;justify-content:flex-start}
+  .nav-link{display:none}
+  .nav-brand{flex:1}
+  .hamburger{display:flex}
+  .nav-dropdown,.nav-backdrop{display:none!important}
+}
+</style>

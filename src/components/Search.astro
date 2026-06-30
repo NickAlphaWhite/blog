@@ -1,0 +1,24 @@
+---
+// Search overlay — HTML only. JS logic is in Layout.astro.
+// To provide search data for all posts, pass a `searchPosts` prop.
+interface Props {
+  searchPosts?: { title: string; excerpt: string; category: string; url: string }[];
+}
+
+const { searchPosts } = Astro.props;
+---
+<!-- Search overlay -->
+<div class="search-overlay" id="searchOverlay">
+  <div class="search-dialog">
+    <div class="search-bar">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="searchInput" placeholder="Search…" autocomplete="off" />
+      <button class="search-cancel" onclick="window.closeSearch()">Cancel</button>
+    </div>
+    <div class="search-results" id="searchResults"><div class="search-empty">Start typing</div></div>
+  </div>
+</div>
+
+{searchPosts && searchPosts.length > 0 && (
+  <div id="__searchData" style="display:none" data-posts={JSON.stringify(searchPosts)}></div>
+)}

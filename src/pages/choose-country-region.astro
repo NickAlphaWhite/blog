@@ -1,0 +1,120 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../components/Layout.astro";
+import Nav from "../components/Nav.astro";
+import { getCatsConfig, catLabel as _catLabel, buildDdObj } from "../lib/utils";
+
+const groups = [
+  {
+    label: "The United States, Canada, and Puerto Rico",
+    items: [
+      { code: "us", name: "United States", lang: "en" },
+      { code: "ca", name: "Canada", lang: "en" },
+      { code: "pr", name: "Puerto Rico", lang: "es" },
+    ],
+  },
+  {
+    label: "Asia Pacific",
+    items: [
+      { code: "cn", name: "中国大陆", lang: "zh" },
+      { code: "hk", name: "香港", lang: "zh-yue" },
+      { code: "tw", name: "台灣", lang: "zh-tw" },
+      { code: "jp", name: "日本", lang: "ja" },
+      { code: "kr", name: "대한민국", lang: "ko" },
+      { code: "th", name: "ประเทศไทย", lang: "th" },
+      { code: "au", name: "Australia", lang: "en" },
+    ],
+  },
+  {
+    label: "Europe",
+    items: [
+      { code: "uk", name: "United Kingdom", lang: "en" },
+      { code: "fr", name: "France", lang: "fr" },
+      { code: "de", name: "Deutschland", lang: "de" },
+      { code: "es", name: "España", lang: "es" },
+      { code: "it", name: "Italia", lang: "it" },
+      { code: "pt", name: "Portugal", lang: "pt" },
+      { code: "nl", name: "Nederland", lang: "nl" },
+      { code: "ru", name: "Россия", lang: "ru" },
+    ],
+  },
+  {
+    label: "Latin America and the Caribbean",
+    items: [
+      { code: "br", name: "Brasil", lang: "pt" },
+      { code: "mx", name: "México", lang: "es" },
+    ],
+  },
+  {
+    label: "Africa, Middle East, and India",
+    items: [
+      { code: "in", name: "India", lang: "en" },
+      { code: "ae", name: "الإمارات العربية المتحدة", lang: "en" },
+      { code: "za", name: "South Africa", lang: "en" },
+    ],
+  },
+];
+
+function codeToFlag(code: string): string {
+  return code.toUpperCase().replace(/[A-Z]/g, c => String.fromCodePoint(0x1F1E6 + c.charCodeAt(0) - 65));
+}
+const base = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+
+// Build nav with English labels (matching /us/ homepage)
+const langCode = "en";
+const lang = "us";
+const catsConfig = await getCatsConfig();
+const categories = Object.keys(catsConfig);
+const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
+const allPosts = await getCollection("posts", ({ data }) => !data.draft && data.lang === "en");
+const byCategory = (cat: string) => allPosts.filter(p => p.data.category === cat);
+const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
+---
+
+<Layout title="Choose your country or region" htmlLang="en">
+  <Nav lang="us" {categories} {catLabel} {ddObj} />
+
+  <style>
+    .choose-wrap{max-width:960px;margin:0 auto;padding:64px 32px}
+    .choose-title{font-size:2.5rem;font-weight:700;letter-spacing:-0.04em;margin-bottom:8px;color:var(--txt)}
+    .choose-sub{font-size:1.05rem;color:var(--txt2);margin-bottom:48px}
+    .choose-group{margin-bottom:36px}
+    .choose-group-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:8px;padding-left:18px}
+    .choose-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px}
+    .choose-item{
+      display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;
+      color:var(--txt);text-decoration:none;font-size:1rem;
+      transition:background 0.15s var(--ease)
+    }
+    .choose-item:hover{background:var(--bg3)}
+    .choose-flag{font-size:1.25rem;width:36px;text-align:center;flex-shrink:0;font-weight:600}
+    .choose-name{font-weight:500}
+    .choose-back{display:inline-flex;align-items:center;gap:6px;color:var(--txt2);text-decoration:none;font-size:0.9rem;margin-bottom:32px;transition:color 0.2s}
+    .choose-back:hover{color:var(--txt)}
+    @media(max-width:768px){.choose-wrap{padding:48px 20px}.choose-title{font-size:1.8rem}}
+  </style>
+
+  <div class="choose-wrap">
+    <a href="/" class="choose-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      Back
+    </a>
+    <h1 class="choose-title">Choose your country or region</h1>
+    <p class="choose-sub">Selecting a region changes the language and content.</p>
+
+    {groups.map(g => (
+      <div class="choose-group">
+        <p class="choose-group-label">{g.label}</p>
+        <div class="choose-grid">
+          {g.items.map(r => (
+            <a href={`${base}/${r.code}/`} class="choose-item"
+               onclick={`event.preventDefault();localStorage.setItem('lang','${r.lang}');localStorage.setItem('region','${r.code}');location.href=this.href`}>
+              <span class="choose-flag">{codeToFlag(r.code)}</span>
+              <span class="choose-name">{r.name}</span>
+            </a>
+          ))}
+        </div>
+      </div>
+    ))}
+  </div>
+</Layout>

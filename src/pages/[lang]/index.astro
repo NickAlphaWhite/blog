@@ -1,0 +1,149 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../components/Layout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+import Search from "../../components/Search.astro";
+import { allRegions, regionMap, langMatcher, getCatsConfig, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+
+export function getStaticPaths() {
+  return allRegions.map(r => ({ params: { lang: r } }));
+}
+
+const { lang } = Astro.params;
+const langCode = regionMap[lang] || "zh";
+const matchLang = langMatcher(langCode);
+
+const allPosts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
+const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+const featured = posts.filter(p => p.data.featured).slice(0, 3);
+const catsConfig = await getCatsConfig();
+const categories = Object.keys(catsConfig);
+const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
+const subLabel = (catKey: string, subKey: string) => _subLabel(catKey, subKey, langCode, catsConfig);
+const byCategory = (cat: string) => posts.filter(p => p.data.category === cat);
+
+const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
+const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
+
+const viewAllLabel: Record<string, string> = {
+  zh: "查看全部 →", "zh-tw": "查看全部 →", "zh-yue": "查看全部 →",
+  en: "View all →", ja: "すべて見る →", ko: "전체 보기 →",
+  fr: "Tout voir →", de: "Alle anzeigen →", es: "Ver todo →",
+};
+const readLabel: Record<string, string> = {
+  zh: "阅读文章 →", "zh-tw": "閱讀文章 →", "zh-yue": "閱讀文章 →",
+  en: "Read the article →", ja: "記事を読む →", ko: "글 읽기 →",
+};
+---
+
+<Layout title="NickAlphaWhite" description="NickAlphaWhite's Blog">
+  <Nav {lang} {categories} {catLabel} {ddObj} />
+
+  <Search searchPosts={searchPosts} />
+
+  <!-- HERO + GRID — client-side randomized from 9 different categories -->
+  <div id="heroGrid"></div>
+  <div id="__heroData" style="display:none" data-posts={JSON.stringify(posts.map(p => ({
+    title: p.data.title,
+    titleZh: p.data.titleZh || "",
+    category: catLabel(p.data.category),
+    image: p.data.image || "",
+    url: `/${lang}/${p.id.replace(/\.md$/, "")}`,
+    date: p.data.date.toISOString().split("T")[0],
+    featured: p.data.featured,
+  })))} data-lang={langCode}></div>
+  <script>
+    (function(){
+      var el = document.getElementById('__heroData');
+      if (!el) return;
+      var posts = JSON.parse(el.dataset.posts);
+      var langCode = el.dataset.lang;
+      var ctas = {zh:'阅读文章 →','zh-tw':'閱讀文章 →','zh-yue':'閱讀文章 →',en:'Read the article →',ja:'記事を読む →',ko:'글 읽기 →'};
+
+      // Group by category
+      var byCat = {};
+      posts.forEach(function(p){
+        if (!byCat[p.category]) byCat[p.category] = [];
+        byCat[p.category].push(p);
+      });
+      var cats = Object.keys(byCat);
+      // Shuffle categories
+      cats.sort(function(){ return Math.random() - 0.5 });
+      // Pick 9 categories, 1 post each
+      var picks = [];
+      for (var i = 0; i < Math.min(9, cats.length); i++) {
+        var pool = byCat[cats[i]];
+        picks.push(pool[Math.floor(Math.random() * pool.length)]);
+      }
+      // Shuffle picks
+      picks.sort(function(){ return Math.random() - 0.5 });
+
+      var hero = picks.slice(0, 3);
+      var grid = picks.slice(3, 9);
+      var h = '';
+
+      // Hero
+      if (hero.length) {
+        h += '<section class="hero-section">';
+        hero.forEach(function(p, i){
+          var zh = p.titleZh ? '<p class="hero-sub">'+esc(p.titleZh)+'</p>' : '';
+          h += '<a href="'+p.url+'" class="hero-card" onclick="event.preventDefault();var el=this;var r=el.getBoundingClientRect();el.style.top=r.top+\'px\';el.style.left=r.left+\'px\';el.style.width=r.width+\'px\';el.style.height=r.height+\'px\';el.style.position=\'fixed\';el.style.margin=\'0\';requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add(\'zooming\')})});setTimeout(function(){location.href=el.href},700)">';
+          if (p.image) h += '<img src="'+p.image+'" alt="'+esc(p.title)+'" loading="'+(i===0?'eager':'lazy')+'" />';
+          h += '<div class="hero-mask"></div><div class="hero-content"><p class="hero-tag">'+esc(p.category)+(p.featured?' · Featured':'')+'</p><h1 class="hero-title">'+esc(p.title)+'</h1>'+zh+'<span class="hero-cta">'+(ctas[langCode]||ctas.en)+'</span></div></a>';
+        });
+        h += '</section>';
+      }
+
+      // Mini grid
+      if (grid.length) {
+        h += '<section class="mini-grid"><div class="mini-grid-inner">';
+        grid.forEach(function(p){
+          var img = p.image ? '<img src="'+p.image+'" alt="'+esc(p.title)+'" loading="lazy" />' : '';
+          h += '<a href="'+p.url+'" class="mini-card">'+img+'<div class="mini-card-content"><p class="mini-card-tag">'+esc(p.category)+'</p><h3 class="mini-card-title">'+esc(p.title)+'</h3></div></a>';
+        });
+        h += '</div></section>';
+      }
+
+      document.getElementById('heroGrid').innerHTML = h;
+      function esc(s){ var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
+    })();
+  </script>
+
+  <!-- SINGLE FILMSTRIP — 9 random posts from all categories -->
+  {(() => {
+    const filmPosts = posts.filter(p => !p.data.featured);
+    if (filmPosts.length === 0) return null;
+    // Shuffle and pick up to 9, force odd
+    const shuffled = [...filmPosts].sort(() => Math.random() - 0.5);
+    let picks = shuffled.slice(0, 9);
+    while (picks.length > 3 && picks.length % 2 === 0) picks = picks.slice(0, -1);
+    const medianIdx = Math.floor(picks.length / 2);
+    const filmId = 'film-all';
+    const filmPad = picks.length < 4 ? '0' : 'calc(50vw - (100vw * 0.7 / 2))';
+    return (
+      <section class="film-strip" style="position:relative">
+        <div class="film-outer" id={filmId}>
+          <div class="film-row" style={`padding:0 ${filmPad}`}>
+            {picks.map(p => (
+              <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="film-card">
+                {p.data.image && <img src={p.data.image} alt={p.data.title} loading="lazy" />}
+                <div class="film-content">
+                  <span class="film-cat-tag">{catLabel(p.data.category)}</span>
+                  <h2 class="film-title">{p.data.title}</h2>
+                  {p.data.titleZh && <p class="film-sub">{p.data.titleZh}</p>}
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+        <button class="film-arrow arr-left" id="film-all-l" onclick="filmScroll('film-all',-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+        <button class="film-arrow arr-right" id="film-all-r" onclick="filmScroll('film-all',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        <div id="__filmData" style="display:none" data-median={medianIdx}></div>
+      </section>
+    );
+  })()}
+
+  <Footer />
+</Layout>

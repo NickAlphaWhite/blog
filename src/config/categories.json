@@ -1,0 +1,94 @@
+{
+  "Hotel": {
+    "label": {"zh":"酒店","en":"Hotel","ja":"ホテル","ko":"호텔","fr":"Hôtel","de":"Hotel","es":"Hotel","it":"Hotel","pt":"Hotel","nl":"Hotel","ru":"Отель","th":"โรงแรม","zh-tw":"飯店","zh-yue":"酒店"},
+    "subcategories": {
+      "Luxury Hotels": {"zh":"奢华酒店","en":"Luxury Hotels","zh-tw":"奢華飯店","zh-yue":"奢華酒店"},
+      "Hotel Reviews": {"zh":"酒店评测","en":"Hotel Reviews","zh-tw":"飯店評測","zh-yue":"酒店評測"},
+      "Hotel Tips": {"zh":"酒店攻略","en":"Hotel Tips","zh-tw":"飯店攻略","zh-yue":"酒店貼士"}
+    }
+  },
+  "Card": {
+    "label": {"zh":"银行卡","en":"Card","ja":"カード","ko":"카드","fr":"Carte","de":"Karte","es":"Tarjeta","it":"Carta","pt":"Cartão","nl":"Kaart","ru":"Карта","th":"บัตร","zh-tw":"金融卡","zh-yue":"銀行卡"},
+    "subcategories": {
+      "Debit": {"zh":"借记卡","en":"Debit","zh-tw":"簽帳金融卡","zh-yue":"扣賬卡"},
+      "Credit": {"zh":"信用卡","en":"Credit","zh-tw":"信用卡","zh-yue":"信用卡"}
+    }
+  },
+  "Aviation": {
+    "label": {"zh":"飞行","en":"Aviation","ja":"航空","ko":"항공","fr":"Aviation","de":"Luftfahrt","es":"Aviación","it":"Aviazione","pt":"Aviação","nl":"Luchtvaart","ru":"Авиация","th":"การบิน","zh-tw":"航空","zh-yue":"航空"},
+    "subcategories": {
+      "Airlines": {"zh":"航司测评","en":"Airlines","zh-tw":"航空公司評測","zh-yue":"航空公司評測"},
+      "Lounges": {"zh":"休息室","en":"Lounges","zh-tw":"貴賓室","zh-yue":"貴賓室"},
+      "Miles & Points": {"zh":"里程与积分","en":"Miles & Points","zh-tw":"哩程與點數","zh-yue":"里數與積分"},
+      "Trip Reports": {"zh":"飞行报告","en":"Trip Reports","zh-tw":"飛行報告","zh-yue":"飛行報告"}
+    }
+  },
+  "Drinks": {
+    "label": {"zh":"饮品","en":"Drinks","ja":"ドリンク","ko":"음료","fr":"Boissons","de":"Getränke","es":"Bebidas","it":"Bevande","pt":"Bebidas","nl":"Dranken","ru":"Напитки","th":"เครื่องดื่ม","zh-tw":"飲品","zh-yue":"飲品"},
+    "subcategories": {
+      "Wine": {"zh":"葡萄酒","en":"Wine","zh-tw":"葡萄酒","zh-yue":"葡萄酒"},
+      "Whisky": {"zh":"威士忌","en":"Whisky","zh-tw":"威士忌","zh-yue":"威士忌"},
+      "Cocktails": {"zh":"鸡尾酒","en":"Cocktails","zh-tw":"雞尾酒","zh-yue":"雞尾酒"},
+      "Coffee & Tea": {"zh":"咖啡与茶","en":"Coffee & Tea","zh-tw":"咖啡與茶","zh-yue":"咖啡與茶"}
+    }
+  },
+  "Odor": {
+    "label": {"zh":"香氛","en":"Odor","ja":"香り","ko":"향기","fr":"Odeur","de":"Duft","es":"Aroma","it":"Profumo","pt":"Aroma","nl":"Geur","ru":"Аромат","th":"กลิ่น","zh-tw":"香氛","zh-yue":"香氣"},
+    "subcategories": {
+      "Perfume": {"zh":"香水","en":"Perfume","zh-tw":"香水","zh-yue":"香水"},
+      "Incense": {"zh":"香薰","en":"Incense","zh-tw":"線香","zh-yue":"香薰"},
+      "Candles": {"zh":"蜡烛","en":"Candles","zh-tw":"蠟燭","zh-yue":"蠟燭"}
+    }
+  },
+  "Gastronomy": {
+    "label": {"zh":"美食","en":"Gastronomy","ja":"美食","ko":"미식","fr":"Gastronomie","de":"Gastronomie","es":"Gastronomía","it":"Gastronomia","pt":"Gastronomia","nl":"Gastronomie","ru":"Гастрономия","th":"อาหาร","zh-tw":"美食","zh-yue":"美食"},
+    "subcategories": {
+      "Fine Dining": {"zh":"精致餐饮","en":"Fine Dining","zh-tw":"精緻餐飲","zh-yue":"精緻餐飲"},
+      "Cafés": {"zh":"咖啡馆","en":"Cafés","zh-tw":"咖啡館","zh-yue":"咖啡室"},
+      "Street Food": {"zh":"街头美食","en":"Street Food","zh-tw":"街頭小吃","zh-yue":"街頭美食"},
+      "Michelin": {"zh":"米其林","en":"Michelin","zh-tw":"米芝蓮","zh-yue":"米芝蓮"}
+    }
+  },
+  "Design": {
+    "label": {"zh":"设计","en":"Design","ja":"デザイン","ko":"디자인","fr":"Design","de":"Design","es":"Diseño","it":"Design","pt":"Design","nl":"Ontwerp","ru":"Дизайн","th":"ออกแบบ","zh-tw":"設計","zh-yue":"設計"},
+    "subcategories": {
+      "Branding": {"zh":"品牌","en":"Branding","zh-tw":"品牌設計","zh-yue":"品牌設計"},
+      "Typography": {"zh":"字体排印","en":"Typography","zh-tw":"字型排印","zh-yue":"字體排印"},
+      "Graphics": {"zh":"图形","en":"Graphics","zh-tw":"圖形","zh-yue":"圖形"}
+    }
+  },
+  "Music": {
+    "label": {"zh":"音乐","en":"Music","ja":"音楽","ko":"음악","fr":"Musique","de":"Musik","es":"Música","it":"Musica","pt":"Música","nl":"Muziek","ru":"Музыка","th":"ดนตรี","zh-tw":"音樂","zh-yue":"音樂"},
+    "subcategories": {
+      "Rock": {"zh":"摇滚","en":"Rock","zh-tw":"搖滾","zh-yue":"搖滾"},
+      "Pop": {"zh":"流行","en":"Pop","zh-tw":"流行","zh-yue":"流行"},
+      "R&B": {"zh":"节奏布鲁斯","en":"R&B","zh-tw":"節奏藍調","zh-yue":"節奏藍調"}
+    }
+  },
+  "Literature": {
+    "label": {"zh":"文学","en":"Literature","ja":"文学","ko":"문학","fr":"Littérature","de":"Literatur","es":"Literatura","it":"Letteratura","pt":"Literatura","nl":"Literatuur","ru":"Литература","th":"วรรณกรรม","zh-tw":"文學","zh-yue":"文學"},
+    "subcategories": {
+      "Reading Notes": {"zh":"读书笔记","en":"Reading Notes","zh-tw":"讀書筆記","zh-yue":"讀書筆記"},
+      "Book Reviews": {"zh":"书评","en":"Book Reviews","zh-tw":"書評","zh-yue":"書評"},
+      "Creative Writing": {"zh":"创作","en":"Creative Writing","zh-tw":"創作","zh-yue":"創作"}
+    }
+  },
+  "Visual": {
+    "label": {"zh":"视觉","en":"Visual","ja":"ビジュアル","ko":"비주얼","fr":"Visuel","de":"Visuell","es":"Visual","it":"Visivo","pt":"Visual","nl":"Visueel","ru":"Визуал","th":"วิชวล","zh-tw":"視覺","zh-yue":"視覺"},
+    "subcategories": {
+      "Photography": {"zh":"摄影","en":"Photography","zh-tw":"攝影","zh-yue":"攝影"},
+      "Film": {"zh":"电影","en":"Film","zh-tw":"電影","zh-yue":"電影"},
+      "Digital Art": {"zh":"数字艺术","en":"Digital Art","zh-tw":"數位藝術","zh-yue":"數碼藝術"},
+      "Graphics": {"zh":"平面","en":"Graphics","zh-tw":"平面設計","zh-yue":"平面設計"}
+    }
+  },
+  "Travel": {
+    "label": {"zh":"旅行","en":"Travel","ja":"旅行","ko":"여행","fr":"Voyage","de":"Reisen","es":"Viajes","it":"Viaggi","pt":"Viagem","nl":"Reizen","ru":"Путешествия","th":"ท่องเที่ยว","zh-tw":"旅遊","zh-yue":"旅遊"},
+    "subcategories": {
+      "City Guides": {"zh":"城市指南","en":"City Guides","zh-tw":"城市指南","zh-yue":"城市指南"},
+      "Nature": {"zh":"自然","en":"Nature","zh-tw":"自然","zh-yue":"自然"},
+      "Itineraries": {"zh":"行程攻略","en":"Itineraries","zh-tw":"行程規劃","zh-yue":"行程攻略"},
+      "Solo Travel": {"zh":"独旅","en":"Solo Travel","zh-tw":"獨旅","zh-yue":"獨遊"}
+    }
+  }
+}

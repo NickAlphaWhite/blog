@@ -1,0 +1,157 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../../components/Layout.astro";
+import Nav from "../../../components/Nav.astro";
+import Footer from "../../../components/Footer.astro";
+import Search from "../../../components/Search.astro";
+import { allRegions, regionMap, langMatcher, getCatsConfig, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../../lib/utils";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  const catsConfig2 = await getCatsConfig();
+  const cats = Object.keys(catsConfig2);
+  const paths: { params: { lang: string; cat: string } }[] = [];
+  for (const lang of allRegions) {
+    const langCode = regionMap[lang] || "zh";
+    const matchLang = langMatcher(langCode);
+    if (posts.some(p => matchLang(p.data.lang))) {
+      for (const cat of cats) {
+        paths.push({ params: { lang, cat } });
+      }
+    }
+  }
+  return paths;
+}
+
+const { lang, cat } = Astro.params;
+const langCode = regionMap[lang] || "zh";
+const matchLang = langMatcher(langCode);
+const catsConfig = await getCatsConfig();
+const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
+const subLabel = (catKey: string, subKey: string) => _subLabel(catKey, subKey, langCode, catsConfig);
+const allPosts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
+const posts = allPosts
+  .filter(p => p.data.category === cat)
+  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
+
+if (posts.length === 0) return Astro.redirect("/");
+
+const categories = Object.keys(catsConfig);
+const byCategory = (c: string) => allPosts.filter(p => p.data.category === c);
+const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
+const subcats = [...new Set(posts.map(p => p.data.subcategory).filter(Boolean))];
+const searchPosts = buildSearchPosts(allPosts, lang, catsConfig, langCode);
+
+const countLabel: Record<string, string> = {
+  zh: " 篇文章", "zh-tw": " 篇文章", "zh-yue": " 篇文章",
+  en: " articles", ja: " 件の記事", ko: "개의 글",
+  fr: " articles", de: " Artikel", es: " artículos",
+  it: " articoli", pt: " artigos", nl: " artikelen",
+  ru: " статей", th: " บทความ",
+};
+const allLabel: Record<string, string> = {
+  zh: "全部", "zh-tw": "全部", "zh-yue": "全部",
+  en: "All", ja: "すべて", ko: "전체",
+  fr: "Tout", de: "Alle", es: "Todo",
+  it: "Tutto", pt: "Tudo", nl: "Alles",
+  ru: "Всё", th: "ทั้งหมด",
+};
+---
+
+<Layout title={`${catLabel(cat)} — NickAlphaWhite`} description={`${catLabel(cat)}${countLabel[langCode] || countLabel.en}`}>
+  <Nav {lang} {categories} {catLabel} {ddObj} activeCat={cat} />
+
+  <Search searchPosts={searchPosts} />
+
+  <div class="cat-header">
+    <h1 class="cat-title">{catLabel(cat)}</h1>
+    <p class="cat-count">{posts.length}{countLabel[langCode] || countLabel.en}</p>
+  </div>
+
+  {subcats.length > 0 && (
+    <div class="sub-tabs" style="max-width:1300px;margin:0 auto;padding:24px 48px 0" id="subTabs">
+      <button class="sub-tab active" data-filter="all">{allLabel[langCode] || allLabel.en}</button>
+      {subcats.map(sub => <button class="sub-tab" data-filter={sub}>{subLabel(cat, sub)}</button>)}
+      <span class="sub-slider" id="subSlider"></span>
+    </div>
+  )}
+
+  <script>
+    (function(){
+      var tabs=document.getElementById('subTabs');
+      if(!tabs)return;
+      var slider=document.getElementById('subSlider');
+      var active=tabs.querySelector('.sub-tab.active');
+      function move(t){if(!t||!slider)return;slider.style.left=t.offsetLeft+'px';slider.style.width=t.offsetWidth+'px'}
+      if(active)move(active);
+      tabs.querySelectorAll('.sub-tab').forEach(function(t){
+        t.addEventListener('click',function(){
+          tabs.querySelectorAll('.sub-tab').forEach(function(b){b.classList.remove('active')});
+          t.classList.add('active');move(t);
+          var filter = t.getAttribute('data-filter');
+          document.querySelectorAll('[data-section]').forEach(function(s){
+            var key = s.getAttribute('data-section');
+            s.style.display = (filter === 'all' || key === filter) ? '' : 'none';
+          });
+        });
+      });
+      window.addEventListener('resize',function(){var a=tabs.querySelector('.sub-tab.active');if(a)move(a)});
+    })();
+  </script>
+
+  <section class="section-wrap">
+    {subcats.length > 0 ? subcats.map((sub, si) => (
+      <div data-section={sub}>
+        <p class="subcat-label">{subLabel(cat, sub)}</p>
+        <div class="scroll-outer">
+          <div class="scroll-container" id={`scroll-${si}`}>
+            <div class="scroll-row" id={`row-${si}`}>
+              {posts.filter(p => p.data.subcategory === sub).map(p => (
+                <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="card">
+                  <div class="card-img">
+                    {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
+                  </div>
+                  <div class="card-body">
+                    <span class="card-tag">{catLabel(p.data.category)}</span>
+                    <h3 class="card-title">{p.data.title}</h3>
+                    {p.data.titleZh && <p class="card-desc">{p.data.titleZh}</p>}
+                  </div>
+                  <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
+                </a>
+              ))}
+            </div>
+            <button class="scroll-arrow arr-left" id={`arrow-${si}-l`} onclick={`scrollRow('row-${si}',-1)`} title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+            <button class="scroll-arrow arr-right" id={`arrow-${si}-r`} onclick={`scrollRow('row-${si}',1)`} title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+          </div>
+        </div>
+      </div>
+    )) : (
+      <div class="scroll-outer">
+        <div class="scroll-container" id="scroll-all">
+          <div class="scroll-row" id="row-all">
+            {posts.map(p => (
+              <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="card"
+                 style="box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04);transition:all .5s"
+                 onmouseover="this.style.transform='translateY(-2px) scale(1.04)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08),0 16px 56px rgba(0,0,0,0.06)'"
+                 onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04)'">
+                <div class="card-img">
+                  {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
+                </div>
+                <div class="card-body">
+                  <span class="card-tag">{catLabel(p.data.category)}</span>
+                  <h3 class="card-title">{p.data.title}</h3>
+                  {p.data.titleZh && <p class="card-desc">{p.data.titleZh}</p>}
+                </div>
+                <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
+              </a>
+            ))}
+          </div>
+          <button class="scroll-arrow arr-left" id="arrow-all-l" onclick="scrollRow('row-all',-1)" title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="scroll-arrow arr-right" id="arrow-all-r" onclick="scrollRow('row-all',1)" title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
+      </div>
+    )}
+  </section>
+
+  <Footer />
+</Layout>

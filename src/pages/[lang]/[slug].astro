@@ -1,0 +1,109 @@
+---
+import { getCollection } from "astro:content";
+import Layout from "../../components/Layout.astro";
+import Nav from "../../components/Nav.astro";
+import Footer from "../../components/Footer.astro";
+import Search from "../../components/Search.astro";
+import { allRegions, regionMap, langMatcher, getCatsConfig, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+
+export async function getStaticPaths() {
+  const posts = await getCollection("posts", ({ data }) => !data.draft);
+  const paths: { params: { lang: string; slug: string } }[] = [];
+  for (const lang of allRegions) {
+    const langCode = regionMap[lang] || "zh";
+    const matchLang = langMatcher(langCode);
+    const langPosts = posts.filter(p => matchLang(p.data.lang));
+    for (const p of langPosts) {
+      paths.push({ params: { lang, slug: p.id.replace(/\.md$/, "") } });
+    }
+  }
+  return paths;
+}
+
+const { lang, slug } = Astro.params;
+const langCode = regionMap[lang] || "zh";
+const matchLang = langMatcher(langCode);
+const catsConfig = await getCatsConfig();
+const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
+const posts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
+const post = posts.find(p => p.id.replace(/\.md$/, "") === slug);
+
+if (!post) return Astro.redirect("/");
+
+const { title, titleZh, date, image, category } = post.data;
+const { Content } = await post.render();
+
+const related = posts.filter(p => p.data.category === category && p.id !== post.id).slice(0, 4);
+const categories = Object.keys(catsConfig);
+const byCategory = (cat: string) => posts.filter(p => p.data.category === cat);
+const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
+const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
+---
+
+<Layout title={title} description={post.body?.slice(0, 200)}>
+  <Nav {lang} {categories} {catLabel} {ddObj} activeCat={category} />
+
+  <Search searchPosts={searchPosts} />
+
+  <article class="article">
+    <a href={`/${lang}/`} class="article-back">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      {({zh:'返回首页','zh-tw':'返回首頁','zh-yue':'返去首頁',en:'Back to Home',ja:'ホームに戻る',ko:'홈으로',fr:'Retour',de:'Zurück'})[langCode] || 'Back to Home'}
+    </a>
+
+    <header class="article-header">
+      <p class="article-cat">{catLabel(category)}</p>
+      <h1 class="article-title">{title}</h1>
+      {titleZh && <p style="font-size:1.2rem;color:var(--txt2);margin-top:-8px;margin-bottom:12px">{titleZh}</p>}
+      <div class="article-meta">
+        <time datetime={date.toISOString()}>{date.toISOString().split("T")[0]}</time>
+        <span>{catLabel(category)}</span>
+      </div>
+    </header>
+
+    {image && (
+      <div class="article-image">
+        <img src={image} alt={title} />
+      </div>
+    )}
+
+    <div class="article-body">
+      <Content />
+    </div>
+
+    <div class="comments-area" id="waline">
+      <p style="color:var(--txt3);font-size:0.85rem;text-align:center;padding:40px">
+        Comments · Powered by <a href="https://waline.js.org" style="color:var(--txt2)">Waline</a>
+      </p>
+    </div>
+  </article>
+
+  {related.length > 0 && (
+    <section class="section-wrap">
+      <h2 class="section-title" style="margin-bottom:20px;padding:0 48px">{({zh:'更多','zh-tw':'更多','zh-yue':'更多',en:'More in ',ja:'もっと見る: ',ko:'더 보기: '})[langCode] || 'More in '}{catLabel(category)}</h2>
+      <div class="scroll-outer">
+        <div class="scroll-container" id="scroll-related">
+          <div class="scroll-row" id="row-related">
+            {related.map(p => (
+              <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="card">
+                <div class="card-img">
+                  {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
+                </div>
+                <div class="card-body">
+                  <span class="card-tag">{catLabel(p.data.category)}</span>
+                  <h3 class="card-title">{p.data.title}</h3>
+                  {p.data.titleZh && <p class="card-desc">{p.data.titleZh}</p>}
+                </div>
+                <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
+              </a>
+            ))}
+          </div>
+          <button class="scroll-arrow arr-left" id="arrow-rel-l" onclick="scrollRow('row-related',-1)" title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="scroll-arrow arr-right" id="arrow-rel-r" onclick="scrollRow('row-related',1)" title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
+      </div>
+    </section>
+  )}
+
+  <Footer />
+</Layout>

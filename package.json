@@ -1,0 +1,17 @@
+{
+  "name": "nickalphawhite-blog",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "node admin-server.mjs & astro dev",
+    "start": "node admin-server.mjs & astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "express": "^5.2.1",
+    "form-data": "^4.0.6",
+    "multer": "^2.2.0"
+  }
+}

@@ -1,0 +1,11 @@
+---
+// Root: detect language and redirect
+const url = new URL(Astro.request.url);
+const lang = url.searchParams.get("lang") || "zh";
+const path = url.searchParams.get("path") || "";
+const regionMap = { zh: "cn", en: "us", ja: "jp", ko: "kr", "zh-tw": "tw", "zh-hk": "hk", gb: "uk", fr: "fr", de: "de" };
+const region = regionMap[lang] || "cn";
+const base = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
+const dest = path ? `${base}/${region}/${path}` : `${base}/${region}/`;
+return Astro.redirect(dest);
+---
