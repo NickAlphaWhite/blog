@@ -147,6 +147,7 @@ if(p.get("e")==="1")document.getElementById("errMsg").classList.add("show");
 
 // ── Routes ─────────────────────────────────────────────────────
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 // Global rate limit
 app.use("/api", rateLimit(RATE_MAX));
