@@ -329,7 +329,7 @@ async function editPost(file){
 async function loadPosts(){
   var el=document.getElementById("postList");if(!el)return;
   try{
-    var res=await fetch("/api/posts"),posts=await res.json(),h="";
+    var res=await fetch("/api/posts?lang="+window.lang),posts=await res.json(),h="";
     if(!posts.length)h='<div class="post-item"><span style="color:var(--txt3)">'+t("noPosts")+'</span></div>';
     else posts.forEach(function(p){
       var lb={zh:"简",'zh-tw':"台",'zh-yue':"粵",en:"EN",ja:"日",ko:"한",fr:"FR",de:"DE",es:"ES",it:"IT",pt:"PT",nl:"NL",ru:"RU",th:"TH"};

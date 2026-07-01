@@ -304,11 +304,13 @@ app.post("/api/publish", sessionAuth, (req, res) => {
 });
 
 // API: List posts (grouped by "group" field for multi-language awareness)
+// Query: ?lang=zh to filter to groups that contain that language
 app.get("/api/posts", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     if (!existsSync(postsDir)) return res.json([]);
     const files = readdirSync(postsDir).filter(f => f.endsWith(".md"));
+    const filterLang = req.query.lang || null;
     const raw = files.map(f => {
       const raw = readFileSync(join(postsDir, f), "utf-8");
       const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
@@ -332,11 +334,17 @@ app.get("/api/posts", sessionAuth, (req, res) => {
     }
 
     // Ensure zh is first in langs, then alphabetical
-    for (const g of Object.values(groups)) {
+    let result = Object.values(groups);
+    for (const g of result) {
       g.langs = [...new Set(g.langs)].sort((a, b) => a === "zh" ? -1 : b === "zh" ? 1 : a < b ? -1 : 1);
     }
 
-    res.json(Object.values(groups));
+    // Filter by language if requested
+    if (filterLang) {
+      result = result.filter(g => g.langs.includes(filterLang));
+    }
+
+    res.json(result);
   } catch (e) {
     res.json([]);
   }
