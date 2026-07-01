@@ -47,7 +47,7 @@ const readLabel: Record<string, string> = {
   <div id="heroGrid"></div>
   <div id="__heroData" style="display:none" data-posts={JSON.stringify(posts.filter(p => p.data.featured).map(p => ({
     title: p.data.title,
-    titleZh: p.data.titleZh || "",
+    subtitle: p.data.subtitle || "",
     category: catLabel(p.data.category),
     image: p.data.image || "",
     url: `/${lang}/${p.id.replace(/\.md$/, "")}`,
@@ -88,7 +88,7 @@ const readLabel: Record<string, string> = {
       if (hero.length) {
         h += '<section class="hero-section">';
         hero.forEach(function(p, i){
-          var zh = p.titleZh ? '<p class="hero-sub">'+esc(p.titleZh)+'</p>' : '';
+          var zh = p.subtitle ? '<p class="hero-sub">'+esc(p.subtitle)+'</p>' : '';
           h += '<a href="'+p.url+'" class="hero-card" onclick="event.preventDefault();var el=this;var r=el.getBoundingClientRect();el.style.top=r.top+\'px\';el.style.left=r.left+\'px\';el.style.width=r.width+\'px\';el.style.height=r.height+\'px\';el.style.position=\'fixed\';el.style.margin=\'0\';requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add(\'zooming\')})});setTimeout(function(){location.href=el.href},700)">';
           if (p.image) h += '<img src="'+p.image+'" alt="'+esc(p.title)+'" loading="'+(i===0?'eager':'lazy')+'" />';
           h += '<div class="hero-mask"></div><div class="hero-content"><p class="hero-tag">'+esc(p.category)+(p.featured?' · Featured':'')+'</p><h1 class="hero-title">'+esc(p.title)+'</h1>'+zh+'<span class="hero-cta">'+(ctas[langCode]||ctas.en)+'</span></div></a>';
@@ -132,7 +132,7 @@ const readLabel: Record<string, string> = {
                 <div class="film-content">
                   <span class="film-cat-tag">{catLabel(p.data.category)}</span>
                   <h2 class="film-title">{p.data.title}</h2>
-                  {p.data.titleZh && <p class="film-sub">{p.data.titleZh}</p>}
+                  {p.data.subtitle && <p class="film-sub">{p.data.subtitle}</p>}
                 </div>
               </a>
             ))}

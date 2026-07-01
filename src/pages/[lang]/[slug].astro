@@ -30,7 +30,7 @@ const post = posts.find(p => p.id.replace(/\.md$/, "") === slug);
 
 if (!post) return Astro.redirect("/");
 
-const { title, titleZh, date, image, category } = post.data;
+const { title, titleZh, subtitle, date, image, category } = post.data;
 const { Content } = await post.render();
 
 const related = posts.filter(p => p.data.category === category && p.id !== post.id).slice(0, 4);
@@ -54,7 +54,7 @@ const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
     <header class="article-header">
       <p class="article-cat">{catLabel(category)}</p>
       <h1 class="article-title">{title}</h1>
-      {titleZh && <p style="font-size:1.2rem;color:var(--txt2);margin-top:-8px;margin-bottom:12px">{titleZh}</p>}
+      {subtitle && <p style="font-size:1.2rem;color:var(--txt2);margin-top:-8px;margin-bottom:12px">{subtitle}</p>}
       <div class="article-meta">
         <time datetime={date.toISOString()}>{date.toISOString().split("T")[0]}</time>
         <span>{catLabel(category)}</span>
@@ -92,7 +92,7 @@ const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
                 <div class="card-body">
                   <span class="card-tag">{catLabel(p.data.category)}</span>
                   <h3 class="card-title">{p.data.title}</h3>
-                  {p.data.titleZh && <p class="card-desc">{p.data.titleZh}</p>}
+                  {p.data.subtitle && <p class="card-desc">{p.data.subtitle}</p>}
                 </div>
                 <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
               </a>
