@@ -139,7 +139,7 @@ a{color:var(--txt);text-decoration:none}
 [data-theme="dark"] .hero-card::after{background:#0a0a0c}
 .hero-card.zooming{
   top:0!important;left:0!important;
-  width:100vw!important;height:100vh!important;
+  width:100%!important;height:100vh!important;
   z-index:200;border-radius:0!important;aspect-ratio:auto!important;
   transition:
     top 0.4s cubic-bezier(0.22,1,0.36,1),

@@ -121,7 +121,7 @@ const readLabel: Record<string, string> = {
     while (picks.length > 3 && picks.length % 2 === 0) picks = picks.slice(0, -1);
     const medianIdx = Math.floor(picks.length / 2);
     const filmId = 'film-all';
-    const filmPad = picks.length < 4 ? '0' : 'calc(50vw - (100vw * 0.7 / 2))';
+    const filmPad = picks.length < 4 ? '0' : '15%';
     return (
       <section class="film-strip" style="position:relative">
         <div class="film-outer" id={filmId}>
