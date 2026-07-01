@@ -334,9 +334,13 @@ async function editPost(file){
     editingFile=file;document.getElementById("editFile").value=file;
     document.getElementById("submitBtn").textContent="更新";
     document.getElementById("cancelEditBtn").style.display="";
-    loadLang(postLang);
+    curLang=postLang;lang=postLang;applyLang();
+    document.getElementById("langSelect").value=postLang;
     langCache[postLang]={title:get("title").replace(/^"|"$/g,""),subtitle:get("subtitle"),content:body.trim()};
-    loadLang(postLang);document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
+    document.getElementById("langTitle").value=langCache[postLang].title||"";
+    document.getElementById("langSubtitle").value=langCache[postLang].subtitle||"";
+    document.getElementById("contentTA").value=langCache[postLang].content||"";
+    document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
   }catch(e){toast("加载失败","err")}
 }
 
