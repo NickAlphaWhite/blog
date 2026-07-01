@@ -331,10 +331,11 @@ async function editPost(file){
     form.date.value=get("date");form.category.value=get("category");
     form.subcategory.value=get("subcategory");form.image.value=get("image");
     form.featured.checked=fm.indexOf("featured: true")>=0;
-    langCache[postLang]={title:get("title").replace(/^"|"$/g,""),subtitle:get("subtitle"),content:body.trim()};
     editingFile=file;document.getElementById("editFile").value=file;
     document.getElementById("submitBtn").textContent="更新";
     document.getElementById("cancelEditBtn").style.display="";
+    loadLang(postLang);
+    langCache[postLang]={title:get("title").replace(/^"|"$/g,""),subtitle:get("subtitle"),content:body.trim()};
     loadLang(postLang);document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
   }catch(e){toast("加载失败","err")}
 }
