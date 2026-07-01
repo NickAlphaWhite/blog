@@ -11,7 +11,7 @@ const app = express();
 // ── Configuration ──────────────────────────────────────────────
 const PORT = process.env.PORT || 3456;
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || crypto.randomBytes(32).toString("hex");
-const SITE_URL = process.env.SITE_URL || "https://nickalphawhite.top";
+const SITE_URL = process.env.SITE_URL || "https://blog.nickalphawhite.top";
 const COOKIE_NAME = "admin_session";
 const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
 

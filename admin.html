@@ -88,7 +88,7 @@ select{-webkit-appearance:none;cursor:pointer}
   <div class="nav-inner">
     <span class="nav-brand" id="navTitle" data-i18n="siteTitle">后台管理</span>
     <div class="nav-right">
-      <a href="https://nickalphawhite.top" class="nav-site" target="_blank" id="viewSiteLink">查看网站</a>
+      <a href="https://blog.nickalphawhite.top" class="nav-site" target="_blank" id="viewSiteLink">查看网站</a>
       <button class="theme-btn" onclick="toggleTheme()">
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -303,7 +303,7 @@ async function loadPosts(){
     if(!posts.length)h='<div class="post-item"><span style="color:var(--txt3)">'+t("noPosts")+'</span></div>';
     else posts.forEach(function(p){
       var lb={zh:"简",'zh-tw':"台",'zh-yue':"粵",en:"EN",ja:"日",ko:"한",fr:"FR",de:"DE",es:"ES",it:"IT",pt:"PT",nl:"NL",ru:"RU",th:"TH"}[p.lang]||"";
-      var regionMap={zh:"cn","zh-tw":"tw","zh-yue":"hk",en:"us",ja:"jp",ko:"kr",fr:"fr",de:"de",es:"es",it:"it",pt:"pt",nl:"nl",ru:"ru",th:"th"};var siteUrl="https://nickalphawhite.top";var region=regionMap[p.lang]||"cn";h+='<div class="post-item"><div><div class="name">'+esc(p.title)+' <span style="font-size:0.75rem;color:var(--txt3);background:var(--bg3);padding:1px 6px;border-radius:4px">'+lb+'</span></div><div class="file">'+esc(p.file)+'</div></div><div class="actions"><a href="'+siteUrl+'/'+region+'/'+p.slug+'" target="_blank" style="padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);color:var(--txt2);text-decoration:none;font-size:0.85rem;font-family:var(--font)">'+t("viewPost")+'</a><button onclick="editPost(\''+esc(p.file)+'\')">'+t("editPost")+'</button><button onclick="delPost(\''+esc(p.file)+'\')">'+t("deletePost")+'</button></div></div>';
+      var regionMap={zh:"cn","zh-tw":"tw","zh-yue":"hk",en:"us",ja:"jp",ko:"kr",fr:"fr",de:"de",es:"es",it:"it",pt:"pt",nl:"nl",ru:"ru",th:"th"};var siteUrl="https://blog.nickalphawhite.top";var region=regionMap[p.lang]||"cn";h+='<div class="post-item"><div><div class="name">'+esc(p.title)+' <span style="font-size:0.75rem;color:var(--txt3);background:var(--bg3);padding:1px 6px;border-radius:4px">'+lb+'</span></div><div class="file">'+esc(p.file)+'</div></div><div class="actions"><a href="'+siteUrl+'/'+region+'/'+p.slug+'" target="_blank" style="padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);color:var(--txt2);text-decoration:none;font-size:0.85rem;font-family:var(--font)">'+t("viewPost")+'</a><button onclick="editPost(\''+esc(p.file)+'\')">'+t("editPost")+'</button><button onclick="delPost(\''+esc(p.file)+'\')">'+t("deletePost")+'</button></div></div>';
     });
     el.innerHTML=h;
   }catch(err){el.innerHTML='<div class="post-item"><span style="color:var(--txt3)">'+t("errorLoading")+'</span></div>'}
