@@ -176,7 +176,7 @@ a{color:var(--txt);text-decoration:none}
 /* ============================================================
    SECTION — full-width strips
    ============================================================ */
-.section-wrap{padding:48px 0;margin:0 auto}
+.section-wrap{padding:48px 0;margin:0 auto;max-width:1300px}
 .section-hd{padding:0 48px;max-width:1300px;margin:0 auto 20px;display:flex;align-items:baseline;justify-content:space-between}
 .section-title{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;color:var(--txt)}
 .section-more{font-size:0.82rem;font-weight:500;color:var(--txt2);display:flex;align-items:center;gap:4px;transition:gap 0.2s var(--ease);white-space:nowrap}
@@ -190,10 +190,10 @@ a{color:var(--txt);text-decoration:none}
 .sub-slider{position:absolute;top:100%;left:0;width:0;height:2px;margin-top:-2px;background:var(--txt);pointer-events:none;will-change:left,width;transition:left 0.35s cubic-bezier(0.22,1,0.36,1),width 0.35s cubic-bezier(0.22,1,0.36,1)}
 
 /* Sub-category label in rows */
-.subcat-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:12px;margin-top:32px;padding:0 48px}
+.subcat-label{font-size:0.85rem;font-weight:600;letter-spacing:-0.01em;color:var(--txt2);margin-bottom:14px;margin-top:36px;padding:0 48px}
 .subcat-label:first-child{margin-top:0}
 .sub-tabs{padding:24px 48px 0!important}
-@media(max-width:768px){.subcat-label{padding:0 20px}.sub-tabs{padding:24px 20px 0!important}}
+@media(max-width:768px){.subcat-label{padding:0 20px;font-size:0.78rem}.sub-tabs{padding:24px 20px 0!important}}
 
 /* ---- Scroll Row + Arrows (for category pages) ---- */
 .scroll-outer{overflow-x:auto;scrollbar-width:none;padding:8px 48px 40px;margin:-8px 0 -40px}
