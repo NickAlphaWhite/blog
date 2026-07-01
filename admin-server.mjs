@@ -2,31 +2,192 @@ import express from "express";
 import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync, unlinkSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import crypto from "node:crypto";
+import { exec } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
-const PORT = 3456;
-const ADMIN_TOKEN = process.env.ADMIN_TOKEN || "nickadmin2026";
+
+// ── Configuration ──────────────────────────────────────────────
+const PORT = process.env.PORT || 3456;
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN || crypto.randomBytes(32).toString("hex");
+const SITE_URL = process.env.SITE_URL || "https://nickalphawhite.top";
+const COOKIE_NAME = "admin_session";
+const COOKIE_MAX_AGE = 7 * 24 * 60 * 60 * 1000; // 7 days
+
+// ── Simple cookie parser ───────────────────────────────────────
+function parseCookies(header) {
+  const map = {};
+  if (!header) return map;
+  header.split(";").forEach(c => {
+    const idx = c.indexOf("=");
+    if (idx > 0) map[c.slice(0, idx).trim()] = c.slice(idx + 1);
+  });
+  return map;
+}
+
+// ── Rate limiter (in-memory) ───────────────────────────────────
+const rateMap = new Map(); // ip → { count, reset }
+const RATE_WINDOW = 60_000;   // 1 minute
+const RATE_MAX = 120;         // max requests per window
+const RATE_LOGIN_MAX = 10;    // max login attempts per window
+
+function rateLimit(max = RATE_MAX) {
+  return (req, res, next) => {
+    const ip = req.ip || req.socket?.remoteAddress || "unknown";
+    const now = Date.now();
+    let entry = rateMap.get(ip);
+    if (!entry || now > entry.reset) {
+      entry = { count: 0, reset: now + RATE_WINDOW };
+      rateMap.set(ip, entry);
+    }
+    entry.count++;
+    res.setHeader("X-RateLimit-Remaining", Math.max(0, max - entry.count));
+    if (entry.count > max) {
+      return res.status(429).json({ error: "Too many requests — slow down" });
+    }
+    next();
+  };
+}
+
+// Clean stale entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [k, v] of rateMap) { if (now > v.reset) rateMap.delete(k); }
+}, 300_000).unref();
 
 // ── Auth middleware ────────────────────────────────────────────
-function auth(req, res, next) {
-  const token = req.query.token || (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+function sessionAuth(req, res, next) {
+  // Accept cookie (set by login) or Authorization header
+  const cookies = parseCookies(req.headers.cookie);
+  const cookieToken = cookies[COOKIE_NAME];
+  const headerToken = (req.headers.authorization || "").replace(/^Bearer\s+/i, "");
+  const token = cookieToken || headerToken;
   if (token !== ADMIN_TOKEN) {
-    return res.status(401).json({ error: "Unauthorized — provide ?token= or Authorization: Bearer" });
+    return res.status(401).json({ error: "Unauthorized" });
   }
   next();
 }
 
+// ── Git helpers ────────────────────────────────────────────────
+function runGit(cmd, cwd = __dirname) {
+  return new Promise((resolve) => {
+    exec(cmd, { cwd, timeout: 30_000 }, (err, stdout, stderr) => {
+      if (err) {
+        console.error(`[git] ${cmd} → ${stderr || err.message}`);
+        resolve(null);
+      } else {
+        resolve(stdout.trim());
+      }
+    });
+  });
+}
+
+async function gitPush(commitMsg) {
+  console.log(`[git] pushing: ${commitMsg}`);
+  await runGit("git add -A");
+  await runGit(`git commit -m "${commitMsg}" --allow-empty`);
+  await runGit("git push origin main");
+  console.log("[git] push complete");
+}
+
+// Fire-and-forget — doesn't block the HTTP response
+function gitPushAsync(commitMsg) {
+  gitPush(commitMsg).catch(e => console.error("[git] push error:", e.message));
+}
+
+// ── Login page (inline) ────────────────────────────────────────
+const LOGIN_HTML = `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Login — NickAlphaWhite</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#f2f2f4;color:#1d1d1f;-webkit-font-smoothing:antialiased}
+@media(prefers-color-scheme:dark){body{background:#0a0a0c;color:#f5f5f7}}
+.card{background:#fff;border-radius:20px;padding:48px 40px;width:100%;max-width:400px;box-shadow:0 1px 3px rgba(0,0,0,.04),0 8px 24px rgba(0,0,0,.08);text-align:center}
+@media(prefers-color-scheme:dark){.card{background:#1c1c1e;box-shadow:0 1px 3px rgba(0,0,0,.2),0 8px 24px rgba(0,0,0,.3)}}
+h1{font-size:1.4rem;font-weight:700;margin-bottom:6px;letter-spacing:-0.02em}
+p.sub{font-size:.85rem;color:#8e8e93;margin-bottom:28px}
+input{width:100%;padding:12px 16px;border:1px solid rgba(0,0,0,.08);border-radius:12px;font-size:.95rem;font-family:inherit;outline:none;text-align:center;background:#f2f2f4;transition:border-color .2s}
+@media(prefers-color-scheme:dark){input{background:#2c2c2e;border-color:rgba(255,255,255,.1);color:#f5f5f7}}
+input:focus{border-color:#1d1d1f}
+@media(prefers-color-scheme:dark){input:focus{border-color:#f5f5f7}}
+button{margin-top:16px;width:100%;padding:12px;background:#1d1d1f;color:#fff;border:none;border-radius:12px;font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;transition:opacity .2s}
+@media(prefers-color-scheme:dark){button{background:#f5f5f7;color:#1d1d1f}}
+button:hover{opacity:.85}
+.err{color:#e74c3c;font-size:.8rem;margin-top:10px;display:none}
+.err.show{display:block}
+.links{margin-top:20px;font-size:.8rem}
+.links a{color:#6e6e73;text-decoration:none}
+.links a:hover{color:#1d1d1f}
+</style>
+</head>
+<body>
+<div class="card">
+<h1>NickAlphaWhite</h1>
+<p class="sub">Admin Panel</p>
+<form method="post" action="/admin/login" id="loginForm">
+<input type="password" name="token" id="tokenInput" placeholder="Enter admin token" autocomplete="off" autofocus>
+<button type="submit">Sign In</button>
+<p class="err" id="errMsg">Invalid token</p>
+</form>
+<div class="links"><a href="${SITE_URL}">← Back to site</a></div>
+</div>
+<script>
+(function(){
+var p=new URLSearchParams(window.location.search);
+if(p.get("e")==="1")document.getElementById("errMsg").classList.add("show");
+})();
+</script>
+</body>
+</html>`;
+
+// ── Routes ─────────────────────────────────────────────────────
 app.use(express.json());
 
-// Serve admin page
+// Global rate limit
+app.use("/api", rateLimit(RATE_MAX));
+
+// Login page
+app.get("/admin/login", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.send(LOGIN_HTML);
+});
+
+// Login handler
+app.post("/admin/login", rateLimit(RATE_LOGIN_MAX), (req, res) => {
+  const token = req.body.token || "";
+  if (token === ADMIN_TOKEN) {
+    res.setHeader(
+      "Set-Cookie",
+      `${COOKIE_NAME}=${ADMIN_TOKEN}; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}; Path=/`
+    );
+    return res.redirect("/admin");
+  }
+  res.redirect("/admin/login?e=1");
+});
+
+// Logout
+app.get("/admin/logout", (req, res) => {
+  res.setHeader("Set-Cookie", `${COOKIE_NAME}=x; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`);
+  res.redirect("/admin/login");
+});
+
+// Admin page (protected)
 app.get(["/admin", "/admin/:lang"], (req, res) => {
+  const cookies = parseCookies(req.headers.cookie);
+  if (cookies[COOKIE_NAME] !== ADMIN_TOKEN) {
+    return res.redirect("/admin/login");
+  }
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(join(__dirname, "admin.html"));
 });
 
 // API: Get single post content
-app.get("/api/posts/:file", (req, res) => {
+app.get("/api/posts/:file", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
@@ -37,7 +198,7 @@ app.get("/api/posts/:file", (req, res) => {
 });
 
 // API: Update post
-app.put("/api/posts/:file", auth, (req, res) => {
+app.put("/api/posts/:file", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
@@ -62,12 +223,13 @@ app.put("/api/posts/:file", auth, (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
     writeFileSync(filePath, frontmatter, "utf-8");
+    gitPushAsync(`Update post: ${req.params.file}`);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // API: Upload image to local public/images
-import multer from "multer"; import crypto from "node:crypto";
+import multer from "multer";
 const uploadDir = join(__dirname, "public", "images");
 if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 const ALLOWED_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "svg", "avif"];
@@ -89,13 +251,14 @@ const upload = multer({
     cb(new Error("Invalid file type — allowed: " + ALLOWED_EXTS.join(", ")));
   }
 });
-app.post("/api/upload", auth, upload.single("image"), (req, res) => {
+app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file" });
+  gitPushAsync(`Upload image: ${req.file.filename}`);
   res.json({ url: "/images/" + req.file.filename });
 });
 
 // API: Publish post
-app.post("/api/publish", auth, (req, res) => {
+app.post("/api/publish", sessionAuth, (req, res) => {
   try {
     const { title, titleZh, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
     if (!title || !category) {
@@ -129,6 +292,7 @@ app.post("/api/publish", auth, (req, res) => {
     const filePath = join(postsDir, `${slug}.md`);
     writeFileSync(filePath, frontmatter, "utf-8");
 
+    gitPushAsync(`Publish: ${slug}`);
     res.json({ ok: true, slug, filePath });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -136,7 +300,7 @@ app.post("/api/publish", auth, (req, res) => {
 });
 
 // API: List posts
-app.get("/api/posts", (req, res) => {
+app.get("/api/posts", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     if (!existsSync(postsDir)) return res.json([]);
@@ -156,12 +320,13 @@ app.get("/api/posts", (req, res) => {
 });
 
 // API: Delete post
-app.delete("/api/posts/:file", auth, (req, res) => {
+app.delete("/api/posts/:file", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
+    gitPushAsync(`Delete post: ${req.params.file}`);
     res.json({ ok: true });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -171,7 +336,7 @@ app.delete("/api/posts/:file", auth, (req, res) => {
 // API: Categories
 const catsPath = join(__dirname, "src", "config", "categories.json");
 
-app.get("/api/categories", (req, res) => {
+app.get("/api/categories", sessionAuth, (req, res) => {
   try {
     if (!existsSync(catsPath)) return res.json({});
     const raw = JSON.parse(readFileSync(catsPath, "utf-8"));
@@ -192,33 +357,36 @@ app.get("/api/categories", (req, res) => {
   } catch (e) { res.json({}); }
 });
 
-app.put("/api/categories", auth, (req, res) => {
+app.put("/api/categories", sessionAuth, (req, res) => {
   try {
     writeFileSync(catsPath, JSON.stringify(req.body, null, 2), "utf-8");
+    gitPushAsync("Update categories");
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post("/api/categories/:name", auth, (req, res) => {
+app.post("/api/categories/:name", sessionAuth, (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     if (cats[req.params.name]) return res.status(400).json({ error: "Category already exists" });
     cats[req.params.name] = { label: { en: req.params.name, zh: req.params.name }, subcategories: req.body.subcategories || {} };
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
+    gitPushAsync(`Add category: ${req.params.name}`);
     res.json({ ok: true, categories: cats });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete("/api/categories/:name", auth, (req, res) => {
+app.delete("/api/categories/:name", sessionAuth, (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     delete cats[req.params.name];
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
+    gitPushAsync(`Delete category: ${req.params.name}`);
     res.json({ ok: true, categories: cats });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post("/api/categories/:name/subcategories", auth, (req, res) => {
+app.post("/api/categories/:name/subcategories", sessionAuth, (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     if (!cats[req.params.name]) return res.status(404).json({ error: "Category not found" });
@@ -230,30 +398,51 @@ app.post("/api/categories/:name/subcategories", auth, (req, res) => {
     }
     cats[req.params.name].subcategories[sub][subLang] = sub;
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
+    gitPushAsync(`Add subcategory: ${req.params.name}/${sub}`);
     res.json({ ok: true, categories: cats });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete("/api/categories/:name/subcategories/:sub", auth, (req, res) => {
+app.delete("/api/categories/:name/subcategories/:sub", sessionAuth, (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     if (!cats[req.params.name]) return res.status(404).json({ error: "Category not found" });
     delete cats[req.params.name].subcategories[req.params.sub];
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
+    gitPushAsync(`Delete subcategory: ${req.params.name}/${req.params.sub}`);
     res.json({ ok: true, categories: cats });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 // API: Admin i18n
 const i18nPath = join(__dirname, "src", "config", "admin-i18n.json");
-app.get("/api/i18n", (req, res) => {
+app.get("/api/i18n", sessionAuth, (req, res) => {
   try {
     if (!existsSync(i18nPath)) return res.json({});
     res.json(JSON.parse(readFileSync(i18nPath, "utf-8")));
   } catch (e) { res.json({}); }
 });
 
-app.listen(PORT, () => {
-  console.log(`\nAdmin: http://localhost:${PORT}/admin`);
-  console.log(`API:   http://localhost:${PORT}/api/publish\n`);
+// API: Public config (no auth needed — for admin page to know site URL)
+app.get("/api/config", (req, res) => {
+  res.json({ siteUrl: SITE_URL });
+});
+
+// Health check
+app.get("/health", (req, res) => res.json({ ok: true }));
+
+// ── Startup ────────────────────────────────────────────────────
+app.listen(PORT, async () => {
+  console.log(`\n🚀 Admin server running on port ${PORT}`);
+  console.log(`   Site: ${SITE_URL}`);
+  console.log(`   Login: http://localhost:${PORT}/admin/login`);
+  console.log(`   Token: ${process.env.ADMIN_TOKEN ? "(from env)" : ADMIN_TOKEN}\n`);
+
+  // Pull latest from git on startup to sync with any changes made elsewhere
+  try {
+    await runGit("git pull origin main");
+    console.log("[git] pulled latest from origin\n");
+  } catch (e) {
+    console.log("[git] could not pull (may be fresh deploy)\n");
+  }
 });

@@ -1,8 +1,9 @@
 ---
-// Admin panel runs on port 3456 (separate server)
+// Admin panel: deployed separately
 import { allRegions } from "../../lib/utils";
 export function getStaticPaths() {
   return allRegions.map(r => ({ params: { lang: r } }));
 }
-return Astro.redirect("http://localhost:3456/admin?site=3000");
+const lang = Astro.params.lang || "";
+return Astro.redirect(`https://admin.nickalphawhite.top/admin/${lang}`);
 ---
