@@ -129,7 +129,7 @@ button:hover{opacity:.85}
 <div class="card">
 <h1>NickAlphaWhite</h1>
 <p class="sub">Admin Panel</p>
-<form method="post" action="/admin/login" id="loginForm">
+<form method="post" action="/login" id="loginForm">
 <input type="password" name="token" id="tokenInput" placeholder="Enter admin token" autocomplete="off" autofocus>
 <button type="submit">Sign In</button>
 <p class="err" id="errMsg">Invalid token</p>
@@ -153,35 +153,38 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/api", rateLimit(RATE_MAX));
 
 // Login page
-app.get("/admin/login", (req, res) => {
+app.get("/login", (req, res) => {
   res.setHeader("Cache-Control", "no-store");
   res.send(LOGIN_HTML);
 });
 
 // Login handler
-app.post("/admin/login", rateLimit(RATE_LOGIN_MAX), (req, res) => {
+app.post("/login", rateLimit(RATE_LOGIN_MAX), (req, res) => {
   const token = (req.body.token || "").trim();
   if (token === ADMIN_TOKEN.trim()) {
     res.setHeader(
       "Set-Cookie",
       `${COOKIE_NAME}=${ADMIN_TOKEN}; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}; Path=/`
     );
-    return res.redirect("/admin");
+    return res.redirect("/");
   }
-  res.redirect("/admin/login?e=1");
+  res.redirect("/login?e=1");
 });
 
 // Logout
-app.get("/admin/logout", (req, res) => {
+app.get("/logout", (req, res) => {
   res.setHeader("Set-Cookie", `${COOKIE_NAME}=x; HttpOnly; Secure; SameSite=Lax; Max-Age=0; Path=/`);
-  res.redirect("/admin/login");
+  res.redirect("/login");
 });
 
+// Health check
+app.get("/health", (req, res) => res.json({ ok: true }));
+
 // Admin page (protected)
-app.get(["/admin", "/admin/:lang"], (req, res) => {
+app.get(["/", "/:lang"], (req, res) => {
   const cookies = parseCookies(req.headers.cookie);
   if (cookies[COOKIE_NAME] !== ADMIN_TOKEN) {
-    return res.redirect("/admin/login");
+    return res.redirect("/login");
   }
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(join(__dirname, "admin.html"));
@@ -429,14 +432,11 @@ app.get("/api/config", (req, res) => {
   res.json({ siteUrl: SITE_URL });
 });
 
-// Health check
-app.get("/health", (req, res) => res.json({ ok: true }));
-
 // ── Startup ────────────────────────────────────────────────────
 app.listen(PORT, async () => {
   console.log(`\n🚀 Admin server running on port ${PORT}`);
   console.log(`   Site: ${SITE_URL}`);
-  console.log(`   Login: http://localhost:${PORT}/admin/login`);
+  console.log(`   Login: http://localhost:${PORT}/login`);
   const tokPreview = ADMIN_TOKEN.length > 8 ? `${ADMIN_TOKEN.slice(0,4)}...${ADMIN_TOKEN.slice(-4)}` : "***";
   console.log(`   Token: ${tokPreview}\n`);
 

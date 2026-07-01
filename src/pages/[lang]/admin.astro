@@ -5,5 +5,5 @@ export function getStaticPaths() {
   return allRegions.map(r => ({ params: { lang: r } }));
 }
 const lang = Astro.params.lang || "";
-return Astro.redirect(`https://admin.nickalphawhite.top/admin/${lang}`);
+return Astro.redirect(`https://admin.nickalphawhite.top/${lang}`);
 ---
