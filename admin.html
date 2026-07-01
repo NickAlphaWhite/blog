@@ -332,13 +332,16 @@ async function loadPosts(){
     var res=await fetch("/api/posts"),posts=await res.json(),h="";
     if(!posts.length)h='<div class="post-item"><span style="color:var(--txt3)">'+t("noPosts")+'</span></div>';
     else posts.forEach(function(p){
-      var lb={zh:"简",'zh-tw':"台",'zh-yue':"粵",en:"EN",ja:"日",ko:"한",fr:"FR",de:"DE",es:"ES",it:"IT",pt:"PT",nl:"NL",ru:"RU",th:"TH"}[p.lang]||"";
-      var regionMap={zh:"cn","zh-tw":"tw","zh-yue":"hk",en:"us",ja:"jp",ko:"kr",fr:"fr",de:"de",es:"es",it:"it",pt:"pt",nl:"nl",ru:"ru",th:"th"};var siteUrl="https://blog.nickalphawhite.top";var region=regionMap[p.lang]||"cn";h+='<div class="post-item"><div><div class="name">'+esc(p.title)+' <span style="font-size:0.75rem;color:var(--txt3);background:var(--bg3);padding:1px 6px;border-radius:4px">'+lb+'</span></div><div class="file">'+esc(p.file)+'</div></div><div class="actions"><a href="'+siteUrl+'/'+region+'/'+p.slug+'" target="_blank" style="padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);color:var(--txt2);text-decoration:none;font-size:0.85rem;font-family:var(--font)">'+t("viewPost")+'</a><button onclick="editPost(\''+esc(p.file)+'\')">'+t("editPost")+'</button><button onclick="delPost(\''+esc(p.file)+'\')">'+t("deletePost")+'</button></div></div>';
+      var lb={zh:"简",'zh-tw':"台",'zh-yue':"粵",en:"EN",ja:"日",ko:"한",fr:"FR",de:"DE",es:"ES",it:"IT",pt:"PT",nl:"NL",ru:"RU",th:"TH"};
+      var regionMap={zh:"cn","zh-tw":"tw","zh-yue":"hk",en:"us",ja:"jp",ko:"kr",fr:"fr",de:"de",es:"es",it:"it",pt:"pt",nl:"nl",ru:"ru",th:"th"};
+      var siteUrl="https://blog.nickalphawhite.top";var region=regionMap[p.langs[0]]||"cn";
+      var badges=p.langs.map(function(l){return '<span style="font-size:0.7rem;color:var(--txt3);background:var(--bg3);padding:1px 5px;border-radius:3px;margin-left:2px">'+(lb[l]||l)+'</span>'}).join("");
+      h+='<div class="post-item"><div><div class="name">'+esc(p.titleZh||p.title)+badges+'</div><div class="file">'+esc(p.file)+' · '+p.langs.length+' lang(s)</div></div><div class="actions"><a href="'+siteUrl+'/'+region+'/'+p.slug+'" target="_blank" style="padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);color:var(--txt2);text-decoration:none;font-size:0.85rem;font-family:var(--font)">'+t("viewPost")+'</a><button onclick="editPost(\''+esc(p.file)+'\')">'+t("editPost")+'</button><button onclick="delPost(\''+esc(p.file)+'\',\''+esc(p.group||"")+'\')">'+t("deletePost")+'</button></div></div>';
     });
     el.innerHTML=h;
   }catch(err){el.innerHTML='<div class="post-item"><span style="color:var(--txt3)">'+t("errorLoading")+'</span></div>'}
 }
-async function delPost(file){if(!confirm("确认删除?"))return;await fetch("/api/posts/"+encodeURIComponent(file),{method:"DELETE"});loadPosts();toast("已删除")}
+async function delPost(file,group){if(!confirm("确认删除全部语言版本?"))return;var url="/api/posts/"+encodeURIComponent(file);if(group)url+="?group="+encodeURIComponent(group);await fetch(url,{method:"DELETE"});loadPosts();toast("已删除")}
 
 async function loadCats(){
   var el=document.getElementById("catList");if(!el)return;

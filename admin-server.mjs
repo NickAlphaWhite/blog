@@ -303,30 +303,67 @@ app.post("/api/publish", sessionAuth, (req, res) => {
   }
 });
 
-// API: List posts
+// API: List posts (grouped by "group" field for multi-language awareness)
 app.get("/api/posts", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     if (!existsSync(postsDir)) return res.json([]);
     const files = readdirSync(postsDir).filter(f => f.endsWith(".md"));
-    const posts = files.map(f => {
+    const raw = files.map(f => {
       const raw = readFileSync(join(postsDir, f), "utf-8");
-      const match = raw.match(/^---\n([\s\S]*?)\n---/);
-      const fm = match ? match[1] : "";
-      const title = fm.match(/title:\s*"(.*)"/)?.[1] || f;
-      const lang = fm.match(/lang:\s*"?(\w+)"?/)?.[1] || "zh";
-      return { slug: f.replace(/\.md$/, ""), title, lang, file: f };
+      const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
+      return {
+        file: f,
+        slug: f.replace(/\.md$/, ""),
+        title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
+        titleZh: fm.match(/titleZh:\s*"(.*)"/)?.[1] || "",
+        lang: fm.match(/lang:\s*"?(\w+)"?/)?.[1] || "zh",
+        group: fm.match(/group:\s*"?(\S+)"?/)?.[1] || "",
+        date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",
+      };
     });
-    res.json(posts);
+
+    // Group by group field (fallback to slug base if no group)
+    const groups = {};
+    for (const p of raw) {
+      const key = p.group || p.slug.replace(/\.\w+$/, "");
+      if (!groups[key]) groups[key] = { title: p.title, titleZh: p.titleZh, date: p.date, slug: p.slug, file: p.file, group: key, langs: [] };
+      groups[key].langs.push(p.lang);
+    }
+
+    // Ensure zh is first in langs, then alphabetical
+    for (const g of Object.values(groups)) {
+      g.langs = [...new Set(g.langs)].sort((a, b) => a === "zh" ? -1 : b === "zh" ? 1 : a < b ? -1 : 1);
+    }
+
+    res.json(Object.values(groups));
   } catch (e) {
     res.json([]);
   }
 });
 
-// API: Delete post
+// API: Delete post (accepts ?group= to delete all language files in a group)
 app.delete("/api/posts/:file", sessionAuth, (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
+    const group = req.query.group;
+    if (group) {
+      // Delete all files in the group
+      const files = readdirSync(postsDir).filter(f => f.endsWith(".md"));
+      let deleted = 0;
+      for (const f of files) {
+        const raw = readFileSync(join(postsDir, f), "utf-8");
+        const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
+        const g = fm.match(/group:\s*"?(\S+)"?/)?.[1] || "";
+        const base = f.replace(/\.md$/, "").replace(/\.\w+$/, "");
+        if (g === group || base === group) {
+          unlinkSync(join(postsDir, f));
+          deleted++;
+        }
+      }
+      gitPushAsync(`Delete group: ${group} (${deleted} files)`);
+      return res.json({ ok: true, deleted });
+    }
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
