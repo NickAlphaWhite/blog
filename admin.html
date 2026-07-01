@@ -119,10 +119,7 @@ select{-webkit-appearance:none;cursor:pointer}
           <!-- RIGHT COLUMN -->
           <div style="flex:1;display:flex;flex-direction:column;gap:16px">
             <div class="sel"><span data-i18n="date">日期</span><input name="date" type="date" id="dateField"></div>
-            <div class="sel"><span data-i18n="category">分类</span><select name="category" required>
-              <option value="">请选择</option>
-              <option>Card</option><option>Aviation</option><option>Drinks</option><option>Odor</option>
-              <option>Gastronomy</option><option>Design</option><option>Music</option><option>Literature</option><option>Visual</option><option>Travel</option>
+            <div class="sel"><span data-i18n="category">分类</span><select name="category" id="catSelect" required><option value="">请选择</option>
             </select></div>
             <div class="sel"><span data-i18n="subcategory">子分类</span><select name="subcategory" id="subcatSelect"><option value="">请选择</option></select></div>
             <div class="sel"><span data-i18n="coverImage">封面图片</span><div style="display:flex;gap:8px"><input name="image" type="text" placeholder="粘贴图片链接或上传" style="flex:1" data-i18n-placeholder="coverImagePlaceholder"><button type="button" class="btn ghost" onclick="document.getElementById('imageUpload').click()" style="white-space:nowrap;font-size:0.85rem;padding:10px 16px" data-i18n="upload">上传</button><input type="file" id="imageUpload" accept="image/*" style="display:none"></div></div>
@@ -249,8 +246,9 @@ document.getElementById("contentImageUpload").addEventListener("change",async fu
 });
 
 var allCats={};
-(async function(){try{var r=await fetch("/api/categories");allCats=await r.json()}catch(e){}})();
-document.querySelector('select[name="category"]').addEventListener("change",function(){
+(async function(){try{var r=await fetch("/api/categories");allCats=await r.json();populateCatSelect()}catch(e){}})();
+function populateCatSelect(){var sel=document.getElementById("catSelect");if(!sel)return;var ph=sel.querySelector("option");sel.innerHTML="";if(ph)sel.appendChild(ph);Object.keys(allCats).sort().forEach(function(c){var label=allCats[c].label||{};var name=label[lang]||label.zh||label.en||c;sel.innerHTML+='<option value="'+esc(c)+'">'+esc(name)+'</option>'});}
+document.getElementById("catSelect").addEventListener("change",function(){
   var sel=this.value,sub=document.getElementById("subcatSelect");
   sub.innerHTML='<option value="">'+t("subcategoryPlaceholder")+'</option>';
   if(allCats[sel]&&allCats[sel].subcategories)Object.keys(allCats[sel].subcategories).forEach(function(s){sub.innerHTML+='<option value="'+s+'">'+s+'</option>'});
