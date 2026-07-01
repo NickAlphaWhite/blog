@@ -13,7 +13,7 @@ const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, show
 ---
 <nav class="nav">
   <div class="nav-inner">
-    <a href={`/${lang}/`} class="nav-brand"><img src="/logo.png" class="logo-light-img" alt="NickAlphaWhite" /><img src="/logo-light.png" class="logo-dark-img" alt="NickAlphaWhite" /></a>
+    <a href={`/${lang}/`} class="nav-brand"><img src="/logo.png" id="logoLight" alt="NickAlphaWhite" /><img src="/logo-light.png" id="logoDark" alt="NickAlphaWhite" style="display:none" /></a>
     <!-- Desktop links — hidden on mobile -->
     {categories.map(cat => (
       <a href={`/${lang}/category/${cat}`} class={`nav-link${cat === activeCat ? " active" : ""}`} data-cat={cat}>{catLabel(cat)}</a>
@@ -92,11 +92,6 @@ const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, show
   };
 </script>
 
-<style is:global>
-  .logo-dark-img{display:none}
-  [data-theme="dark"] .logo-light-img{display:none}
-  [data-theme="dark"] .logo-dark-img{display:inline}
-</style>
 <style>
 /* Hamburger button */
 .hamburger{display:none;width:36px;height:36px;border:none;background:transparent;cursor:pointer;flex-direction:column;align-items:center;justify-content:center;gap:5px;padding:6px;border-radius:50%;transition:background 0.2s var(--ease)}

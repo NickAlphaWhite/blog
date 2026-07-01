@@ -65,7 +65,18 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           n = c === "dark" ? "light" : "dark";
         document.documentElement.setAttribute("data-theme", n);
         localStorage.setItem("theme", n);
+        var ll=document.getElementById("logoLight"),ld=document.getElementById("logoDark");
+        if(ll)ll.style.display=n==="dark"?"none":"";
+        if(ld)ld.style.display=n==="dark"?"":"none";
       };
+
+      // Init logo visibility on load
+      (function(){
+        var t=document.documentElement.getAttribute("data-theme");
+        var ll=document.getElementById("logoLight"),ld=document.getElementById("logoDark");
+        if(ll)ll.style.display=t==="dark"?"none":"";
+        if(ld)ld.style.display=t==="dark"?"":"none";
+      })();
 
       // Language — region-based display names
       var regionNames={cn:'中国大陆',us:'United States',jp:'日本',kr:'대한민국',tw:'台灣',hk:'香港',uk:'United Kingdom',fr:'France',de:'Deutschland',es:'España',it:'Italia',pt:'Portugal',th:'ประเทศไทย',ca:'Canada',au:'Australia',nl:'Nederland',ru:'Россия',br:'Brasil',mx:'México',in:'India',ae:'الإمارات العربية المتحدة',za:'South Africa',pr:'Puerto Rico'};

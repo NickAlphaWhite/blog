@@ -125,9 +125,13 @@ select{-webkit-appearance:none;cursor:pointer}
             <div class="sel"><span data-i18n="coverImage">封面图片</span><div style="display:flex;gap:8px"><input name="image" type="text" placeholder="粘贴图片链接或上传" style="flex:1" data-i18n-placeholder="coverImagePlaceholder"><button type="button" class="btn ghost" onclick="document.getElementById('imageUpload').click()" style="white-space:nowrap;font-size:0.85rem;padding:10px 16px" data-i18n="upload">上传</button><input type="file" id="imageUpload" accept="image/*" style="display:none"></div></div>
           </div>
         </div>
-        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
-          <button type="button" class="btn ghost" onclick="document.getElementById('contentImageUpload').click()" style="font-size:0.8rem;padding:6px 12px" data-i18n="insertImage">🖼 插入图片</button>
-          <span style="font-size:0.75rem;color:var(--txt3)">上传后自动插入 Markdown</span>
+        <div style="display:flex;gap:4px;align-items:center;margin-bottom:6px;flex-wrap:wrap">
+          <button type="button" class="btn ghost" onclick="mdInsert('**','**','粗体')" style="font-size:0.75rem;padding:5px 8px" title="粗体">B</button>
+          <button type="button" class="btn ghost" onclick="mdInsert('*','*','斜体')" style="font-size:0.75rem;padding:5px 8px;font-style:italic" title="斜体">I</button>
+          <button type="button" class="btn ghost" onclick="mdInsert('### ','','标题')" style="font-size:0.75rem;padding:5px 8px" title="标题">H</button>
+          <button type="button" class="btn ghost" onclick="mdInsert('[','](url)','链接')" style="font-size:0.75rem;padding:5px 8px" title="链接">🔗</button>
+          <button type="button" class="btn ghost" onclick="mdInsert('- ','','列表')" style="font-size:0.75rem;padding:5px 8px" title="列表">≡</button>
+          <button type="button" class="btn ghost" onclick="document.getElementById('contentImageUpload').click()" style="font-size:0.75rem;padding:5px 8px" title="插入图片">🖼</button>
           <input type="file" id="contentImageUpload" accept="image/*" style="display:none">
         </div>
         <textarea name="content" id="contentTA" placeholder="正文（Markdown）" data-i18n-placeholder="contentPlaceholder" style="min-height:400px;padding:14px;border:1px solid var(--hairline);border-radius:10px;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:1rem;line-height:1.7;resize:vertical;outline:none"></textarea>
@@ -218,6 +222,15 @@ document.getElementById("imageUpload").addEventListener("change",async function(
   try{var r=await fetch("/api/upload",{method:"POST",body:fd});var j=await r.json();if(j.url)document.querySelector('input[name="image"]').value=j.url}catch(e){}
 });
 
+// Markdown toolbar helper
+function mdInsert(before,after,placeholder){
+  var ta=document.getElementById("contentTA"),start=ta.selectionStart,end=ta.selectionEnd;
+  var sel=ta.value.slice(start,end)||placeholder;
+  ta.value=ta.value.slice(0,start)+before+sel+after+ta.value.slice(end);
+  ta.selectionStart=start+before.length;
+  ta.selectionEnd=start+before.length+sel.length;
+  ta.focus();
+}
 // Content image upload — insert ![](url) at cursor position
 document.getElementById("contentImageUpload").addEventListener("change",async function(){
   var file=this.files[0];if(!file)return;
