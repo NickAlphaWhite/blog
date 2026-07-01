@@ -278,17 +278,39 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   var zhTitle=data.titleZh,date=data.date||new Date().toISOString().split("T")[0];
   if(!zhTitle)return toast("中文标题不能为空","err");
   var base=zhTitle.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  var slug=date+"-"+base,ok=0;
+  var slug=date+"-"+base,ok=0,errs=[],isEdit=!!editingFile;
+
+  // Build file list for update mode
+  var fileMap={};
+  if(isEdit){
+    var knownLangs=["zh-tw","zh-yue","en","ja","ko","fr","de","es","it","pt","nl","ru","th"];
+    var fnBase=editingFile.replace(/\.md$/,"");
+    for(var k=0;k<knownLangs.length;k++){if(fnBase.endsWith("."+knownLangs[k])){fnBase=fnBase.slice(0,-(knownLangs[k].length+1));break}}
+    for(var i=0;i<allLangs.length;i++){var l=allLangs[i];fileMap[l]=l==="zh"?fnBase+".md":fnBase+"."+l+".md"}
+  }
+
   for(var i=0;i<allLangs.length;i++){
     var l=allLangs[i],c=langCache[l];
     if(!c.title&&!c.content&&l!=="zh"&&l!=="zh-tw"&&l!=="zh-yue"&&l!=="en")continue;
     var pd={title:l==="zh"?zhTitle:c.title||zhTitle,titleZh:zhTitle,subtitle:c.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,lang:l,image:data.image,content:c.content,featured:data.featured,group:groupSlug||slug};
-    var url=editingFile&&l===curLang?"/api/posts/"+encodeURIComponent(editingFile):"/api/publish";
-    var res=await fetch(url,{method:editingFile?"PUT":"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(pd)});
-    var j=await res.json();if(j.ok)ok++;
+    var url,method;
+    if(isEdit){
+      url="/api/posts/"+encodeURIComponent(fileMap[l]);
+      method="PUT";
+    } else {
+      url="/api/publish";
+      method="POST";
+    }
+    try{
+      var res=await fetch(url,{method:method,headers:{"Content-Type":"application/json"},body:JSON.stringify(pd)});
+      var j=await res.json();
+      if(j.ok){ok++}else{errs.push(j.error||"unknown")}
+    }catch(e){errs.push(e.message)}
   }
-  if(ok)toast("已发布 "+ok+" 个语言版本");else toast("发布失败","err");
-  if(!editingFile){resetEditor();document.getElementById("masterTitle").value="";document.getElementById("dateField").value=new Date().toISOString().split("T")[0]}
+  if(ok)toast((isEdit?"已更新":"已发布")+" "+ok+" 个语言版本"+(errs.length?"，"+errs.length+" 个失败":""));
+  else toast((isEdit?"更新":"发布")+"失败"+(errs.length?": "+errs[0]:""),"err");
+  if(isEdit)editingFile=fileMap[curLang];
+  else{resetEditor();document.getElementById("masterTitle").value="";document.getElementById("dateField").value=new Date().toISOString().split("T")[0]}
 });
 function resetEditor(){
   curLang="zh";
