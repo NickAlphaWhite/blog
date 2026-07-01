@@ -4,11 +4,23 @@ import { getCollection } from "astro:content";
 export const regionMap: Record<string, string> = {
   cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue",
   uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt", th: "th",
-  ca: "en", au: "en", nl: "nl", ru: "ru", br: "pt", mx: "es",
+  ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru", br: "pt", mx: "es",
   in: "en", ae: "en", za: "en", pr: "es",
 };
 
 export const allRegions = Object.keys(regionMap);
+
+// Deduplicated language codes
+export const allLangs = [...new Set(Object.values(regionMap))];
+
+// Language labels (for chooser pages)
+export const langLabels: Record<string, string> = {
+  zh: "简体中文", "zh-tw": "繁體中文", "zh-yue": "粵語",
+  en: "English", ja: "日本語", ko: "한국어",
+  fr: "Français", de: "Deutsch", es: "Español",
+  it: "Italiano", pt: "Português", nl: "Nederlands",
+  ru: "Русский", th: "ไทย",
+};
 
 /**
  * zh-yue / zh-tw should also match zh posts (fallback).

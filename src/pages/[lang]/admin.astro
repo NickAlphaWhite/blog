@@ -1,9 +1,9 @@
 ---
 // Admin panel: deployed separately
-import { allRegions } from "../../lib/utils";
+import { allLangs } from "../../lib/utils";
 export function getStaticPaths() {
-  return allRegions.map(r => ({ params: { lang: r } }));
+  return allLangs.map(l => ({ params: { lang: l } }));
 }
-const lang = Astro.params.lang || "";
+const lang = Astro.params.lang || "zh";
 return Astro.redirect(`https://admin.nickalphawhite.top/${lang}`);
 ---

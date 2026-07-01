@@ -169,7 +169,7 @@ select{-webkit-appearance:none;cursor:pointer}
 <script>
 var i18n={},lang="zh",curLang="zh";
 var m=location.pathname.match(/^\/(\w+)/);
-if(m){var rm={cn:"zh",us:"en",jp:"ja",kr:"ko",tw:"zh-tw",hk:"zh-yue",uk:"en",fr:"fr",de:"de",es:"es",it:"it",pt:"pt",nl:"nl",ru:"ru",th:"th",ca:"en",au:"en",br:"pt",mx:"es",in:"en",ae:"en",za:"en",pr:"es"};lang=rm[m[1]]||"zh";curLang=lang}
+if(m){var knownLangs=["zh","en","ja","ko","zh-tw","zh-yue","fr","de","es","it","pt","nl","ru","th"];var seg=m[1];lang=knownLangs.includes(seg)?seg:"zh";curLang=lang}
 window.lang=lang;
 var langNames={zh:"简体中文","zh-tw":"繁體中文（台灣）","zh-yue":"粵語（港澳）",en:"English",ja:"日本語",ko:"한국어",fr:"Français",de:"Deutsch",es:"Español",it:"Italiano",pt:"Português",nl:"Nederlands",ru:"Русский",th:"ไทย"};
 var allLangs=["zh","zh-tw","zh-yue","en","ja","ko","fr","de","es","it","pt","nl","ru","th"];
@@ -264,8 +264,7 @@ var langCache={zh:{title:"",subtitle:"",content:""},"zh-tw":{title:"",subtitle:"
 function saveCurrent(){langCache[curLang]={title:document.getElementById("langTitle").value,subtitle:document.getElementById("langSubtitle").value,content:document.getElementById("contentTA").value}}
 function loadLang(l){
   saveCurrent();curLang=l;lang=l;applyLang();
-  var rm2={zh:"cn","zh-tw":"tw","zh-yue":"hk",en:"us",ja:"jp",ko:"kr",fr:"fr",de:"de",es:"es",it:"it",pt:"pt",nl:"nl",ru:"ru",th:"th"};
-  var newUrl=location.pathname.replace(/\/\w*\/?$/,"/"+(rm2[l]||l)+"/");
+  var newUrl=location.pathname.replace(/\/\w*\/?$/,"/"+l+"/");
   if(newUrl!==location.pathname)history.replaceState(null,"",newUrl);
   document.getElementById("langTitle").value=langCache[l].title||"";
   document.getElementById("langSubtitle").value=langCache[l].subtitle||"";

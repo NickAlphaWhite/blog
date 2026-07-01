@@ -1,0 +1,27 @@
+---
+import Layout from "../../components/Layout.astro";
+import Footer from "../../components/Footer.astro";
+import { allLangs, langLabels } from "../../lib/utils";
+---
+
+<Layout title="Choose Language — NickAlphaWhite">
+  <style>
+    .lang-chooser{max-width:600px;margin:80px auto;padding:0 24px;text-align:center}
+    .lang-chooser h1{font-size:1.8rem;font-weight:700;margin-bottom:8px;letter-spacing:-0.03em}
+    .lang-chooser .sub{color:var(--txt2);margin-bottom:36px;font-size:0.95rem}
+    .lang-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+    .lang-btn{display:flex;align-items:center;justify-content:center;padding:16px 12px;background:var(--card);border:1px solid var(--hairline);border-radius:12px;color:var(--txt);text-decoration:none;font-size:0.95rem;font-weight:500;transition:all 0.2s}
+    .lang-btn:hover{background:var(--bg3);transform:translateY(-1px);box-shadow:0 4px 12px rgba(0,0,0,0.06)}
+    [data-theme="dark"] .lang-btn:hover{box-shadow:0 4px 12px rgba(0,0,0,0.2)}
+  </style>
+  <div class="lang-chooser">
+    <h1>Choose Language</h1>
+    <p class="sub">Select your preferred language</p>
+    <div class="lang-grid">
+      {allLangs.map(l => (
+        <a href={`/${l}/`} class="lang-btn">{langLabels[l] || l}</a>
+      ))}
+    </div>
+  </div>
+  <Footer />
+</Layout>
