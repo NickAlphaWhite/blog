@@ -13,7 +13,7 @@ const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, show
 ---
 <nav class="nav">
   <div class="nav-inner">
-    <a href={`/${lang}/`} class="nav-brand"><img src="/logo.png" alt="NickAlphaWhite" /></a>
+    <a href={`/${lang}/`} class="nav-brand"><img src="/logo.png" class="logo-light-img" alt="NickAlphaWhite" /><img src="/logo-light.png" class="logo-dark-img" alt="NickAlphaWhite" /></a>
     <!-- Desktop links — hidden on mobile -->
     {categories.map(cat => (
       <a href={`/${lang}/category/${cat}`} class={`nav-link${cat === activeCat ? " active" : ""}`} data-cat={cat}>{catLabel(cat)}</a>
@@ -115,6 +115,10 @@ const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, show
   .nav-inner{padding:0 20px;gap:12px;justify-content:flex-start}
   .nav-link{display:none}
   .nav-brand{flex:1}
+  .nav-brand img{height:24px;width:auto}
+  .logo-dark-img{display:none}
+  [data-theme="dark"] .logo-light-img{display:none}
+  [data-theme="dark"] .logo-dark-img{display:inline}
   .hamburger{display:flex}
   .nav-dropdown,.nav-backdrop{display:none!important}
 }
