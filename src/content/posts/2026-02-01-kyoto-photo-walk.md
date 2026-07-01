@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200"
 category: "Visual"
 subcategory: "Photography"
 tags: ["kyoto", "photography", "street", "leica"]
-featured: false
+featured: true
 ---
 
 带着 Leica M6 和一卷 Portra 400，在京都走了三天。

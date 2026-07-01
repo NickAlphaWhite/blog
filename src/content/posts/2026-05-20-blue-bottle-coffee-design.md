@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"
 category: "Design"
 subcategory: "Branding"
 tags: ["blue-bottle", "branding", "coffee", "design"]
-featured: false
+featured: true
 ---
 
 Blue Bottle 不是卖咖啡的，是卖「减法」的。

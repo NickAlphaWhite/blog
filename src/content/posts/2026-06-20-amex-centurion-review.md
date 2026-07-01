@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200"
 category: "Card"
 subcategory: "Credit"
 tags: ["amex", "centurion", "black-card", "credit"]
-featured: false
+featured: true
 ---
 
 百夫长黑卡——信用卡世界的传说。邀请制，年费 ¥38,888，值不值？

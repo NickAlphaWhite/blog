@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200"
 category: "Card"
 subcategory: "Credit"
 tags: ["chase", "sapphire-reserve", "credit-card", "travel"]
-featured: false
+featured: true
 ---
 
 年费 $550 的 Chase Sapphire Reserve，2026 年权益变化分析。

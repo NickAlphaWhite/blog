@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200"
 category: "Travel"
 subcategory: "Solo Travel"
 tags: ["tokyo", "solo-travel", "japan", "guide"]
-featured: false
+featured: true
 ---
 
 东京是最适合独旅的城市。安全、便利、永远不会无聊。

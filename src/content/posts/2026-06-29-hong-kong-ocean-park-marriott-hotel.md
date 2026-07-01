@@ -7,6 +7,6 @@ image: "/images/3878b6347794b106.webp"
 category: "Hotel"
 subcategory: "Hotel Reviews"
 tags: []
-featured: false
+featured: true
 ---
 1

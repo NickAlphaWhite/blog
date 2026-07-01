@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200"
 category: "Design"
 subcategory: "Typography"
 tags: ["design", "dark-mode", "typography", "ui"]
-featured: false
+featured: true
 ---
 
 暗色模式不是简单地把白色背景改成黑色。

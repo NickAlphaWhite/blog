@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200"
 category: "Aviation"
 subcategory: "Trip Reports"
 tags: ["singapore-airlines", "a380", "suites", "first-class"]
-featured: false
+featured: true
 ---
 
 新航 A380 全新套房体验：上海浦东至新加坡樟宜。

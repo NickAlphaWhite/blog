@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200"
 category: "Gastronomy"
 subcategory: "Fine Dining"
 tags: ["noma", "kyoto", "michelin", "fine-dining"]
-featured: false
+featured: true
 ---
 
 René Redzepi 携 Noma 团队在京都东福寺旁开设的为期三个月的快闪餐厅。

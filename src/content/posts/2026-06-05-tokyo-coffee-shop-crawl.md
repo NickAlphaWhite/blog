@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"
 category: "Gastronomy"
 subcategory: "Cafés"
 tags: ["tokyo", "coffee", "cafes", "japan"]
-featured: false
+featured: true
 ---
 
 东京是全球咖啡馆密度最高的城市之一。

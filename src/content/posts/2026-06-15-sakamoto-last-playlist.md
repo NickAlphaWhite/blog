@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200"
 category: "Music"
 subcategory: "Pop"
 tags: ["sakamoto", "japanese", "piano", "ambient"]
-featured: false
+featured: true
 ---
 
 2023 年教授离世前，在《GQ》留下了一份病中播放列表。

@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1200"
 category: "Literature"
 subcategory: "Book Reviews"
 tags: ["murakami", "norwegian-wood", "japanese-literature", "review"]
-featured: false
+featured: true
 ---
 
 1987 年出版，2026 年重读，感受完全不同。

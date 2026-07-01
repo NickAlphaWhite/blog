@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200"
 category: "Gastronomy"
 subcategory: "Street Food"
 tags: ["bangkok", "street-food", "thailand", "guide"]
-featured: false
+featured: true
 ---
 
 曼谷街头是全世界最好的开放式厨房。三天，九顿，不走回头路。

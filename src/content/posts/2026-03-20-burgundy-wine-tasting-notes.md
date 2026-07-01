@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1200"
 category: "Drinks"
 subcategory: "Wine"
 tags: ["burgundy", "wine", "vosne-romanee", "pinot-noir"]
-featured: false
+featured: true
 ---
 
 2020 年份勃艮第：炎热干燥的一年，果实集中、单宁成熟。

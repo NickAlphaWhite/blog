@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200"
 category: "Design"
 subcategory: "Typography"
 tags: ["helvetica", "typography", "design", "fonts"]
-featured: false
+featured: true
 ---
 
 1957 年诞生的 Helvetica，2026 年仍在每一个机场、地铁站、品牌标志里。

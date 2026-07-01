@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1200"
 category: "Literature"
 subcategory: "Reading Notes"
 tags: ["tanizaki", "japanese-aesthetics", "shadows", "reading"]
-featured: false
+featured: true
 ---
 
 谷崎润一郎 1933 年的美学随笔，至今仍是理解日式设计的钥匙。

@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200"
 category: "Odor"
 subcategory: "Perfume"
 tags: ["le-labo", "perfume", "fragrance", "santal-33"]
-featured: false
+featured: true
 ---
 
 Le Labo 每一款城市限定只在该城市售卖，每年 9 月全球开放一次。

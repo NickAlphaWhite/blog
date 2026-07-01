@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200"
 category: "Literature"
 subcategory: "Creative Writing"
 tags: ["writing", "habit", "creativity", "journal"]
-featured: false
+featured: true
 ---
 
 每天写 300 字，坚持一年。三条规则：定时（早晨）、定量（300 字）、不修改（写完就合上）。一年后回看，最烂的那些反而是最真实的。

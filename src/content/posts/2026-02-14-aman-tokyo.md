@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
 category: "Hotel"
 subcategory: "Luxury Hotels"
 tags: ["aman", "tokyo", "luxury", "japan"]
-featured: false
+featured: true
 ---
 
 安缦东京藏身于大手町塔的顶层六层，是安缦旗下第一家城市酒店。

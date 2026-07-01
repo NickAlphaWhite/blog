@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1461360228754-6e81c63fcbd2?w=1200"
 category: "Music"
 subcategory: "Rock"
 tags: ["vinyl", "analog", "hifi", "collecting"]
-featured: false
+featured: true
 ---
 
 2026 年黑胶销量超过 CD。如何入门？

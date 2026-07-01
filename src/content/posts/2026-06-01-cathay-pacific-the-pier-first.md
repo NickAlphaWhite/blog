@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1540339832862-474599807836?w=1200"
 category: "Aviation"
 subcategory: "Lounges"
 tags: ["cathay-pacific", "lounge", "hong-kong", "the-pier"]
-featured: false
+featured: true
 ---
 
 香港机场 65 号闸口附近的玉衡堂头等舱休息室，由 Ilse Crawford 设计，被誉为亚洲最佳休息室。

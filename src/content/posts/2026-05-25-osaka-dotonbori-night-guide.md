@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200"
 category: "Travel"
 subcategory: "City Guides"
 tags: ["osaka", "dotonbori", "japan", "night"]
-featured: false
+featured: true
 ---
 
 道顿堀是大阪的胃。从心斋桥走到难波，一公里，吃不完。

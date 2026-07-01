@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1200"
 category: "Drinks"
 subcategory: "Whisky"
 tags: ["japan", "whisky", "tea", "yamazaki", "hibiki"]
-featured: false
+featured: true
 ---
 
 京都之后，顺访山崎蒸馏所，再从表千家茶道中理解日式饮品的两极。

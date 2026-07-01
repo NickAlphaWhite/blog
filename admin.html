@@ -128,6 +128,11 @@ select{-webkit-appearance:none;cursor:pointer}
             <div class="sel"><span data-i18n="coverImage">封面图片</span><div style="display:flex;gap:8px"><input name="image" type="text" placeholder="粘贴图片链接或上传" style="flex:1" data-i18n-placeholder="coverImagePlaceholder"><button type="button" class="btn ghost" onclick="document.getElementById('imageUpload').click()" style="white-space:nowrap;font-size:0.85rem;padding:10px 16px" data-i18n="upload">上传</button><input type="file" id="imageUpload" accept="image/*" style="display:none"></div></div>
           </div>
         </div>
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:6px">
+          <button type="button" class="btn ghost" onclick="document.getElementById('contentImageUpload').click()" style="font-size:0.8rem;padding:6px 12px" data-i18n="insertImage">🖼 插入图片</button>
+          <span style="font-size:0.75rem;color:var(--txt3)">上传后自动插入 Markdown</span>
+          <input type="file" id="contentImageUpload" accept="image/*" style="display:none">
+        </div>
         <textarea name="content" id="contentTA" placeholder="正文（Markdown）" data-i18n-placeholder="contentPlaceholder" style="min-height:400px;padding:14px;border:1px solid var(--hairline);border-radius:10px;background:var(--bg);color:var(--txt);font-family:var(--font);font-size:1rem;line-height:1.7;resize:vertical;outline:none"></textarea>
         <label class="check"><input type="checkbox" name="featured"> <span data-i18n="featured">首页展示</span></label>
         <div style="display:flex;gap:12px">
@@ -221,6 +226,26 @@ document.getElementById("imageUpload").addEventListener("change",async function(
   var file=this.files[0];if(!file)return;
   var fd=new FormData();fd.append("image",file);
   try{var r=await fetch("/api/upload",{method:"POST",body:fd});var j=await r.json();if(j.url)document.querySelector('input[name="image"]').value=j.url}catch(e){}
+});
+
+// Content image upload — insert ![](url) at cursor position
+document.getElementById("contentImageUpload").addEventListener("change",async function(){
+  var file=this.files[0];if(!file)return;
+  var fd=new FormData();fd.append("image",file);
+  try{
+    var r=await fetch("/api/upload",{method:"POST",body:fd});
+    var j=await r.json();
+    if(j.url){
+      var ta=document.getElementById("contentTA");
+      var pos=ta.selectionStart, txt=ta.value;
+      var md="![]("+j.url+")";
+      ta.value=txt.slice(0,pos)+md+txt.slice(pos);
+      ta.selectionStart=ta.selectionEnd=pos+md.length;
+      ta.focus();
+      toast("图片已插入");
+    }
+  }catch(e){toast("上传失败","err")}
+  this.value="";
 });
 
 var allCats={};

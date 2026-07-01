@@ -43,9 +43,9 @@ const readLabel: Record<string, string> = {
 
   <Search searchPosts={searchPosts} />
 
-  <!-- HERO + GRID — client-side randomized from 9 different categories -->
+  <!-- HERO + GRID — only featured posts, randomized from up to 9 categories -->
   <div id="heroGrid"></div>
-  <div id="__heroData" style="display:none" data-posts={JSON.stringify(posts.map(p => ({
+  <div id="__heroData" style="display:none" data-posts={JSON.stringify(posts.filter(p => p.data.featured).map(p => ({
     title: p.data.title,
     titleZh: p.data.titleZh || "",
     category: catLabel(p.data.category),
@@ -113,7 +113,7 @@ const readLabel: Record<string, string> = {
 
   <!-- SINGLE FILMSTRIP — 9 random posts from all categories -->
   {(() => {
-    const filmPosts = posts.filter(p => !p.data.featured);
+    const filmPosts = posts.filter(p => p.data.featured);
     if (filmPosts.length === 0) return null;
     // Shuffle and pick up to 9, force odd
     const shuffled = [...filmPosts].sort(() => Math.random() - 0.5);

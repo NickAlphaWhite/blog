@@ -7,7 +7,7 @@ image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1200"
 category: "Drinks"
 subcategory: "Cocktails"
 tags: ["cocktail", "old-fashioned", "whiskey", "recipe"]
-featured: false
+featured: true
 ---
 
 Old Fashioned 诞生于 1806 年，简单到只有四种原料——但每一种都值得考究。
