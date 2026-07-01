@@ -192,6 +192,8 @@ a{color:var(--txt);text-decoration:none}
 /* Sub-category label in rows */
 .subcat-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:12px;margin-top:32px;padding:0 48px}
 .subcat-label:first-child{margin-top:0}
+.sub-tabs{padding:24px 48px 0!important}
+@media(max-width:768px){.subcat-label{padding:0 20px}.sub-tabs{padding:24px 20px 0!important}}
 
 /* ---- Scroll Row + Arrows (for category pages) ---- */
 .scroll-outer{overflow-x:auto;scrollbar-width:none;padding:8px 48px 40px;margin:-8px 0 -40px}

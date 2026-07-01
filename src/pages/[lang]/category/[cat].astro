@@ -69,7 +69,7 @@ const allLabel: Record<string, string> = {
   </div>
 
   {subcats.length > 0 && (
-    <div class="sub-tabs" style="max-width:1300px;margin:0 auto;padding:24px 48px 0" id="subTabs">
+    <div class="sub-tabs" style="max-width:1300px;margin:0 auto" id="subTabs">
       <button class="sub-tab active" data-filter="all">{allLabel[langCode] || allLabel.en}</button>
       {subcats.map(sub => <button class="sub-tab" data-filter={sub}>{subLabel(cat, sub)}</button>)}
       <span class="sub-slider" id="subSlider"></span>
