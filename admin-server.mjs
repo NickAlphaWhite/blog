@@ -160,8 +160,8 @@ app.get("/admin/login", (req, res) => {
 
 // Login handler
 app.post("/admin/login", rateLimit(RATE_LOGIN_MAX), (req, res) => {
-  const token = req.body.token || "";
-  if (token === ADMIN_TOKEN) {
+  const token = (req.body.token || "").trim();
+  if (token === ADMIN_TOKEN.trim()) {
     res.setHeader(
       "Set-Cookie",
       `${COOKIE_NAME}=${ADMIN_TOKEN}; HttpOnly; Secure; SameSite=Lax; Max-Age=${COOKIE_MAX_AGE}; Path=/`
@@ -437,7 +437,8 @@ app.listen(PORT, async () => {
   console.log(`\n🚀 Admin server running on port ${PORT}`);
   console.log(`   Site: ${SITE_URL}`);
   console.log(`   Login: http://localhost:${PORT}/admin/login`);
-  console.log(`   Token: ${process.env.ADMIN_TOKEN ? "(from env)" : ADMIN_TOKEN}\n`);
+  const tokPreview = ADMIN_TOKEN.length > 8 ? `${ADMIN_TOKEN.slice(0,4)}...${ADMIN_TOKEN.slice(-4)}` : "***";
+  console.log(`   Token: ${tokPreview}\n`);
 
   // Pull latest from git on startup to sync with any changes made elsewhere
   try {
