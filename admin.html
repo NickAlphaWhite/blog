@@ -143,13 +143,6 @@ select{-webkit-appearance:none;cursor:pointer}
 
   <div id="view-list" style="display:none"><div class="post-list" id="postList"></div></div>
   <div id="view-cats" style="display:none">
-    <div class="card" style="margin-bottom:24px">
-      <form id="catForm" style="display:flex;gap:12px;align-items:flex-end">
-        <div class="field" style="flex:1"><label data-i18n="newCategory">新建分类</label><input name="catName" placeholder="分类名称" data-i18n-placeholder="categoryNamePlaceholder" required></div>
-        <div class="field" style="flex:2"><label data-i18n="subHint">子分类（逗号分隔）</label><input name="catSubs" placeholder="A, B, C" data-i18n-placeholder="subHint"></div>
-        <button type="submit" class="btn" data-i18n="addCategory">添加</button>
-      </form>
-    </div>
     <div id="catList"></div>
   </div>
 
@@ -361,14 +354,6 @@ async function loadCats(){
     el.innerHTML=h;
   }catch(err){el.innerHTML='<p style="color:var(--txt3);text-align:center;padding:40px">'+t("errorLoading")+'</p>'}
 }
-document.getElementById("catForm").addEventListener("submit",async function(e){
-  e.preventDefault();var fd=new FormData(e.target);var name=fd.get("catName").trim();if(!name)return;
-  var subsStr=fd.get("catSubs").trim();var initSubs={};
-  if(subsStr)subsStr.split(",").forEach(function(s){s=s.trim();if(s)initSubs[s]={zh:s,en:s}});
-  var res=await fetch("/api/categories/"+encodeURIComponent(name),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subcategories:initSubs})});
-  var j=await res.json();if(j.ok){e.target.reset();loadCats()}else toast(j.error,"err");
-});
-async function delCat(name){if(!confirm('Delete "'+name+'"?'))return;await fetch("/api/categories/"+encodeURIComponent(name),{method:"DELETE"});loadCats()}
 async function addSub(e,cat){e.preventDefault();var s=e.target.querySelector("input").value.trim();if(!s)return;await fetch("/api/categories/"+encodeURIComponent(cat)+"/subcategories",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({subcategory:s,lang:window.lang})});e.target.querySelector("input").value="";loadCats()}
 async function delSub(cat,sub){await fetch("/api/categories/"+encodeURIComponent(cat)+"/subcategories/"+encodeURIComponent(sub),{method:"DELETE"});loadCats()}
 
@@ -390,7 +375,7 @@ document.getElementById("transSave").addEventListener("click",function(){
 });
 async function editCatLabel(cat){
   var res=await fetch("/api/categories"),cats=await res.json();
-  openModal(cat,cats[cat]?cats[cat].label||{}:{},async function(data){cats[cat].label=data;await fetch("/api/categories",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(cats)});loadCats()},function(){delCat(cat)});
+  openModal(cat,cats[cat]?cats[cat].label||{}:{},async function(data){cats[cat].label=data;await fetch("/api/categories",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(cats)});loadCats()},null);
 }
 async function editSubLabel(cat,sub){
   var res=await fetch("/api/categories"),cats=await res.json();
