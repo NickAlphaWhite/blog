@@ -471,12 +471,12 @@ app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
 // API: Publish post
 app.post("/api/publish", sessionAuth, (req, res) => {
   try {
-    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
+    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags, slug: customSlug } = req.body;
     if (!title || !category) {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
-    const base = (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const slug = date + "-" + base + (lang && lang !== "zh" ? "." + lang : "");
     const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
 
@@ -526,7 +526,7 @@ app.get("/api/posts", sessionAuth, (req, res) => {
         slug: f.replace(/\.md$/, ""),
         title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
         lang: fm.match(/lang:\s*"?(\w+)"?/)?.[1] || "zh",
-        group: fm.match(/group:\s*"?(\S+)"?/)?.[1] || "",
+        group: fm.match(/group:\s*"([^"]+)"/)?.[1] || "",
         date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",
       };
     });
@@ -550,6 +550,9 @@ app.get("/api/posts", sessionAuth, (req, res) => {
       result = result.filter(g => g.langs.includes(filterLang));
     }
 
+    // Sort by date ascending (oldest first)
+    result.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+
     res.json(result);
   } catch (e) {
     res.json([]);
@@ -568,7 +571,7 @@ app.delete("/api/posts/:file", sessionAuth, (req, res) => {
       for (const f of files) {
         const raw = readFileSync(join(postsDir, f), "utf-8");
         const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
-        const g = fm.match(/group:\s*"?(\S+)"?/)?.[1] || "";
+        const g = fm.match(/group:\s*"([^"]+)"/)?.[1] || "";
         const base = f.replace(/\.md$/, "").replace(/\.\w+$/, "");
         if (g === group || base === group) {
           unlinkSync(join(postsDir, f));

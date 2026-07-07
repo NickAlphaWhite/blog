@@ -52,7 +52,7 @@ textarea,.field textarea{min-height:400px;resize:vertical;line-height:1.7;font-s
 .preview-box{flex:1;min-height:500px;padding:14px 18px;border:1px solid var(--hairline);border-radius:10px;background:var(--bg);overflow-y:auto;font-size:0.95rem;line-height:1.8;color:var(--txt)}
 .preview-box h2{font-size:1.3rem;font-weight:700;margin:1.2em 0 0.4em}
 .preview-box h3{font-size:1.1rem;font-weight:600;margin:1em 0 0.3em}
-.preview-box p{margin-bottom:0.8em}
+.preview-box p{margin-bottom:1.4em}
 .preview-box ul,.preview-box ol{padding-left:1.5em;margin-bottom:0.8em}
 .preview-box li{margin-bottom:0.2em}
 .preview-box img{max-width:100%;border-radius:8px;margin:0.8em 0}
@@ -156,6 +156,7 @@ select{-webkit-appearance:none;cursor:pointer}
             <div class="sel"><span data-i18n="category">分类</span><select name="category" id="catSelect" required><option value="">请选择</option>
             </select></div>
             <div class="sel"><span data-i18n="subcategory">子分类</span><select name="subcategory" id="subcatSelect"><option value="">请选择</option></select></div>
+            <div class="sel"><span>文件名 (Slug)</span><input name="slug" type="text" id="slugField" placeholder="自动生成，留空则使用标题"></div>
           </div>
         </div>
         <div class="md-toolbar">
@@ -488,7 +489,7 @@ function populateCatSelect(){var sel=document.getElementById("catSelect");if(!se
 document.getElementById("catSelect").addEventListener("change",function(){
   var sel=this.value,sub=document.getElementById("subcatSelect");
   sub.innerHTML='<option value="">'+t("subcategoryPlaceholder")+'</option>';
-  if(allCats[sel]&&allCats[sel].subcategories)Object.keys(allCats[sel].subcategories).forEach(function(s){sub.innerHTML+='<option value="'+s+'">'+s+'</option>'});
+  if(allCats[sel]&&allCats[sel].subcategories)Object.keys(allCats[sel].subcategories).forEach(function(s){var sl=allCats[sel].subcategories[s];var slName=(typeof sl==="object"?sl[lang]||sl.en||s:s);sub.innerHTML+='<option value="'+esc(s)+'">'+esc(slName)+'</option>'});
 });
 
 var editingFile=null,groupSlug=null;
@@ -500,7 +501,7 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   if(!title)return toast("标题不能为空","err");
   var isEdit=!!editingFile;
   var base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
-  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,lang:lang,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base)};
+  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,lang:lang,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
   try{
     var url,method;
     if(isEdit){url="/api/posts/"+encodeURIComponent(editingFile);method="PUT";}
@@ -514,8 +515,8 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   }catch(e){toast("请求失败: "+e.message,"err")}
 });
 function resetEditor(){
-  document.getElementById("langTitle").value="";document.getElementById("langSubtitle").value="";document.getElementById("contentTA").value="";
-  editingFile=null;groupSlug=null;document.getElementById("editFile").value="";
+  document.getElementById("langTitle").value="";document.getElementById("langSubtitle").value="";document.getElementById("contentTA").value="";document.getElementById("slugField").value="";
+  editingFile=null;groupSlug=null;document.getElementById("editFile").value="";document.getElementById("slugField").style.display="";
   document.getElementById("submitBtn").textContent=t("publish");
   document.getElementById("cancelEditBtn").style.display="none";
 }
@@ -535,6 +536,7 @@ async function editPost(file){
     form.subtitle.value=get("subtitle");form.content.value=body.trim();
     form.featured.checked=fm.indexOf("featured: true")>=0;
     editingFile=file;document.getElementById("editFile").value=file;
+    document.getElementById("slugField").style.display="none";
     document.getElementById("submitBtn").textContent="更新";
     document.getElementById("cancelEditBtn").style.display="";
     document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
