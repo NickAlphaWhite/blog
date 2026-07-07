@@ -514,6 +514,7 @@ document.getElementById("publishForm").addEventListener("submit",async function(
     var j=await res.json();
     if(j.ok){
       if(j.renamed){editingFile=j.file;document.getElementById("editFile").value=j.file}
+      if(j.pushed===false)toast("⚠️ Git 同步失败 — 文章仅存在服务器磁盘，重新部署后会丢失","err");
       toast(isEdit?"已更新":"已发布");
       if(!isEdit){resetEditor();document.getElementById("dateField").value=new Date().toISOString().split("T")[0]}
     }else{toast((isEdit?"更新":"发布")+"失败: "+(j.error||"unknown"),"err");}
@@ -562,7 +563,7 @@ async function loadPosts(){
     el.innerHTML=h;
   }catch(err){el.innerHTML='<div class="post-item"><span style="color:var(--txt3)">'+t("errorLoading")+'</span></div>'}
 }
-async function delPost(file,group){if(!confirm("确认删除?"))return;var url="/api/posts/"+encodeURIComponent(file);if(group)url+="?group="+encodeURIComponent(group);await fetch(url,{method:"DELETE"});loadPosts();toast("已删除")}
+async function delPost(file,group){if(!confirm("确认删除?"))return;var url="/api/posts/"+encodeURIComponent(file);if(group)url+="?group="+encodeURIComponent(group);var r=await fetch(url,{method:"DELETE"});var j=await r.json();if(j.pushed===false)toast("⚠️ Git 同步失败 — 重新部署后文章可能恢复","err");loadPosts();toast("已删除")}
 
 async function loadCats(){
   var el=document.getElementById("catList");if(!el)return;

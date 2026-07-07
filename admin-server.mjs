@@ -104,13 +104,30 @@ function touchAstroConfig() {
 async function gitPush(commitMsg) {
   if (!GIT_PUSH) {
     console.log(`[git] skipped (dev mode): ${commitMsg}`);
-    return;
+    return { ok: true, skipped: true };
   }
-  console.log(`[git] pushing: ${commitMsg}`);
-  await runGit("git add -A");
-  await runGit(`git commit -m ${shellEscape(commitMsg)} --allow-empty`);
-  await runGit("git push origin main");
-  console.log("[git] push complete");
+
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (attempt > 0) {
+      // Pull before retry to resolve push conflicts
+      await runGit("git pull origin main --rebase");
+      await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
+    }
+
+    console.log(`[git] pushing (attempt ${attempt + 1}/3): ${commitMsg}`);
+    await runGit("git add -A");
+    const commit = await runGit(`git commit -m ${shellEscape(commitMsg)} --allow-empty`);
+    const push = await runGit("git push origin main");
+
+    if (push !== null) {
+      console.log("[git] push complete");
+      return { ok: true };
+    }
+    console.error(`[git] push attempt ${attempt} failed`);
+  }
+
+  console.error(`[git] ALL push attempts failed: ${commitMsg}`);
+  return { ok: false, error: "Git push failed after 3 retries" };
 }
 
 // Fire-and-forget — doesn't block the HTTP response
@@ -394,15 +411,15 @@ app.put("/api/posts/:file", sessionAuth, (req, res) => {
         if (existsSync(filePath)) unlinkSync(filePath);
         writeFileSync(newPath, frontmatter, "utf-8");
         touchAstroConfig();
-        gitPushAsync(`Update post (renamed): ${req.params.file} → ${newSlug}`);
-        return res.json({ ok: true, renamed: true, file: `${newSlug}.md` });
+        const pushResult = await gitPush(`Update post (renamed): ${req.params.file} → ${newSlug}`);
+        return res.json({ ok: true, renamed: true, file: `${newSlug}.md`, pushed: pushResult.ok });
       }
     }
 
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
-    gitPushAsync(`Update post: ${req.params.file}`);
-    res.json({ ok: true });
+    const pushResult = await gitPush(`Update post: ${req.params.file}`);
+    res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -479,8 +496,8 @@ app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
     try { unlinkSync(filePath); } catch (_) {}
     return res.status(500).json({ error: e.message });
   }
-  gitPushAsync(`Upload image: ${req.file.filename}`);
-  res.json({ url: "/images/" + req.file.filename });
+  const pushResult = await gitPush(`Upload image: ${req.file.filename}`);
+  res.json({ url: "/images/" + req.file.filename, pushed: pushResult.ok });
 });
 
 // API: Publish post
@@ -518,8 +535,8 @@ app.post("/api/publish", sessionAuth, (req, res) => {
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
 
-    gitPushAsync(`Publish: ${slug}`);
-    res.json({ ok: true, slug, filePath });
+    const pushResult = await gitPush(`Publish: ${slug}`);
+    res.json({ ok: true, slug, filePath, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -594,15 +611,15 @@ app.delete("/api/posts/:file", sessionAuth, (req, res) => {
         }
       }
       touchAstroConfig();
-      gitPushAsync(`Delete group: ${group} (${deleted} files)`);
-      return res.json({ ok: true, deleted });
+      const pushResult = await gitPush(`Delete group: ${group} (${deleted} files)`);
+      return res.json({ ok: true, deleted, pushed: pushResult.ok });
     }
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
     touchAstroConfig();
-    gitPushAsync(`Delete post: ${req.params.file}`);
-    res.json({ ok: true });
+    const pushResult = await gitPush(`Delete post: ${req.params.file}`);
+    res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
@@ -636,8 +653,8 @@ app.put("/api/categories", sessionAuth, (req, res) => {
   try {
     writeFileSync(catsPath, JSON.stringify(req.body, null, 2), "utf-8");
     touchAstroConfig();
-    gitPushAsync("Update categories");
-    res.json({ ok: true });
+    const pushResult = await gitPush("Update categories");
+    res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -648,8 +665,8 @@ app.post("/api/categories/:name", sessionAuth, (req, res) => {
     cats[req.params.name] = { label: { en: req.params.name, zh: req.params.name }, subcategories: req.body.subcategories || {} };
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
     touchAstroConfig();
-    gitPushAsync(`Add category: ${req.params.name}`);
-    res.json({ ok: true, categories: cats });
+    const pushResult = await gitPush(`Add category: ${req.params.name}`);
+    res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -658,8 +675,8 @@ app.delete("/api/categories/:name", sessionAuth, (req, res) => {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     delete cats[req.params.name];
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
-    gitPushAsync(`Delete category: ${req.params.name}`);
-    res.json({ ok: true, categories: cats });
+    const pushResult = await gitPush(`Delete category: ${req.params.name}`);
+    res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -675,8 +692,8 @@ app.post("/api/categories/:name/subcategories", sessionAuth, (req, res) => {
     }
     cats[req.params.name].subcategories[sub][subLang] = sub;
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
-    gitPushAsync(`Add subcategory: ${req.params.name}/${sub}`);
-    res.json({ ok: true, categories: cats });
+    const pushResult = await gitPush(`Add subcategory: ${req.params.name}/${sub}`);
+    res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
@@ -686,8 +703,8 @@ app.delete("/api/categories/:name/subcategories/:sub", sessionAuth, (req, res) =
     if (!cats[req.params.name]) return res.status(404).json({ error: "Category not found" });
     delete cats[req.params.name].subcategories[req.params.sub];
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
-    gitPushAsync(`Delete subcategory: ${req.params.name}/${req.params.sub}`);
-    res.json({ ok: true, categories: cats });
+    const pushResult = await gitPush(`Delete subcategory: ${req.params.name}/${req.params.sub}`);
+    res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
