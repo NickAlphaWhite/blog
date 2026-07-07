@@ -366,7 +366,7 @@ app.put("/api/posts/:file", sessionAuth, (req, res) => {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
-    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
+    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags, slug: customSlug } = req.body;
     const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
     const frontmatter = [
       "---",
@@ -384,6 +384,21 @@ app.put("/api/posts/:file", sessionAuth, (req, res) => {
       "",
       content || "",
     ].filter(Boolean).join("\n");
+
+    // If slug changed, rename the file
+    if (customSlug) {
+      const newBase = customSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const newSlug = (date || new Date().toISOString().split("T")[0]) + "-" + newBase + (lang && lang !== "zh" ? "." + lang : "");
+      const newPath = join(postsDir, `${newSlug}.md`);
+      if (newPath !== filePath) {
+        if (existsSync(filePath)) unlinkSync(filePath);
+        writeFileSync(newPath, frontmatter, "utf-8");
+        touchAstroConfig();
+        gitPushAsync(`Update post (renamed): ${req.params.file} → ${newSlug}`);
+        return res.json({ ok: true, renamed: true, file: `${newSlug}.md` });
+      }
+    }
+
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
     gitPushAsync(`Update post: ${req.params.file}`);

@@ -337,13 +337,17 @@ function renderMD(src){
   h=h.replace(/^&gt; (.+)$/gm,'<blockquote>$1</blockquote>');
   h=h.replace(/^---$/gm,'<hr />');
   h=h.replace(/^(\s*)[-*] (.+)$/gm,'<li>$2</li>');
+  h=h.replace(/^\d+\. (.+)$/gm,'<oli>$1</oli>');
   h=h.replace(/(<li>[\s\S]*?<\/li>)/g,function(m){return '<ul>'+m+'</ul>'});
   h=h.replace(/<\/ul>\n<ul>/g,'');
-  h=h.replace(/^\d+\. (.+)$/gm,'<li>$1</li>');
+  h=h.replace(/(<oli>[\s\S]*?<\/oli>)/g,function(m){return '<ol>'+m+'</ol>'});
+  h=h.replace(/<\/ol>\n<ol>/g,'');
+  h=h.replace(/<\/?oli>/g,function(m){return m==='<oli>'?'<li>':'</li>'});
   h=h.replace(/\n\n+/g,'</p><p>');
   h='<p>'+h+'</p>';
   h=h.replace(/<p><\/p>/g,'');
   h=h.replace(/<p>(<ul>[\s\S]*?<\/ul>)<\/p>/g,'$1');
+  h=h.replace(/<p>(<ol>[\s\S]*?<\/ol>)<\/p>/g,'$1');
   h=h.replace(/<p>(<pre>[\s\S]*?<\/pre>)<\/p>/g,'$1');
   h=h.replace(/<p>(<blockquote>[\s\S]*?<\/blockquote>)<\/p>/g,'$1');
   h=h.replace(/<p>(<img[^>]*>)<\/p>/g,'$1');
@@ -509,6 +513,7 @@ document.getElementById("publishForm").addEventListener("submit",async function(
     var res=await fetch(url,{method:method,headers:{"Content-Type":"application/json"},body:JSON.stringify(pd)});
     var j=await res.json();
     if(j.ok){
+      if(j.renamed){editingFile=j.file;document.getElementById("editFile").value=j.file}
       toast(isEdit?"已更新":"已发布");
       if(!isEdit){resetEditor();document.getElementById("dateField").value=new Date().toISOString().split("T")[0]}
     }else{toast((isEdit?"更新":"发布")+"失败: "+(j.error||"unknown"),"err");}
@@ -536,7 +541,9 @@ async function editPost(file){
     form.subtitle.value=get("subtitle");form.content.value=body.trim();
     form.featured.checked=fm.indexOf("featured: true")>=0;
     editingFile=file;document.getElementById("editFile").value=file;
-    document.getElementById("slugField").style.display="none";
+    // Pre-fill slug from current filename (strip date prefix + lang suffix)
+    var slugBase=file.replace(/\.md$/,"").replace(/^\d{4}-\d{2}-\d{2}-/,"").replace(/\.\w+(-\w+)?$/,"");
+    document.getElementById("slugField").value=slugBase;
     document.getElementById("submitBtn").textContent="更新";
     document.getElementById("cancelEditBtn").style.display="";
     document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
