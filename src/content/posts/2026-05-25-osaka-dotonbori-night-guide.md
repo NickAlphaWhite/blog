@@ -1,6 +1,5 @@
 ---
-title: "Osaka Dotonbori — A Night Walk"
-titleZh: "大阪道顿堀 — 夜の食い倒れ"
+title: "大阪道顿堀 — 夜の食い倒れ"
 date: 2026-05-25
 lang: zh
 image: "https://images.unsplash.com/photo-1545569341-9eb8b30979d9?w=1200"

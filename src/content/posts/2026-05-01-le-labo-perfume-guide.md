@@ -1,6 +1,5 @@
 ---
-title: "Le Labo — The Scent of Cities"
-titleZh: "Le Labo 城市限定香水指南"
+title: "Le Labo 城市限定香水指南"
 date: 2026-05-01
 lang: zh
 image: "https://images.unsplash.com/photo-1541643600914-78b084683601?w=1200"

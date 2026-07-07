@@ -1,6 +1,5 @@
 ---
-title: "Designing for Dark Mode — Typography, Color, and Depth"
-titleZh: "暗色模式设计 — 字体、色彩与层次"
+title: "暗色模式设计 — 字体、色彩与层次"
 date: 2025-11-20
 lang: zh
 image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200"

@@ -1,6 +1,5 @@
 ---
-title: "Aman Tokyo — The Urban Sanctuary"
-titleZh: "安缦东京 — 都市里的空中禅院"
+title: "安缦东京 — 都市里的空中禅院"
 date: 2026-02-14
 lang: zh
 image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"

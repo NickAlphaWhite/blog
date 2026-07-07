@@ -1,6 +1,5 @@
 ---
-title: "Park Hyatt Kyoto — A Temple of Calm"
-titleZh: "京都柏悦 — 东山之巅的隐世之所"
+title: "京都柏悦 — 东山之巅的隐世之所"
 date: 2026-04-20
 lang: zh
 image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?w=1200"

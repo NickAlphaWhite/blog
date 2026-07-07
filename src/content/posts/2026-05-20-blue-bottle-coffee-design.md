@@ -1,6 +1,5 @@
 ---
-title: "Blue Bottle Coffee — Design of the Third Wave"
-titleZh: "蓝瓶咖啡 — 第三波浪潮的设计哲学"
+title: "蓝瓶咖啡 — 第三波浪潮的设计哲学"
 date: 2026-05-20
 lang: zh
 image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"

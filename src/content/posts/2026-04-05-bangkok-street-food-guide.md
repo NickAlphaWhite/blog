@@ -1,6 +1,5 @@
 ---
-title: "Bangkok Street Food Guide — 72 Hours"
-titleZh: "曼谷街头美食指南 — 72小时吃遍曼谷"
+title: "曼谷街头美食指南 — 72小时吃遍曼谷"
 date: 2026-04-05
 lang: zh
 image: "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=1200"

@@ -1,6 +1,5 @@
 ---
-title: "Hotel Negotiation Tips"
-titleZh: "酒店谈心攻略"
+title: "酒店谈心攻略"
 date: 2025-12-23
 lang: zh
 image: "https://cache.marriott.com.cn/content/dam/marriott-renditions/NKGRZ/nkgrz-executive-suite-5172-hor-clsc.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1140px:*"

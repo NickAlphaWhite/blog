@@ -1,6 +1,5 @@
 ---
-title: "Reading Notes — In Praise of Shadows"
-titleZh: "读书笔记 — 《阴翳礼赞》"
+title: "读书笔记 — 《阴翳礼赞》"
 date: 2025-10-15
 lang: zh
 image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1200"

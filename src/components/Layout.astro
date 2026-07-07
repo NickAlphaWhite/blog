@@ -17,7 +17,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description || title} />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="icon" type="image/png" href="/favicon.png" />
     <ViewTransitions />
     <title>{title}</title>
 
@@ -35,8 +35,90 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         var theme = stored || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
         document.documentElement.setAttribute("data-theme", theme);
         document.documentElement.style.colorScheme = theme;
+        var ll=document.getElementById("logoLight"),ld=document.getElementById("logoDark");
+        if(ll)ll.style.display=theme==="dark"?"none":"";
+        if(ld)ld.style.display=theme==="dark"?"":"none";
       }
       document.addEventListener('astro:after-swap', applyTheme);
+    </script>
+
+    <script>
+      // Waline — dynamically load and mount with language detection
+      (function () {
+        var walineMounted = false;
+        var walineLoading = false;
+
+        // Map site lang codes to Waline locale codes
+        var walineLocale = {
+          zh: 'zh-CN', 'zh-tw': 'zh-TW', 'zh-yue': 'zh-TW',
+          en: 'en-US', ja: 'ja', ko: 'ko', fr: 'fr', de: 'de',
+          es: 'es', it: 'it', pt: 'pt', nl: 'nl', ru: 'ru', th: 'th'
+        };
+        var walinePlaceholder = {
+          'zh-CN': '留下你的评论...', 'zh-TW': '留下你的評論...',
+          'en-US': 'Leave your comment here...', ja: 'コメントをどうぞ...',
+          ko: '댓글을 남겨주세요...', fr: 'Laissez votre commentaire...',
+          de: 'Hinterlassen Sie Ihren Kommentar...', es: 'Deja tu comentario...',
+          it: 'Lascia il tuo commento...', pt: 'Deixe seu comentário...',
+          nl: 'Laat je reactie achter...', ru: 'Оставьте комментарий...', th: 'แสดงความคิดเห็น...'
+        };
+
+        function getWalineLang() {
+          // Try localStorage first, then URL path, fallback to en
+          var stored = localStorage.getItem('lang');
+          if (stored && walineLocale[stored]) return walineLocale[stored];
+          var regionToLang = {cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es','in':'en',ae:'en',za:'en',pr:'es'};
+          var m = location.pathname.match(/^\/([\w-]+)/);
+          var lang = m ? (regionToLang[m[1]] || 'en') : 'en';
+          return walineLocale[lang] || 'en-US';
+        }
+
+        function mountWaline() {
+          var el = document.getElementById('waline');
+          if (!el) return;
+          el.innerHTML = '';
+
+          var wLang = getWalineLang();
+
+          function doInit() {
+            if (typeof Waline === 'undefined') return;
+            walineMounted = true;
+            Waline.init({
+              el: el,
+              serverURL: 'https://cm.nickalphawhite.top',
+              appId: 'YoYVf6jrZj9qbOHH7HIk5eAp-MdYXbMMI',
+              appKey: 'pQl3039kbz0eoqckIDgdSV0z',
+              lang: wLang,
+              avatar: 'monsterid',
+              recordIP: false,
+              requiredFields: ['nick'],
+              visitor: true,
+              dark: 'html[data-theme="dark"]',
+              placeholder: walinePlaceholder[wLang] || 'Leave your comment here...'
+            });
+          }
+
+          if (typeof Waline !== 'undefined') {
+            doInit();
+          } else if (!walineLoading) {
+            walineLoading = true;
+            var script = document.createElement('script');
+            script.src = 'https://unpkg.com/@waline/client@v2/dist/waline.js';
+            script.onload = function () { doInit(); };
+            document.head.appendChild(script);
+            var link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/@waline/client@v2/dist/waline.css';
+            document.head.appendChild(link);
+          }
+        }
+
+        mountWaline();
+        document.addEventListener('astro:after-swap', function () {
+          walineMounted = false;
+          setTimeout(mountWaline, 50);
+        });
+      })();
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/fuse.js@7.0.0/dist/fuse.min.js"></script>
@@ -79,8 +161,8 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       })();
 
       // Language — region-based display names
-      var regionNames={cn:'中国大陆',us:'United States',jp:'日本',kr:'대한민국',tw:'台灣',hk:'香港',uk:'United Kingdom',fr:'France',de:'Deutschland',es:'España',it:'Italia',pt:'Portugal',th:'ประเทศไทย',ca:'Canada-EN','ca-fr':'Canada-FR',au:'Australia',nl:'Nederland',ru:'Россия',br:'Brasil',mx:'México',in:'India',ae:'الإمارات العربية المتحدة',za:'South Africa',pr:'Puerto Rico'};
-      var langByRegion={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es',in:'en',ae:'en',za:'en',pr:'es'};
+      var regionNames={cn:'中国大陆',us:'United States',jp:'日本',kr:'대한민국',tw:'台灣',hk:'香港',mo:'澳門',uk:'United Kingdom',fr:'France',de:'Deutschland',es:'España',it:'Italia',pt:'Portugal',th:'ประเทศไทย',ca:'Canada (English)','ca-fr':'Canada (Français)',au:'Australia',nl:'Nederland',ru:'Россия',br:'Brasil',mx:'México',in:'India',ae:'الإمارات العربية المتحدة',za:'South Africa',pr:'Puerto Rico'};
+      var langByRegion={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es',in:'en',ae:'en',za:'en',pr:'es'};
 
       window.switchLang = function (lang, region) {
         var r = region || localStorage.getItem('region') || 'cn';
@@ -95,8 +177,9 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       document.addEventListener('click',function(e){var d=document.getElementById('langDrop');if(d&&!e.target.closest('.lang-sw'))d.classList.remove('open')});
       (function () {
     var defaultLang = (document.documentElement.lang || "zh-CN").startsWith("en") ? "en" : "zh";
-    var defaultRegion = defaultLang === "en" ? "us" : "cn";
-    switchLang(localStorage.getItem("lang") || defaultLang, localStorage.getItem("region") || defaultRegion);
+    var urlRegion=(location.pathname.match(/^\/([\w-]+)/)||[])[1]||"";
+    var defaultRegion=langByRegion[urlRegion]?urlRegion:(defaultLang==="en"?"us":"cn");
+    switchLang(localStorage.getItem("lang")||langByRegion[urlRegion]||defaultLang, localStorage.getItem("region")||defaultRegion);
   })();
 
       // Scroll arrows
@@ -149,29 +232,36 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       function resetAndCenterFilm() {
         var outer = document.getElementById('film-all');
         if (!outer) return;
-        // Clone to kill all view-transition-morphed scroll state
-        var clone = outer.cloneNode(true);
-        outer.parentNode.replaceChild(clone, outer);
-        clone.style.overflowX = 'auto';
-        // Rebind scroll for arrow checks
-        clone.addEventListener('scroll', checkFilmArrows);
+        // Always scroll page to top first (view transitions may preserve scroll)
+        window.scrollTo(0, 0);
         var filmData = document.getElementById('__filmData');
         if (!filmData || !filmData.dataset.median) return;
         var medianIdx = parseInt(filmData.dataset.median);
         if (medianIdx <= 0) return;
+        // Reset scroll, then center after layout settles
+        outer.scrollLeft = 0;
         requestAnimationFrame(function(){
           requestAnimationFrame(function(){
-            var cards = clone.querySelectorAll('.film-card');
+            var cards = outer.querySelectorAll('.film-card');
             if (!cards[medianIdx]) return;
             var t = cards[medianIdx];
-            var ow = clone.getBoundingClientRect().width;
-            clone.scrollLeft = t.offsetLeft - (ow - t.offsetWidth) / 2;
+            var ow = outer.getBoundingClientRect().width;
+            outer.scrollLeft = t.offsetLeft - (ow - t.offsetWidth) / 2;
             setTimeout(function(){ checkFilmArrows(); }, 200);
           });
         });
       }
       window.addEventListener('load', function(){ setTimeout(resetAndCenterFilm, 500); });
-      document.addEventListener('astro:after-swap', function(){ setTimeout(resetAndCenterFilm, 300); });
+      document.addEventListener('astro:after-swap', function(){
+        window.scrollTo(0, 0);
+        setTimeout(resetAndCenterFilm, 300);
+      });
+      // Re-center on resize (debounced)
+      var _rcTimer;
+      window.addEventListener('resize', function(){
+        clearTimeout(_rcTimer);
+        _rcTimer = setTimeout(resetAndCenterFilm, 300);
+      });
 
       window.addEventListener("load", function () {
         setTimeout(checkArrows, 200); setTimeout(checkArrows, 800);
@@ -181,15 +271,22 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       document.querySelectorAll(".scroll-outer").forEach(function (r) { r.addEventListener("scroll", checkArrows); });
       document.querySelectorAll(".film-outer").forEach(function (r) { r.addEventListener("scroll", checkFilmArrows); });
 
+      // Re-init arrows after ViewTransitions
+      document.addEventListener('astro:after-swap', function () {
+        setTimeout(checkArrows, 200); setTimeout(checkArrows, 600);
+        setTimeout(checkFilmArrows, 200); setTimeout(checkFilmArrows, 600);
+        document.querySelectorAll(".scroll-outer").forEach(function (r) { r.addEventListener("scroll", checkArrows); });
+        document.querySelectorAll(".film-outer").forEach(function (r) { r.addEventListener("scroll", checkFilmArrows); });
+      });
+
       // Nav dropdown — uses delegation so it survives view transitions
       (function () {
-        var backdrop = document.getElementById("navBackdrop");
-        var dd = document.getElementById("navDropdown");
-        var mega = document.getElementById("megaInner");
-        var navBar = document.querySelector(".nav");
-        if (!backdrop || !dd || !mega) return;
-
         var open = false, timer = null, animating = false, currentCat = null;
+        // Re-query DOM refs each time (survives view transitions)
+        function dd(){return document.getElementById("navDropdown")}
+        function mega(){return document.getElementById("megaInner")}
+        function backdrop(){return document.getElementById("navBackdrop")}
+        function navBar(){return document.querySelector(".nav")}
 
         function getData(){return window.__DD||{}}
         var ddText = {
@@ -209,13 +306,13 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           th:{explore:'สำรวจ ',all:'ทั้งหมด ',recent:'ล่าสุด',more:'เพิ่มเติม ',allArticles:'บทความทั้งหมด',popular:'ยอดนิยม',subscribe:'ติดตาม',soon:'เร็วๆ นี้'}
         };
         function t(key) {
-          var lang = (localStorage.getItem('lang') || document.documentElement.lang || 'zh').split('-')[0];
-          if (lang === 'zh' && document.documentElement.lang === 'zh-tw') lang = 'zh-tw';
-          var full = localStorage.getItem('lang') || document.documentElement.lang || 'zh';
-          if (full === 'zh-yue') lang = 'zh-yue';
-          if (full === 'zh-tw') lang = 'zh-tw';
-          var map = ddText[lang] || ddText[full] || ddText.zh;
-          return map[key] || key;
+          // Detect language from URL path first (most reliable)
+          var regionToLang={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es','in':'en',ae:'en',za:'en',pr:'es'};
+          var m=location.pathname.match(/^\/(\w[\w-]*)/);
+          var lang=regionToLang[m?m[1]:'']||localStorage.getItem('lang')||'zh';
+          // Normalize zh-tw / zh-yue (split('-')[0] would break them)
+          var map=ddText[lang]||ddText.zh;
+          return map[key]||key;
         }
         function show(cat) {
           var dd_data = getData();
@@ -240,36 +337,38 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           h += '<a href="' + d.all + '">' + t('subscribe') + '</a>';
           h += '</div>';
 
-          if (open && mega.innerHTML !== h) {
+          var d=dd(), m=mega(), b=backdrop(), n=navBar();
+          if (open && m.innerHTML !== h) {
             if (animating) return;
             animating = true;
-            dd.style.height = dd.offsetHeight + 'px';
-            mega.style.opacity = '0';
+            d.style.height = d.offsetHeight + 'px';
+            m.style.opacity = '0';
             setTimeout(function () {
-              mega.innerHTML = h;
+              m.innerHTML = h;
               requestAnimationFrame(function () {
-                mega.style.opacity = '1';
-                var newH = mega.scrollHeight + 88;
-                dd.style.height = newH + 'px';
+                m.style.opacity = '1';
+                var newH = m.scrollHeight + 88;
+                d.style.height = newH + 'px';
                 setTimeout(function () { animating = false; }, 650);
               });
             }, 60);
-          } else {
-            mega.innerHTML = h;
+          } else if (!open) {
+            m.innerHTML = h;
           }
-          dd.classList.add("open");
-          backdrop.classList.add("active");
-          if (navBar) navBar.classList.add("solid");
+          d.classList.add("open");
+          if(b) b.classList.add("active");
+          if(n) n.classList.add("solid");
           open = true;
         }
 
         function hide() {
-          dd.classList.remove("open");
-          backdrop.classList.remove("active");
-          if (navBar) navBar.classList.remove("solid");
+          var d=dd(), b=backdrop(), n=navBar();
+          if(d) d.classList.remove("open");
+          if(b) b.classList.remove("active");
+          if(n) n.classList.remove("solid");
           open = false;
           animating = false;
-          setTimeout(function () { dd.style.height = ''; }, 600);
+          if(d) setTimeout(function () { d.style.height = ''; }, 600);
         }
 
         function cancelHide() { if (timer) { clearTimeout(timer); timer = null; } }
@@ -294,14 +393,13 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           scheduleHide();
         });
 
-        // Dropdown itself — re-query each time since it may be replaced
-        function getDD(){ return document.getElementById("navDropdown"); }
+        // Dropdown hover tracking
         document.addEventListener("mouseover", function (e) {
-          var d = getDD(); if (!d) return;
+          var d = dd(); if (!d) return;
           if (e.target.closest && e.target.closest("#navDropdown")) cancelHide();
         });
         document.addEventListener("mouseout", function (e) {
-          var d = getDD(); if (!d) return;
+          var d = dd(); if (!d) return;
           if (e.target.closest && e.target.closest("#navDropdown")) {
             if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".nav-link")) return;
             scheduleHide();

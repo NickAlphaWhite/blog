@@ -27,6 +27,25 @@ const byCategory = (cat: string) => posts.filter(p => p.data.category === cat);
 const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
 const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
 
+const featLabel: Record<string, string> = {
+  zh: "精选", "zh-tw": "精選", "zh-yue": "精選",
+  en: "Featured", ja: "おすすめ", ko: "추천",
+  fr: "Sélection", de: "Empfohlen", es: "Destacado",
+};
+
+// Build hero + mini-grid server-side (no more client JS timing issues)
+const heroPosts = posts.filter(p => p.data.featured);
+const heroByCat: Record<string, typeof heroPosts> = {};
+heroPosts.forEach(p => { if (!heroByCat[p.data.category]) heroByCat[p.data.category] = []; heroByCat[p.data.category].push(p); });
+const heroCats = Object.keys(heroByCat).sort(() => Math.random() - 0.5);
+const heroPicks: typeof heroPosts = [];
+for (let i = 0; i < Math.min(9, heroCats.length); i++) {
+  heroPicks.push(heroByCat[heroCats[i]][Math.floor(Math.random() * heroByCat[heroCats[i]].length)]);
+}
+heroPicks.sort(() => Math.random() - 0.5);
+const heroTop = heroPicks.slice(0, 3);
+const heroGrid = heroPicks.slice(3, 9);
+
 const viewAllLabel: Record<string, string> = {
   zh: "查看全部 →", "zh-tw": "查看全部 →", "zh-yue": "查看全部 →",
   en: "View all →", ja: "すべて見る →", ko: "전체 보기 →",
@@ -43,73 +62,39 @@ const readLabel: Record<string, string> = {
 
   <Search searchPosts={searchPosts} />
 
-  <!-- HERO + GRID — only featured posts, randomized from up to 9 categories -->
-  <div id="heroGrid"></div>
-  <div id="__heroData" style="display:none" data-posts={JSON.stringify(posts.filter(p => p.data.featured).map(p => ({
-    title: p.data.title,
-    subtitle: p.data.subtitle || "",
-    category: catLabel(p.data.category),
-    image: p.data.image || "",
-    url: `/${lang}/${p.id.replace(/\.md$/, "")}`,
-    date: p.data.date.toISOString().split("T")[0],
-    featured: p.data.featured,
-  })))} data-lang={langCode}></div>
-  <script>
-    (function(){
-      var el = document.getElementById('__heroData');
-      if (!el) return;
-      var posts = JSON.parse(el.dataset.posts);
-      var langCode = el.dataset.lang;
-      var ctas = {zh:'阅读文章 →','zh-tw':'閱讀文章 →','zh-yue':'閱讀文章 →',en:'Read the article →',ja:'記事を読む →',ko:'글 읽기 →'};
-
-      // Group by category
-      var byCat = {};
-      posts.forEach(function(p){
-        if (!byCat[p.category]) byCat[p.category] = [];
-        byCat[p.category].push(p);
-      });
-      var cats = Object.keys(byCat);
-      // Shuffle categories
-      cats.sort(function(){ return Math.random() - 0.5 });
-      // Pick 9 categories, 1 post each
-      var picks = [];
-      for (var i = 0; i < Math.min(9, cats.length); i++) {
-        var pool = byCat[cats[i]];
-        picks.push(pool[Math.floor(Math.random() * pool.length)]);
-      }
-      // Shuffle picks
-      picks.sort(function(){ return Math.random() - 0.5 });
-
-      var hero = picks.slice(0, 3);
-      var grid = picks.slice(3, 9);
-      var h = '';
-
-      // Hero
-      if (hero.length) {
-        h += '<section class="hero-section">';
-        hero.forEach(function(p, i){
-          var zh = p.subtitle ? '<p class="hero-sub">'+esc(p.subtitle)+'</p>' : '';
-          h += '<a href="'+p.url+'" class="hero-card" onclick="event.preventDefault();var el=this;var r=el.getBoundingClientRect();el.style.top=r.top+\'px\';el.style.left=r.left+\'px\';el.style.width=r.width+\'px\';el.style.height=r.height+\'px\';el.style.position=\'fixed\';el.style.margin=\'0\';requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add(\'zooming\')})});setTimeout(function(){location.href=el.href},700)">';
-          if (p.image) h += '<img src="'+p.image+'" alt="'+esc(p.title)+'" loading="'+(i===0?'eager':'lazy')+'" />';
-          h += '<div class="hero-mask"></div><div class="hero-content"><p class="hero-tag">'+esc(p.category)+(p.featured?' · Featured':'')+'</p><h1 class="hero-title">'+esc(p.title)+'</h1>'+zh+'<span class="hero-cta">'+(ctas[langCode]||ctas.en)+'</span></div></a>';
-        });
-        h += '</section>';
-      }
-
-      // Mini grid
-      if (grid.length) {
-        h += '<section class="mini-grid"><div class="mini-grid-inner">';
-        grid.forEach(function(p){
-          var img = p.image ? '<img src="'+p.image+'" alt="'+esc(p.title)+'" loading="lazy" />' : '';
-          h += '<a href="'+p.url+'" class="mini-card">'+img+'<div class="mini-card-content"><p class="mini-card-tag">'+esc(p.category)+'</p><h3 class="mini-card-title">'+esc(p.title)+'</h3></div></a>';
-        });
-        h += '</div></section>';
-      }
-
-      document.getElementById('heroGrid').innerHTML = h;
-      function esc(s){ var d = document.createElement('div'); d.appendChild(document.createTextNode(s)); return d.innerHTML; }
-    })();
-  </script>
+  <!-- HERO + GRID — server-rendered, no client JS needed -->
+  {heroTop.length > 0 && (
+    <section class="hero-section">
+      {heroTop.map((p, i) => (
+        <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="hero-card"
+           onclick={`event.preventDefault();var el=this;var r=el.getBoundingClientRect();el.style.top=r.top+'px';el.style.left=r.left+'px';el.style.width=r.width+'px';el.style.height=r.height+'px';el.style.position='fixed';el.style.margin='0';requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('zooming')})});setTimeout(function(){location.href=el.href},700)`}>
+          {p.data.image && <img src={p.data.image} alt={p.data.title} loading={i===0?'eager':'lazy'} />}
+          <div class="hero-mask"></div>
+          <div class="hero-content">
+            <p class="hero-tag">{catLabel(p.data.category)}{p.data.featured ? ' · '+featLabel[langCode] || featLabel.en : ''}</p>
+            <h1 class="hero-title">{p.data.title}</h1>
+            {p.data.subtitle && <p class="hero-sub">{p.data.subtitle}</p>}
+            <span class="hero-cta">{readLabel[langCode] || readLabel.en}</span>
+          </div>
+        </a>
+      ))}
+    </section>
+  )}
+  {heroGrid.length > 0 && (
+    <section class="mini-grid">
+      <div class="mini-grid-inner">
+        {heroGrid.map(p => (
+          <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="mini-card">
+            {p.data.image && <img src={p.data.image} alt={p.data.title} loading="lazy" />}
+            <div class="mini-card-content">
+              <p class="mini-card-tag">{catLabel(p.data.category)}</p>
+              <h3 class="mini-card-title">{p.data.title}</h3>
+            </div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
 
   <!-- SINGLE FILMSTRIP — 9 random posts from all categories -->
   {(() => {

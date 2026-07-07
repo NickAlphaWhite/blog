@@ -1,6 +1,5 @@
 ---
-title: "Diptyque Candles — A Scented Home"
-titleZh: "Diptyque 蜡烛 — 有味道的家"
+title: "Diptyque 蜡烛 — 有味道的家"
 date: 2026-04-15
 lang: zh
 image: "https://images.unsplash.com/photo-1600612253971-422e7f7faeb6?w=1200"

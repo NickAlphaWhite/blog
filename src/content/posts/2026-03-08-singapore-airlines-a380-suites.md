@@ -1,6 +1,5 @@
 ---
-title: "Singapore Airlines A380 Suites — To Singapore"
-titleZh: "新航 A380 套房 — 飞往新加坡"
+title: "新航 A380 套房 — 飞往新加坡"
 date: 2026-03-08
 lang: zh
 image: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200"

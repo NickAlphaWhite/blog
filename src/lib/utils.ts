@@ -2,7 +2,7 @@ import { getCollection } from "astro:content";
 
 // ── Region ↔ Language ──────────────────────────────────────────
 export const regionMap: Record<string, string> = {
-  cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue",
+  cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
   uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt", th: "th",
   ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru", br: "pt", mx: "es",
   in: "en", ae: "en", za: "en", pr: "es",
@@ -27,23 +27,16 @@ export const langLabels: Record<string, string> = {
  * Returns a predicate so getCollection can filter correctly.
  */
 export function langMatcher(langCode: string): (postLang: string) => boolean {
-  if (langCode === "zh-yue" || langCode === "zh-tw") {
-    return (l: string) => l === "zh" || l === langCode;
-  }
   return (l: string) => l === langCode;
 }
 
 // ── Categories ──────────────────────────────────────────────────
-let _catsConfig: Record<string, any> | null = null;
-
 export async function getCatsConfig(): Promise<Record<string, any>> {
-  if (_catsConfig) return _catsConfig;
   const fs = await import("node:fs");
   const path = await import("node:path");
-  _catsConfig = JSON.parse(
+  return JSON.parse(
     fs.readFileSync(path.join(process.cwd(), "src/config/categories.json"), "utf-8"),
   );
-  return _catsConfig!;
 }
 
 export function catLabel(

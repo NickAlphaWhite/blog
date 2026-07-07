@@ -1,6 +1,5 @@
 ---
-title: "The Wes Anderson Color Palette"
-titleZh: "韦斯·安德森的配色艺术"
+title: "韦斯·安德森的配色艺术"
 date: 2026-03-10
 lang: zh
 image: "https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=1200"

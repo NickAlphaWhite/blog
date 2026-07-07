@@ -1,6 +1,5 @@
 ---
-title: "Burgundy 2020 — Tasting Notes from Vosne-Romanée"
-titleZh: "勃艮第 2020 年份 — Vosne-Romanée 品鉴笔记"
+title: "勃艮第 2020 年份 — Vosne-Romanée 品鉴笔记"
 date: 2026-03-20
 lang: zh
 image: "https://images.unsplash.com/photo-1510812431401-41d2bd2722f3?w=1200"

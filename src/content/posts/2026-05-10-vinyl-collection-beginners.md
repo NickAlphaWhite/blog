@@ -1,6 +1,5 @@
 ---
-title: "Starting a Vinyl Collection in 2026 — Gear & Records"
-titleZh: "2026 入门黑胶 — 设备与唱片指南"
+title: "2026 入门黑胶 — 设备与唱片指南"
 date: 2026-05-10
 lang: zh
 image: "https://images.unsplash.com/photo-1461360228754-6e81c63fcbd2?w=1200"

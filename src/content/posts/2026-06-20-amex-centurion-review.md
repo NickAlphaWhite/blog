@@ -1,6 +1,5 @@
 ---
-title: "American Express Centurion Card — The Black Card Review"
-titleZh: "美国运通百夫长黑卡 — 权益与成本全解析"
+title: "美国运通百夫长黑卡 — 权益与成本全解析"
 date: 2026-06-20
 lang: zh
 image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200"

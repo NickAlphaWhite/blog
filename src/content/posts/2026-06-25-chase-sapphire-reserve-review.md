@@ -1,6 +1,5 @@
 ---
-title: "Chase Sapphire Reserve — Worth the Fee in 2026?"
-titleZh: "Chase Sapphire Reserve — 2026 年还值得年费吗"
+title: "Chase Sapphire Reserve — 2026 年还值得年费吗"
 date: 2026-06-25
 lang: zh
 image: "https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200"

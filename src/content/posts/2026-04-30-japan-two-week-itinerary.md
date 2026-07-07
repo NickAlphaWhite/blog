@@ -1,6 +1,5 @@
 ---
-title: "Japan 14-Day Itinerary — Tokyo, Kyoto, Osaka, Naoshima"
-titleZh: "日本两周行程 — 东京·京都·大阪·直岛"
+title: "日本两周行程 — 东京·京都·大阪·直岛"
 date: 2026-04-30
 lang: zh
 image: "https://images.unsplash.com/photo-1528360983277-13d401cdc186?w=1200"

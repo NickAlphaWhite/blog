@@ -1,7 +1,7 @@
 {
   "zh": {
     "chineseTitle": "中文标题", "chineseTitlePlaceholder": "输入中文主标题",
-    "foreignTitle": "外文标题", "foreignTitlePlaceholder": "输入外文标题",
+    "foreignTitle": "标题", "foreignTitlePlaceholder": "输入标题",
     "subtitle": "副标题", "subtitlePlaceholder": "卡片上的简短描述",
     "language": "语言", "date": "日期",
     "category": "分类", "categoryPlaceholder": "请选择",
@@ -23,7 +23,7 @@
   },
   "zh-tw": {
     "chineseTitle": "中文標題", "chineseTitlePlaceholder": "輸入中文主標題",
-    "foreignTitle": "外文標題", "foreignTitlePlaceholder": "輸入外文標題",
+    "foreignTitle": "標題", "foreignTitlePlaceholder": "輸入標題",
     "subtitle": "副標題", "subtitlePlaceholder": "卡片上的簡短描述",
     "language": "語言", "date": "日期",
     "category": "分類", "categoryPlaceholder": "請選擇",
@@ -45,7 +45,7 @@
   },
   "zh-yue": {
     "chineseTitle": "中文標題", "chineseTitlePlaceholder": "輸入中文主標題",
-    "foreignTitle": "外文標題", "foreignTitlePlaceholder": "輸入外文標題",
+    "foreignTitle": "標題", "foreignTitlePlaceholder": "輸入標題",
     "subtitle": "副標題", "subtitlePlaceholder": "卡片上的簡短描述",
     "language": "語言", "date": "日期",
     "category": "分類", "categoryPlaceholder": "請選擇",

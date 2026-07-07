@@ -1,6 +1,5 @@
 ---
-title: "Noma Kyoto Pop-up — A Once-in-a-Lifetime Meal"
-titleZh: "Noma 京都快闪 — 一生一次的用餐体验"
+title: "Noma 京都快闪 — 一生一次的用餐体验"
 date: 2026-05-28
 lang: zh
 image: "https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200"

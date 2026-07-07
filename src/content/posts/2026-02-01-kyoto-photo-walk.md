@@ -1,6 +1,5 @@
 ---
-title: "Kyoto Photo Walk — 24 Frames from the Ancient Capital"
-titleZh: "京都街拍 — 千年古都的 24 张底片"
+title: "京都街拍 — 千年古都的 24 张底片"
 date: 2026-02-01
 lang: zh
 image: "https://images.unsplash.com/photo-1493976040374-85c8e12f0c0e?w=1200"

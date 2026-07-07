@@ -1,6 +1,5 @@
 ---
-title: "ANA The Suite — Tokyo to New York"
-titleZh: "全日空头等舱 The Suite 东京-纽约体验"
+title: "全日空头等舱 The Suite 东京-纽约体验"
 date: 2026-05-15
 lang: zh
 image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200"

@@ -1,6 +1,5 @@
 ---
-title: "CITIC Black Pixiu World Debit Card"
-titleZh: "中信银行黑貔貅万事达世界借记卡"
+title: "中信银行黑貔貅万事达世界借记卡"
 date: 2026-01-10
 lang: zh
 image: "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAELKodpIrmIQqSpgRv_-vpLD3Y4AAFJvQ0AAlg4AALCqRhVOHSjWspEW982BA.png"

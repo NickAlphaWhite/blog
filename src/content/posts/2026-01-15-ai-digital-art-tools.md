@@ -1,6 +1,5 @@
 ---
-title: "AI Art in 2026 — Tool or Threat?"
-titleZh: "2026 年 AI 艺术 — 工具还是威胁"
+title: "2026 年 AI 艺术 — 工具还是威胁"
 date: 2026-01-15
 lang: zh
 image: "https://images.unsplash.com/photo-1547826039-bfc35e0f1ea8?w=1200"

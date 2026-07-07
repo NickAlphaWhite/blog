@@ -1,6 +1,5 @@
 ---
-title: "Helvetica at 70 — Still the King of Type"
-titleZh: "Helvetica 七十岁 — 依然是字体之王"
+title: "Helvetica 七十岁 — 依然是字体之王"
 date: 2026-03-01
 lang: zh
 image: "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=1200"

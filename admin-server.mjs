@@ -1,5 +1,5 @@
 import express from "express";
-import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync, unlinkSync } from "node:fs";
+import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync, unlinkSync, utimesSync } from "node:fs";
 import { join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import crypto from "node:crypto";
@@ -69,6 +69,12 @@ function sessionAuth(req, res, next) {
   next();
 }
 
+// ── Shell escape helper ─────────────────────────────────────────
+function shellEscape(str) {
+  // Wrap in single quotes; escape any embedded single quotes: ' → '\''
+  return `'${String(str).replace(/'/g, "'\\''")}'`;
+}
+
 // ── Git helpers ────────────────────────────────────────────────
 function runGit(cmd, cwd = __dirname) {
   return new Promise((resolve) => {
@@ -83,10 +89,26 @@ function runGit(cmd, cwd = __dirname) {
   });
 }
 
+// ── Dev mode: skip git push when GIT_PUSH_ENABLED !== "true"
+const GIT_PUSH = (process.env.GIT_PUSH_ENABLED || "true") === "true";
+
+// Touch a file to trigger Astro dev server reload
+function touchAstroConfig() {
+  try {
+    const p = join(__dirname, "astro.config.mjs");
+    const now = new Date();
+    utimesSync(p, now, now);
+  } catch (_) {}
+}
+
 async function gitPush(commitMsg) {
+  if (!GIT_PUSH) {
+    console.log(`[git] skipped (dev mode): ${commitMsg}`);
+    return;
+  }
   console.log(`[git] pushing: ${commitMsg}`);
   await runGit("git add -A");
-  await runGit(`git commit -m "${commitMsg}" --allow-empty`);
+  await runGit(`git commit -m ${shellEscape(commitMsg)} --allow-empty`);
   await runGit("git push origin main");
   console.log("[git] push complete");
 }
@@ -146,6 +168,7 @@ if(p.get("e")==="1")document.getElementById("errMsg").classList.add("show");
 </html>`;
 
 // ── Routes ─────────────────────────────────────────────────────
+app.use(express.static(join(__dirname, "public")));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -177,15 +200,151 @@ app.get("/logout", (req, res) => {
   res.redirect("/login");
 });
 
+// Admin region chooser — mirrors the main site's choose-country-region
+// Groups & items match src/pages/choose-country-region.astro exactly
+function codeToFlag(code) {
+  var c = code === "uk" ? "gb" : code.split("-")[0];
+  return "https://flagcdn.com/w80/" + c + ".png";
+}
+const CHOOSE_REGION_GROUPS = [
+  {
+    label: "The United States, Canada, and Puerto Rico",
+    items: [
+      { code: "us", name: "United States", lang: "en" },
+      { code: "ca", name: "Canada (English)", lang: "en" },
+      { code: "ca-fr", name: "Canada (Français)", lang: "fr" },
+      { code: "pr", name: "Puerto Rico", lang: "es" },
+    ],
+  },
+  {
+    label: "Asia Pacific",
+    items: [
+      { code: "cn", name: "中国大陆", lang: "zh" },
+      { code: "hk", name: "香港", lang: "zh-yue" },
+      { code: "mo", name: "澳門", lang: "zh-yue" },
+      { code: "tw", name: "台灣", lang: "zh-tw" },
+      { code: "jp", name: "日本", lang: "ja" },
+      { code: "kr", name: "대한민국", lang: "ko" },
+      { code: "th", name: "ประเทศไทย", lang: "th" },
+      { code: "au", name: "Australia", lang: "en" },
+    ],
+  },
+  {
+    label: "Europe",
+    items: [
+      { code: "uk", name: "United Kingdom", lang: "en" },
+      { code: "fr", name: "France", lang: "fr" },
+      { code: "de", name: "Deutschland", lang: "de" },
+      { code: "es", name: "España", lang: "es" },
+      { code: "it", name: "Italia", lang: "it" },
+      { code: "pt", name: "Portugal", lang: "pt" },
+      { code: "nl", name: "Nederland", lang: "nl" },
+      { code: "ru", name: "Россия", lang: "ru" },
+    ],
+  },
+  {
+    label: "Latin America and the Caribbean",
+    items: [
+      { code: "br", name: "Brasil", lang: "pt" },
+      { code: "mx", name: "México", lang: "es" },
+    ],
+  },
+  {
+    label: "Africa, Middle East, and India",
+    items: [
+      { code: "in", name: "India", lang: "en" },
+      { code: "ae", name: "الإمارات العربية المتحدة", lang: "en" },
+      { code: "za", name: "South Africa", lang: "en" },
+    ],
+  },
+];
+
+function buildChooseRegionHtml(siteUrl) {
+  const itemsHtml = CHOOSE_REGION_GROUPS.map(g => `
+    <div class="choose-group">
+      <p class="choose-group-label">${g.label}</p>
+      <div class="choose-grid">
+        ${g.items.map(r => `
+          <a href="/${r.code}" class="choose-item"
+             onclick="event.preventDefault();localStorage.setItem('admin-region','${r.code}');location.href=this.href">
+            <img class="choose-flag" src="${codeToFlag(r.code)}" alt="${r.code}" width="30" height="20" />
+            <span class="choose-name">${r.name}</span>
+          </a>
+        `).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  return `<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Choose your country or region — Admin</title>
+<style>
+:root,[data-theme="light"]{--bg:#f2f2f4;--card:#fff;--bg3:#e8e8ed;--hairline:rgba(0,0,0,0.06);--txt:#1d1d1f;--txt2:#6e6e73;--txt3:#aeaeb2;--font:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif}
+[data-theme="dark"]{--bg:#0a0a0c;--card:#1c1c1e;--bg3:#2c2c2e;--hairline:rgba(255,255,255,0.1);--txt:#f5f5f7;--txt2:#a1a1a6;--txt3:#8e8e93}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font);line-height:1.6;color:var(--txt);background:var(--bg);-webkit-font-smoothing:antialiased}
+.choose-wrap{max-width:960px;margin:0 auto;padding:64px 32px}
+.choose-title{font-size:2.5rem;font-weight:700;letter-spacing:-0.04em;margin-bottom:8px}
+.choose-sub{font-size:1.05rem;color:var(--txt2);margin-bottom:48px}
+.choose-group{margin-bottom:36px}
+.choose-group-label{font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--txt3);margin-bottom:8px;padding-left:18px}
+.choose-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:2px}
+.choose-item{display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:12px;color:var(--txt);text-decoration:none;font-size:1rem;transition:background 0.15s;white-space:nowrap}
+.choose-item:hover{background:var(--bg3)}
+.choose-flag{width:32px;height:auto;flex-shrink:0;border-radius:3px;box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.choose-name{font-weight:500}
+.choose-back{display:inline-flex;align-items:center;gap:6px;color:var(--txt2);text-decoration:none;font-size:0.9rem;margin-bottom:32px;transition:color 0.2s}
+.choose-back:hover{color:var(--txt)}
+@media(max-width:768px){.choose-wrap{padding:48px 20px}.choose-title{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<div class="choose-wrap">
+  <a href="javascript:history.back()" class="choose-back">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+    Back
+  </a>
+  <h1 class="choose-title">Choose your country or region</h1>
+  <p class="choose-sub">Selecting a region changes the admin content and language.</p>
+  ${itemsHtml}
+</div>
+</body>
+</html>`;
+}
+
+app.get("/choose-country-region", (req, res) => {
+  res.setHeader("Cache-Control", "no-store");
+  res.send(buildChooseRegionHtml(SITE_URL));
+});
+
 // Health check
 app.get("/health", (req, res) => res.json({ ok: true }));
 
-// Admin page (protected)
-app.get(["/", "/:lang"], (req, res) => {
-  const cookies = parseCookies(req.headers.cookie);
-  if (cookies[COOKIE_NAME] !== ADMIN_TOKEN) {
-    return res.redirect("/login");
+// Lock screen auth check (for admin.html client-side lock)
+app.post("/api/auth-check", (req, res) => {
+  const token = (req.body.token || "").trim();
+  if (token === ADMIN_TOKEN.trim()) {
+    return res.json({ ok: true });
   }
+  res.status(401).json({ ok: false, error: "Invalid token" });
+});
+
+// Admin page (protected) — region-based routing
+// / → redirect to /cn, /:region → serve admin for that region
+app.get("/", (req, res) => {
+  const cookies = parseCookies(req.headers.cookie);
+  if (cookies[COOKIE_NAME] !== ADMIN_TOKEN) return res.redirect("/login");
+  res.redirect("/cn");
+});
+
+app.get("/:region", (req, res, next) => {
+  const { region } = req.params;
+  if (!ALL_REGIONS.includes(region)) return next();
+  const cookies = parseCookies(req.headers.cookie);
+  if (cookies[COOKIE_NAME] !== ADMIN_TOKEN) return res.redirect("/login");
   res.setHeader("Cache-Control", "no-store");
   res.sendFile(join(__dirname, "admin.html"));
 });
@@ -207,12 +366,11 @@ app.put("/api/posts/:file", sessionAuth, (req, res) => {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
-    const { title, titleZh, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
+    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
     const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
     const frontmatter = [
       "---",
       `title: "${title}"`,
-      titleZh ? `titleZh: "${titleZh}"` : null,
       subtitle ? `subtitle: "${subtitle}"` : null,
       `date: ${date || new Date().toISOString().split("T")[0]}`,
       image ? `image: "${image}"` : null,
@@ -227,6 +385,7 @@ app.put("/api/posts/:file", sessionAuth, (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
     writeFileSync(filePath, frontmatter, "utf-8");
+    touchAstroConfig();
     gitPushAsync(`Update post: ${req.params.file}`);
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -237,12 +396,43 @@ import multer from "multer";
 const uploadDir = join(__dirname, "public", "images");
 if (!existsSync(uploadDir)) mkdirSync(uploadDir, { recursive: true });
 const ALLOWED_EXTS = ["jpg", "jpeg", "png", "gif", "webp", "svg", "avif"];
+
+// Magic byte signatures for image formats
+const MAGIC_SIGS = {
+  png:  [0x89, 0x50, 0x4E, 0x47],
+  jpg:  [0xFF, 0xD8, 0xFF],
+  jpeg: [0xFF, 0xD8, 0xFF],
+  gif:  [0x47, 0x49, 0x46, 0x38],
+  webp: [0x52, 0x49, 0x46, 0x46], // RIFF
+  avif: null, // AVIF starts with ftypavif at offset 4 — check in stream
+};
+const MAX_MAGIC_LEN = 12;
+
+function validateImageMagic(buffer, ext) {
+  if (ext === "svg") {
+    // SVG is XML/text — validate it starts with <svg or <?xml
+    const head = buffer.toString("utf-8", 0, 256).trimStart();
+    return head.startsWith("<svg") || head.startsWith("<?xml");
+  }
+  if (ext === "avif") {
+    // AVIF: check for ftypavif at offset 4
+    const ftyp = buffer.toString("utf-8", 4, 12);
+    return ftyp === "ftypavif" || ftyp === "ftypavis";
+  }
+  const sig = MAGIC_SIGS[ext];
+  if (!sig) return false;
+  for (let i = 0; i < sig.length; i++) {
+    if (buffer[i] !== sig[i]) return false;
+  }
+  return true;
+}
+
 const upload = multer({
   storage: multer.diskStorage({
     destination: uploadDir,
     filename: (req, file, cb) => {
-      const ext = file.originalname.split(".").pop().toLowerCase();
-      if (!ALLOWED_EXTS.includes(ext)) {
+      const ext = (file.originalname || "").split(".").pop().toLowerCase();
+      if (!ext || !ALLOWED_EXTS.includes(ext)) {
         return cb(new Error("Invalid file type — allowed: " + ALLOWED_EXTS.join(", ")));
       }
       cb(null, crypto.randomBytes(8).toString("hex") + "." + ext);
@@ -250,13 +440,30 @@ const upload = multer({
   }),
   limits: { fileSize: 10 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
-    const ext = file.originalname.split(".").pop().toLowerCase();
-    if (ALLOWED_EXTS.includes(ext)) return cb(null, true);
-    cb(new Error("Invalid file type — allowed: " + ALLOWED_EXTS.join(", ")));
+    const ext = (file.originalname || "").split(".").pop().toLowerCase();
+    if (!ext || !ALLOWED_EXTS.includes(ext)) {
+      return cb(new Error("Invalid file type — allowed: " + ALLOWED_EXTS.join(", ")));
+    }
+    cb(null, true);
   }
 });
+
+// Upload route with magic byte validation after write
 app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file" });
+  // Validate magic bytes on the written file
+  const filePath = join(uploadDir, req.file.filename);
+  const ext = (req.file.originalname || "").split(".").pop().toLowerCase();
+  try {
+    const buf = readFileSync(filePath);
+    if (!validateImageMagic(buf.slice(0, MAX_MAGIC_LEN), ext)) {
+      unlinkSync(filePath);
+      return res.status(400).json({ error: `File content does not match .${ext} signature` });
+    }
+  } catch (e) {
+    try { unlinkSync(filePath); } catch (_) {}
+    return res.status(500).json({ error: e.message });
+  }
   gitPushAsync(`Upload image: ${req.file.filename}`);
   res.json({ url: "/images/" + req.file.filename });
 });
@@ -264,19 +471,18 @@ app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
 // API: Publish post
 app.post("/api/publish", sessionAuth, (req, res) => {
   try {
-    const { title, titleZh, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
+    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags } = req.body;
     if (!title || !category) {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
-    const base = (group || titleZh || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const base = (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
     const slug = date + "-" + base + (lang && lang !== "zh" ? "." + lang : "");
     const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
 
     const frontmatter = [
       "---",
       `title: "${title}"`,
-      titleZh ? `titleZh: "${titleZh}"` : null,
       subtitle ? `subtitle: "${subtitle}"` : null,
       `date: ${date || new Date().toISOString().split("T")[0]}`,
       image ? `image: "${image}"` : null,
@@ -295,6 +501,7 @@ app.post("/api/publish", sessionAuth, (req, res) => {
     if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
     const filePath = join(postsDir, `${slug}.md`);
     writeFileSync(filePath, frontmatter, "utf-8");
+    touchAstroConfig();
 
     gitPushAsync(`Publish: ${slug}`);
     res.json({ ok: true, slug, filePath });
@@ -318,7 +525,6 @@ app.get("/api/posts", sessionAuth, (req, res) => {
         file: f,
         slug: f.replace(/\.md$/, ""),
         title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
-        titleZh: fm.match(/titleZh:\s*"(.*)"/)?.[1] || "",
         lang: fm.match(/lang:\s*"?(\w+)"?/)?.[1] || "zh",
         group: fm.match(/group:\s*"?(\S+)"?/)?.[1] || "",
         date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",
@@ -329,7 +535,7 @@ app.get("/api/posts", sessionAuth, (req, res) => {
     const groups = {};
     for (const p of raw) {
       const key = p.group || p.slug.replace(/\.\w+$/, "");
-      if (!groups[key]) groups[key] = { title: p.title, titleZh: p.titleZh, date: p.date, slug: p.slug, file: p.file, group: key, langs: [] };
+      if (!groups[key]) groups[key] = { title: p.title, date: p.date, slug: p.slug, file: p.file, group: key, langs: [] };
       groups[key].langs.push(p.lang);
     }
 
@@ -369,12 +575,14 @@ app.delete("/api/posts/:file", sessionAuth, (req, res) => {
           deleted++;
         }
       }
+      touchAstroConfig();
       gitPushAsync(`Delete group: ${group} (${deleted} files)`);
       return res.json({ ok: true, deleted });
     }
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
+    touchAstroConfig();
     gitPushAsync(`Delete post: ${req.params.file}`);
     res.json({ ok: true });
   } catch (e) {
@@ -409,6 +617,7 @@ app.get("/api/categories", sessionAuth, (req, res) => {
 app.put("/api/categories", sessionAuth, (req, res) => {
   try {
     writeFileSync(catsPath, JSON.stringify(req.body, null, 2), "utf-8");
+    touchAstroConfig();
     gitPushAsync("Update categories");
     res.json({ ok: true });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -420,6 +629,7 @@ app.post("/api/categories/:name", sessionAuth, (req, res) => {
     if (cats[req.params.name]) return res.status(400).json({ error: "Category already exists" });
     cats[req.params.name] = { label: { en: req.params.name, zh: req.params.name }, subcategories: req.body.subcategories || {} };
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
+    touchAstroConfig();
     gitPushAsync(`Add category: ${req.params.name}`);
     res.json({ ok: true, categories: cats });
   } catch (e) { res.status(500).json({ error: e.message }); }
@@ -474,13 +684,31 @@ app.get("/api/i18n", sessionAuth, (req, res) => {
 
 // API: Public config (no auth needed — for admin page to know site URL)
 app.get("/api/config", (req, res) => {
-  res.json({ siteUrl: SITE_URL });
+  res.json({ siteUrl: SITE_URL, regions: REGION_LANG, regionNames: REGION_NAMES, gitPush: GIT_PUSH });
 });
+
+// ── Region → language map (shared with frontend) ────────────────
+const REGION_LANG = {
+  cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
+  uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt",
+  th: "th", ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru",
+  br: "pt", mx: "es", in: "en", ae: "en", za: "en", pr: "es",
+};
+const REGION_NAMES = {
+  cn: "中国大陆", us: "United States", jp: "日本", kr: "대한민국",
+  tw: "台灣", hk: "香港", mo: "澳門", uk: "United Kingdom", fr: "France",
+  de: "Deutschland", es: "España", it: "Italia", pt: "Portugal",
+  th: "ประเทศไทย", ca: "Canada (EN)", "ca-fr": "Canada (FR)",
+  au: "Australia", nl: "Nederland", ru: "Россия", br: "Brasil",
+  mx: "México", in: "India", ae: "الإمارات", za: "South Africa", pr: "Puerto Rico",
+};
+const ALL_REGIONS = Object.keys(REGION_LANG);
 
 // ── Startup ────────────────────────────────────────────────────
 app.listen(PORT, async () => {
   console.log(`\n🚀 Admin server running on port ${PORT}`);
   console.log(`   Site: ${SITE_URL}`);
+  console.log(`   Git push: ${GIT_PUSH ? "enabled" : "DISABLED (dev mode)"}`);
   console.log(`   Login: http://localhost:${PORT}/login`);
   const tokPreview = ADMIN_TOKEN.length > 8 ? `${ADMIN_TOKEN.slice(0,4)}...${ADMIN_TOKEN.slice(-4)}` : "***";
   console.log(`   Token: ${tokPreview}\n`);

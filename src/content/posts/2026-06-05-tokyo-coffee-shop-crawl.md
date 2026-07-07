@@ -1,6 +1,5 @@
 ---
-title: "Tokyo Coffee Crawl — 8 Shops, 2 Days"
-titleZh: "东京咖啡馆巡礼 — 两日八店"
+title: "东京咖啡馆巡礼 — 两日八店"
 date: 2026-06-05
 lang: zh
 image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"

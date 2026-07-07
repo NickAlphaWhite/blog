@@ -71,11 +71,7 @@ const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
       <Content />
     </div>
 
-    <div class="comments-area" id="waline">
-      <p style="color:var(--txt3);font-size:0.85rem;text-align:center;padding:40px">
-        Comments · Powered by <a href="https://waline.js.org" style="color:var(--txt2)">Waline</a>
-      </p>
-    </div>
+    <div class="comments-area" id="waline"></div>
   </article>
 
   {related.length > 0 && (

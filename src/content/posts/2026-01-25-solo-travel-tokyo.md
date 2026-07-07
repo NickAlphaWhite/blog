@@ -1,6 +1,5 @@
 ---
-title: "Tokyo Solo — 5 Days, No Plan"
-titleZh: "独旅东京 — 五日无计划漫游"
+title: "独旅东京 — 五日无计划漫游"
 date: 2026-01-25
 lang: zh
 image: "https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=1200"

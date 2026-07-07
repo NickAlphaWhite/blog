@@ -1,6 +1,5 @@
 ---
-title: "Japanese Whisky & Tea — A Tale of Two Drinks"
-titleZh: "日本威士忌与茶道 — 一杯两重天"
+title: "日本威士忌与茶道 — 一杯两重天"
 date: 2026-06-10
 lang: zh
 image: "https://images.unsplash.com/photo-1569529465841-dfecdab7503b?w=1200"

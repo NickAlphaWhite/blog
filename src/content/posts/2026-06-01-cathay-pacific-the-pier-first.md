@@ -1,6 +1,5 @@
 ---
-title: "Cathay Pacific The Pier First Class Lounge"
-titleZh: "国泰航空玉衡堂头等舱休息室"
+title: "国泰航空玉衡堂头等舱休息室"
 date: 2026-06-01
 lang: zh
 image: "https://images.unsplash.com/photo-1540339832862-474599807836?w=1200"

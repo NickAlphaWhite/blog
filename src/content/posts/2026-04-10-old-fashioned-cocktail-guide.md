@@ -1,6 +1,5 @@
 ---
-title: "The Perfect Old Fashioned — A 200-Year-Old Recipe"
-titleZh: "完美古典鸡尾酒 — 两百年不变的配方"
+title: "完美古典鸡尾酒 — 两百年不变的配方"
 date: 2026-04-10
 lang: zh
 image: "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=1200"

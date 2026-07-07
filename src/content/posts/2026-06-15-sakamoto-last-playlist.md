@@ -1,6 +1,5 @@
 ---
-title: "Ryūichi Sakamoto — The Last Playlist"
-titleZh: "坂本龙一 — 最后的播放列表"
+title: "坂本龙一 — 最后的播放列表"
 date: 2026-06-15
 lang: zh
 image: "https://images.unsplash.com/photo-1511671782779-c97d3d27a1d4?w=1200"

@@ -1,6 +1,5 @@
 ---
-title: "The Ritz-Carlton Nanjing"
-titleZh: "南京丽思卡尔顿入住体验"
+title: "南京丽思卡尔顿入住体验"
 date: 2025-12-08
 image: "https://cache.marriott.com/content/dam/marriott-renditions/NKGRZ/nkgrz-aerial-view-4134-hor-clsc.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*"
 category: "Hotel"
