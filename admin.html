@@ -504,7 +504,7 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   var title=data.titleEn,date=data.date||new Date().toISOString().split("T")[0];
   if(!title)return toast("标题不能为空","err");
   var isEdit=!!editingFile;
-  var base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");
+  var base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"untitled";
   var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,lang:lang,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
   try{
     var url,method;

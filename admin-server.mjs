@@ -387,7 +387,7 @@ app.put("/api/posts/:file", sessionAuth, (req, res) => {
 
     // If slug changed, rename the file
     if (customSlug) {
-      const newBase = customSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+      const newBase = customSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
       const newSlug = (date || new Date().toISOString().split("T")[0]) + "-" + newBase + (lang && lang !== "zh" ? "." + lang : "");
       const newPath = join(postsDir, `${newSlug}.md`);
       if (newPath !== filePath) {
@@ -491,7 +491,7 @@ app.post("/api/publish", sessionAuth, (req, res) => {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
-    const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+    const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
     const slug = date + "-" + base + (lang && lang !== "zh" ? "." + lang : "");
     const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
 
