@@ -684,7 +684,7 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
     const postsDir = getPostsDir(region);
     const group = req.query.group;
     if (group) {
-      // Delete all files in the group
+      // Delete all files in the group — push EACH file via API (same as publish)
       const files = readdirSync(postsDir).filter(f => f.endsWith(".md"));
       const deletedFiles = [];
       for (const f of files) {
@@ -698,14 +698,10 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
         }
       }
       touchAstroConfig();
-      // Use git for group deletes — handles bulk deletions reliably
       let pushOk = true;
-      if (GIT_PUSH) {
-        await runGit("git pull origin main");
-        await runGit("git add -A");
-        await runGit(`git commit -m ${shellEscape(`Delete group: ${group} (${deletedFiles.length} files)`)} --allow-empty`);
-        const p = await runGit("git push origin main");
-        if (p === null) pushOk = false;
+      for (const f of deletedFiles) {
+        const r = await pushToGitHub(`src/content/posts/${region}/${f}`, null, `Delete post: ${f}`);
+        if (!r.ok) pushOk = false;
       }
       return res.json({ ok: true, deleted: deletedFiles.length, pushed: pushOk });
     }
@@ -713,16 +709,8 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
     touchAstroConfig();
-    // Use git for deletions — it naturally stages file removals and triggers deploy
-    let pushOk = true;
-    if (GIT_PUSH) {
-      await runGit("git pull origin main");
-      await runGit("git add -A");
-      await runGit(`git commit -m ${shellEscape(`Delete post: ${req.params.file}`)} --allow-empty`);
-      const p = await runGit("git push origin main");
-      if (p === null) pushOk = false;
-    }
-    res.json({ ok: true, pushed: pushOk });
+    const pushResult = await pushToGitHub(`src/content/posts/${region}/${req.params.file}`, null, `Delete post: ${req.params.file}`);
+    res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
