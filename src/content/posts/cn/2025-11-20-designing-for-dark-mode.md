@@ -2,7 +2,7 @@
 title: "暗色模式设计 — 字体、色彩与层次"
 date: 2025-11-20
 lang: zh
-image: "https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200"
+image: "https://images.unsplash.com/photo-1550684376-efcbd6e3f031?w=1200"
 category: "Design"
 subcategory: "Typography"
 tags: ["design", "dark-mode", "typography", "ui"]
