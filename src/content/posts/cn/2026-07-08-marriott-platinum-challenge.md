@@ -5,6 +5,7 @@ date: 2026-07-08
 category: "Hotel"
 subcategory: "Hotel Tips"
 lang: zh
+image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=1200"
 featured: false
 ---
 

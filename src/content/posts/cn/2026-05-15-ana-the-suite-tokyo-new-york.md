@@ -2,7 +2,7 @@
 title: "全日空头等舱 The Suite 东京-纽约体验"
 date: 2026-05-15
 lang: zh
-image: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=1200"
+image: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200"
 category: "Aviation"
 subcategory: "Trip Reports"
 tags: ["ana", "first-class", "the-suite", "tokyo", "new-york"]

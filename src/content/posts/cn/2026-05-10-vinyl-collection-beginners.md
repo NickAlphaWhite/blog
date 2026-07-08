@@ -2,7 +2,7 @@
 title: "2026 入门黑胶 — 设备与唱片指南"
 date: 2026-05-10
 lang: zh
-image: "https://images.unsplash.com/photo-1461360228754-6e81c63fcbd2?w=1200"
+image: "https://images.unsplash.com/photo-1603048588665-791ca8aea617?w=1200"
 category: "Music"
 subcategory: "Rock"
 tags: ["vinyl", "analog", "hifi", "collecting"]

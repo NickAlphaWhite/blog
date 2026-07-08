@@ -2,7 +2,7 @@
 title: "日本香道入门 — 从线香到沉香"
 date: 2026-02-28
 lang: zh
-image: "https://images.unsplash.com/photo-1592945190623-2c3b84e37ba1?w=1200"
+image: "https://images.unsplash.com/photo-1600612253971-422e7f7faeb6?w=1200"
 category: "Odor"
 subcategory: "Incense"
 tags: ["incense", "japan", "koh-do", "fragrance"]

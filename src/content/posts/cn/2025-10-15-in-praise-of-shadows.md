@@ -2,7 +2,7 @@
 title: "读书笔记 — 《阴翳礼赞》"
 date: 2025-10-15
 lang: zh
-image: "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=1200"
+image: "https://images.unsplash.com/photo-1490633874781-1c63cc424610?w=1200"
 category: "Literature"
 subcategory: "Reading Notes"
 tags: ["tanizaki", "japanese-aesthetics", "shadows", "reading"]

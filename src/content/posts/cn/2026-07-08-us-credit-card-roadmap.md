@@ -5,6 +5,7 @@ date: 2026-07-08
 category: "Card"
 subcategory: "Guide"
 lang: zh
+image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200"
 featured: false
 ---
 
