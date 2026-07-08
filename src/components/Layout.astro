@@ -382,7 +382,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
 
         function scheduleHide() {
           cancelHide();
-          timer = setTimeout(function () { hide(); currentCat = null; }, 250);
+          timer = setTimeout(function () { hide(); currentCat = null; }, 400);
         }
 
         // Use event delegation on document so it survives ALL view transitions
@@ -396,9 +396,8 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         document.addEventListener("mouseout", function (e) {
           var link = e.target.closest && e.target.closest(".nav-link");
           if (!link) return;
-          // If moving to another nav-link or into dropdown, don't hide
           if (e.relatedTarget && e.relatedTarget.closest) {
-            if (e.relatedTarget.closest(".nav-link") || e.relatedTarget.closest("#navDropdown")) return;
+            if (e.relatedTarget.closest("#navDropdown")) return;
           }
           scheduleHide();
         });
