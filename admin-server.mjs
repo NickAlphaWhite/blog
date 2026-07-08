@@ -135,19 +135,17 @@ async function githubApiPush(repoPath, content, commitMsg) {
   }
 
   try {
-    // If updating or deleting, get the current file SHA first
-    if (content === null || true) {
-      const getRes = await fetch(url + `?ref=${GH_BRANCH}`, { headers: GH_HEADERS });
-      if (getRes.ok) {
-        const existing = await getRes.json();
-        body.sha = existing.sha;
-      } else if (getRes.status === 404) {
-        // File doesn't exist yet — create without SHA
-      } else {
-        const errText = await getRes.text();
-        console.error(`[api] GET ${repoPath} failed: ${getRes.status} ${errText}`);
-        return null;
-      }
+    // Always fetch SHA so we can update or delete (needed for PUT and DELETE)
+    const getRes = await fetch(url + `?ref=${GH_BRANCH}`, { headers: GH_HEADERS });
+    if (getRes.ok) {
+      const existing = await getRes.json();
+      body.sha = existing.sha;
+    } else if (getRes.status === 404) {
+      // File doesn't exist yet — create without SHA
+    } else {
+      const errText = await getRes.text();
+      console.error(`[api] GET ${repoPath} failed: ${getRes.status} ${errText}`);
+      return null;
     }
 
     if (content === null) {
@@ -688,7 +686,7 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
     if (group) {
       // Delete all files in the group
       const files = readdirSync(postsDir).filter(f => f.endsWith(".md"));
-      let deleted = 0;
+      const deletedFiles = [];
       for (const f of files) {
         const raw = readFileSync(join(postsDir, f), "utf-8");
         const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
@@ -696,19 +694,35 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
         const base = f.replace(/\.md$/, "").replace(/\.\w+$/, "");
         if (g === group || base === group) {
           unlinkSync(join(postsDir, f));
-          deleted++;
+          deletedFiles.push(f);
         }
       }
       touchAstroConfig();
-      const pushResult = await pushToGitHub(`src/content/posts/${region}/${files[0] || "deleted"}.md`, null, `Delete group: ${group} (${deleted} files)`);
-      return res.json({ ok: true, deleted, pushed: pushResult.ok });
+      // Use git for group deletes — handles bulk deletions reliably
+      let pushOk = true;
+      if (GIT_PUSH) {
+        await runGit("git pull origin main");
+        await runGit("git add -A");
+        await runGit(`git commit -m ${shellEscape(`Delete group: ${group} (${deletedFiles.length} files)`)} --allow-empty`);
+        const p = await runGit("git push origin main");
+        if (p === null) pushOk = false;
+      }
+      return res.json({ ok: true, deleted: deletedFiles.length, pushed: pushOk });
     }
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
     touchAstroConfig();
-    const pushResult = await pushToGitHub(`src/content/posts/${region}/${req.params.file}`, null, `Delete post: ${req.params.file}`);
-    res.json({ ok: true, pushed: pushResult.ok });
+    // Use git for deletions — it naturally stages file removals and triggers deploy
+    let pushOk = true;
+    if (GIT_PUSH) {
+      await runGit("git pull origin main");
+      await runGit("git add -A");
+      await runGit(`git commit -m ${shellEscape(`Delete post: ${req.params.file}`)} --allow-empty`);
+      const p = await runGit("git push origin main");
+      if (p === null) pushOk = false;
+    }
+    res.json({ ok: true, pushed: pushOk });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
