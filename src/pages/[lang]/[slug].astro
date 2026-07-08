@@ -77,22 +77,24 @@ const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
   {related.length > 0 && (
     <section class="section-wrap">
       <h2 class="section-title" style="margin-bottom:20px;padding:0 48px">{({zh:'更多','zh-tw':'更多','zh-yue':'更多',en:'More in ',ja:'もっと見る: ',ko:'더 보기: '})[langCode] || 'More in '}{catLabel(category)}</h2>
-      <div class="scroll-outer">
-        <div class="scroll-container" id="scroll-related">
-          <div class="scroll-row" id="row-related">
-            {related.map(p => (
-              <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card">
-                <div class="card-img">
-                  {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
-                </div>
-                <div class="card-body">
-                  <span class="card-tag">{catLabel(p.data.category)}</span>
-                  <h3 class="card-title">{p.data.title}</h3>
-                  {p.data.subtitle && <p class="card-desc">{p.data.subtitle}</p>}
-                </div>
-                <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
-              </a>
-            ))}
+      <div class="scroll-wrap">
+        <div class="scroll-outer">
+          <div class="scroll-container" id="scroll-related">
+            <div class="scroll-row" id="row-related">
+              {related.map(p => (
+                <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card">
+                  <div class="card-img">
+                    {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
+                  </div>
+                  <div class="card-body">
+                    <span class="card-tag">{catLabel(p.data.category)}</span>
+                    <h3 class="card-title">{p.data.title}</h3>
+                    {p.data.subtitle && <p class="card-desc">{p.data.subtitle}</p>}
+                  </div>
+                  <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
+                </a>
+              ))}
+            </div>
           </div>
         </div>
         <button class="scroll-arrow arr-left" id="arrow-rel-l" onclick="scrollRow('row-related',-1)" title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>

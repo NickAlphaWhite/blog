@@ -103,11 +103,40 @@ const allLabel: Record<string, string> = {
     {subcats.length > 0 ? subcats.map((sub, si) => (
       <div data-section={sub}>
         <p class="subcat-label">{subLabel(cat, sub)}</p>
+        <div class="scroll-wrap">
+          <div class="scroll-outer">
+            <div class="scroll-container" id={`scroll-${si}`}>
+              <div class="scroll-row" id={`row-${si}`}>
+                {posts.filter(p => p.data.subcategory === sub).map(p => (
+                  <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card">
+                    <div class="card-img">
+                      {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
+                    </div>
+                    <div class="card-body">
+                      <span class="card-tag">{catLabel(p.data.category)}</span>
+                      <h3 class="card-title">{p.data.title}</h3>
+                      {p.data.titleZh && <p class="card-desc">{p.data.titleZh}</p>}
+                    </div>
+                    <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
+                  </a>
+                ))}
+              </div>
+            </div>
+          </div>
+          <button class="scroll-arrow arr-left" id={`arrow-${si}-l`} onclick={`scrollRow('row-${si}',-1)`} title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
+          <button class="scroll-arrow arr-right" id={`arrow-${si}-r`} onclick={`scrollRow('row-${si}',1)`} title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+        </div>
+      </div>
+    )) : (
+      <div class="scroll-wrap">
         <div class="scroll-outer">
-          <div class="scroll-container" id={`scroll-${si}`}>
-            <div class="scroll-row" id={`row-${si}`}>
-              {posts.filter(p => p.data.subcategory === sub).map(p => (
-                <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card">
+          <div class="scroll-container" id="scroll-all">
+            <div class="scroll-row" id="row-all">
+              {posts.map(p => (
+                <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card"
+                   style="box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04);transition:all .5s"
+                   onmouseover="this.style.transform='translateY(-2px) scale(1.04)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08),0 16px 56px rgba(0,0,0,0.06)'"
+                   onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04)'">
                   <div class="card-img">
                     {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
                   </div>
@@ -120,31 +149,6 @@ const allLabel: Record<string, string> = {
                 </a>
               ))}
             </div>
-          </div>
-          <button class="scroll-arrow arr-left" id={`arrow-${si}-l`} onclick={`scrollRow('row-${si}',-1)`} title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-          <button class="scroll-arrow arr-right" id={`arrow-${si}-r`} onclick={`scrollRow('row-${si}',1)`} title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
-        </div>
-      </div>
-    )) : (
-      <div class="scroll-outer">
-        <div class="scroll-container" id="scroll-all">
-          <div class="scroll-row" id="row-all">
-            {posts.map(p => (
-              <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card"
-                 style="box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04);transition:all .5s"
-                 onmouseover="this.style.transform='translateY(-2px) scale(1.04)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08),0 16px 56px rgba(0,0,0,0.06)'"
-                 onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04)'">
-                <div class="card-img">
-                  {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
-                </div>
-                <div class="card-body">
-                  <span class="card-tag">{catLabel(p.data.category)}</span>
-                  <h3 class="card-title">{p.data.title}</h3>
-                  {p.data.titleZh && <p class="card-desc">{p.data.titleZh}</p>}
-                </div>
-                <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
-              </a>
-            ))}
           </div>
         </div>
         <button class="scroll-arrow arr-left" id="arrow-all-l" onclick="scrollRow('row-all',-1)" title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
