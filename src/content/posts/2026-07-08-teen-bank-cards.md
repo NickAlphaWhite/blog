@@ -4,7 +4,6 @@ subtitle: "16-18岁未成年人办卡指南，附出国用卡推荐"
 date: 2026-07-08
 category: "Card"
 subcategory: "Debit"
-tags: ["银行卡", "未成年人", "ICBC", "BOC", "CMB", "出国", "借记卡", "信用卡", "GOPAY"]
 lang: zh
 featured: false
 ---

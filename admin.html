@@ -85,6 +85,10 @@ select{-webkit-appearance:none;cursor:pointer}
 .post-item .actions{display:flex;gap:8px}
 .post-item .actions button{padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);background:var(--card);color:var(--txt2);cursor:pointer;font-size:0.85rem;font-family:var(--font)}
 
+#postSearch{width:100%;padding:12px 16px;border:1px solid var(--hairline);border-radius:12px;background:var(--card);color:var(--txt);font-family:var(--font);font-size:0.92rem;outline:none;transition:border-color 0.2s,box-shadow 0.2s}
+#postSearch:focus{border-color:var(--txt3);box-shadow:0 0 0 3px rgba(0,0,0,0.04)}
+#postSearch::placeholder{color:var(--txt3)}
+
 .toast{position:fixed;bottom:32px;right:32px;padding:14px 24px;border-radius:12px;font-size:0.9rem;font-weight:500;z-index:999;box-shadow:0 8px 30px rgba(0,0,0,0.12);background:#1c1c1e;color:#f5f5f7}
 .toast.err{background:#e74c3c}
 .toast a{color:#6db3ff}
@@ -232,7 +236,12 @@ select{-webkit-appearance:none;cursor:pointer}
     </div>
   </div>
 
-  <div id="view-list" style="display:none"><div class="post-list" id="postList"></div></div>
+  <div id="view-list" style="display:none">
+    <div style="margin-bottom:16px">
+      <input type="search" id="postSearch" placeholder="搜索文章..." autocomplete="off" oninput="loadPosts()">
+    </div>
+    <div class="post-list" id="postList"></div>
+  </div>
   <div id="view-cats" style="display:none">
     <div id="catList"></div>
   </div>
@@ -556,10 +565,15 @@ async function loadPosts(){
   var el=document.getElementById("postList");if(!el)return;
   try{
     var res=await fetch("/api/posts?lang="+window.lang),posts=await res.json(),h="";
-    if(!posts.length)h='<div class="post-item"><span style="color:var(--txt3)">'+t("noPosts")+'</span></div>';
-    else posts.forEach(function(p){
-      h+='<div class="post-item"><div><div class="name">'+esc(p.title)+'</div><div class="file">'+esc(p.file)+'</div></div><div class="actions"><a href="/'+region+'/'+p.slug+'" target="_blank" style="padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);color:var(--txt2);text-decoration:none;font-size:0.85rem;font-family:var(--font)">'+t("viewPost")+'</a><button onclick="editPost(\''+esc(p.file)+'\')">'+t("editPost")+'</button><button onclick="delPost(\''+esc(p.file)+'\',\''+esc(p.group||"")+'\')">'+t("deletePost")+'</button></div></div>';
-    });
+    var q=(document.getElementById("postSearch").value||"").trim().toLowerCase();
+    if(q)posts=posts.filter(function(p){return p.title.toLowerCase().indexOf(q)>=0||p.file.toLowerCase().indexOf(q)>=0||(p.group||"").toLowerCase().indexOf(q)>=0});
+    if(!posts.length)h='<div class="post-item"><span style="color:var(--txt3)">'+(q?t("noResults"):t("noPosts"))+'</span></div>';
+    else{
+      if(q)h+='<div style="font-size:0.78rem;color:var(--txt3);margin-bottom:4px">找到 '+posts.length+' 篇匹配 "'+esc(q)+'" 的文章</div>';
+      posts.forEach(function(p){
+        h+='<div class="post-item"><div><div class="name">'+esc(p.title)+'</div><div class="file">'+esc(p.file)+'</div></div><div class="actions"><a href="/'+region+'/'+p.slug+'" target="_blank" style="padding:7px 16px;border-radius:8px;border:1px solid var(--hairline);color:var(--txt2);text-decoration:none;font-size:0.85rem;font-family:var(--font)">'+t("viewPost")+'</a><button onclick="editPost(\''+esc(p.file)+'\')">'+t("editPost")+'</button><button onclick="delPost(\''+esc(p.file)+'\',\''+esc(p.group||"")+'\')">'+t("deletePost")+'</button></div></div>';
+      });
+    }
     el.innerHTML=h;
   }catch(err){el.innerHTML='<div class="post-item"><span style="color:var(--txt3)">'+t("errorLoading")+'</span></div>'}
 }

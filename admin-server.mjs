@@ -75,9 +75,21 @@ function shellEscape(str) {
   return `'${String(str).replace(/'/g, "'\\''")}'`;
 }
 
-// ── Git helpers ────────────────────────────────────────────────
+// ── GitHub API helpers ───────────────────────────────────────────
 const GIT_USER = process.env.GIT_USER || "NickAlphaWhite";
 const GIT_EMAIL = process.env.GIT_EMAIL || "nick@nickalphawhite.top";
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN || "";
+const GH_REPO_OWNER = "NickAlphaWhite";
+const GH_REPO_NAME = "blog";
+const GH_BRANCH = "main";
+const GH_API_BASE = `https://api.github.com/repos/${GH_REPO_OWNER}/${GH_REPO_NAME}/contents`;
+const GH_HEADERS = {
+  Authorization: `Bearer ${GITHUB_TOKEN}`,
+  Accept: "application/vnd.github+json",
+  "X-GitHub-Api-Version": "2022-11-28",
+};
+
+const GIT_PUSH = (process.env.GIT_PUSH_ENABLED || "true") === "true";
 
 function runGit(cmd, cwd = __dirname) {
   return new Promise((resolve) => {
@@ -96,9 +108,6 @@ function runGit(cmd, cwd = __dirname) {
   });
 }
 
-// ── Dev mode: skip git push when GIT_PUSH_ENABLED !== "true"
-const GIT_PUSH = (process.env.GIT_PUSH_ENABLED || "true") === "true";
-
 // Touch a file to trigger Astro dev server reload
 function touchAstroConfig() {
   try {
@@ -108,38 +117,112 @@ function touchAstroConfig() {
   } catch (_) {}
 }
 
-async function gitPush(commitMsg) {
+// ── GitHub API push (fast, < 1s) ─────────────────────────────────
+async function githubApiPush(repoPath, content, commitMsg) {
+  if (!GITHUB_TOKEN) return null; // fall back to git
+
+  const url = `${GH_API_BASE}/${repoPath}`;
+  const body = {
+    message: commitMsg,
+    branch: GH_BRANCH,
+    committer: { name: GIT_USER, email: GIT_EMAIL },
+  };
+
+  if (content !== null) {
+    body.content = Buffer.isBuffer(content)
+      ? content.toString("base64")
+      : Buffer.from(content, "utf-8").toString("base64");
+  }
+
+  try {
+    // If updating or deleting, get the current file SHA first
+    if (content === null || true) {
+      const getRes = await fetch(url + `?ref=${GH_BRANCH}`, { headers: GH_HEADERS });
+      if (getRes.ok) {
+        const existing = await getRes.json();
+        body.sha = existing.sha;
+      } else if (getRes.status === 404) {
+        // File doesn't exist yet — create without SHA
+      } else {
+        const errText = await getRes.text();
+        console.error(`[api] GET ${repoPath} failed: ${getRes.status} ${errText}`);
+        return null;
+      }
+    }
+
+    if (content === null) {
+      // Delete file
+      if (!body.sha) { console.error(`[api] cannot delete ${repoPath}: file not found`); return null; }
+      const delRes = await fetch(url, {
+        method: "DELETE",
+        headers: GH_HEADERS,
+        body: JSON.stringify(body),
+      });
+      if (!delRes.ok) {
+        const errText = await delRes.text();
+        console.error(`[api] DELETE ${repoPath} failed: ${delRes.status} ${errText}`);
+        return null;
+      }
+      console.log(`[api] deleted ${repoPath}`);
+      return { ok: true };
+    } else {
+      // Create or update file
+      const putRes = await fetch(url, {
+        method: "PUT",
+        headers: GH_HEADERS,
+        body: JSON.stringify(body),
+      });
+      if (!putRes.ok) {
+        const errText = await putRes.text();
+        console.error(`[api] PUT ${repoPath} failed: ${putRes.status} ${errText}`);
+        return null;
+      }
+      console.log(`[api] wrote ${repoPath}`);
+      return { ok: true };
+    }
+  } catch (e) {
+    console.error(`[api] error on ${repoPath}: ${e.message}`);
+    return null;
+  }
+}
+
+// ── Unified push: API first (fast), git fallback (slow) ──────────
+async function pushToGitHub(repoPath, content, commitMsg) {
   if (!GIT_PUSH) {
-    console.log(`[git] skipped (dev mode): ${commitMsg}`);
+    console.log(`[push] skipped (dev mode): ${commitMsg}`);
     return { ok: true, skipped: true };
   }
 
+  // Try GitHub API first (fast path)
+  if (GITHUB_TOKEN) {
+    const result = await githubApiPush(repoPath, content, commitMsg);
+    if (result) return result;
+    console.log(`[push] API failed for ${repoPath}, falling back to git...`);
+  }
+
+  // Git fallback (slow path)
   for (let attempt = 0; attempt < 3; attempt++) {
     if (attempt > 0) {
-      // Pull before retry to resolve push conflicts
       await runGit("git pull origin main --rebase");
       await new Promise(r => setTimeout(r, 2000 * (attempt + 1)));
     }
-
     console.log(`[git] pushing (attempt ${attempt + 1}/3): ${commitMsg}`);
     await runGit("git add -A");
-    const commit = await runGit(`git commit -m ${shellEscape(commitMsg)} --allow-empty`);
+    await runGit(`git commit -m ${shellEscape(commitMsg)} --allow-empty`);
     const push = await runGit("git push origin main");
-
     if (push !== null) {
       console.log("[git] push complete");
       return { ok: true };
     }
     console.error(`[git] push attempt ${attempt} failed`);
   }
-
   console.error(`[git] ALL push attempts failed: ${commitMsg}`);
   return { ok: false, error: "Git push failed after 3 retries" };
 }
 
 // Fire-and-forget — doesn't block the HTTP response
-function gitPushAsync(commitMsg) {
-  gitPush(commitMsg).catch(e => console.error("[git] push error:", e.message));
+function pushAsync(repoPath, content, commitMsg) {
+  pushToGitHub(repoPath, content, commitMsg).catch(e => console.error("[push] error:", e.message));
 }
 
 // ── Login page (inline) ────────────────────────────────────────
@@ -390,8 +473,7 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
-    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags, slug: customSlug } = req.body;
-    const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
+    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, slug: customSlug } = req.body;
     const frontmatter = [
       "---",
       `title: "${title}"`,
@@ -402,7 +484,6 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
       lang ? `lang: "${lang}"` : null,
       group ? `group: "${group}"` : null,
       subcategory ? `subcategory: "${subcategory}"` : null,
-      tagList.length ? `tags: [${tagList.map(t => `"${t}"`).join(", ")}]` : "tags: []",
       `featured: ${featured ? "true" : "false"}`,
       "---",
       "",
@@ -418,14 +499,16 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
         if (existsSync(filePath)) unlinkSync(filePath);
         writeFileSync(newPath, frontmatter, "utf-8");
         touchAstroConfig();
-        const pushResult = await gitPush(`Update post (renamed): ${req.params.file} → ${newSlug}`);
+        const pushResult = await pushToGitHub(`src/content/posts/${newSlug}.md`, frontmatter, `Update post (renamed): ${req.params.file} → ${newSlug}`);
+        // Also delete the old file from GitHub
+        pushAsync(`src/content/posts/${req.params.file}`, null, `Delete old file after rename: ${req.params.file}`);
         return res.json({ ok: true, renamed: true, file: `${newSlug}.md`, pushed: pushResult.ok });
       }
     }
 
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
-    const pushResult = await gitPush(`Update post: ${req.params.file}`);
+    const pushResult = await pushToGitHub(`src/content/posts/${req.params.file}`, frontmatter, `Update post: ${req.params.file}`);
     res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -503,21 +586,20 @@ app.post("/api/upload", sessionAuth, upload.single("image"), async (req, res) =>
     try { unlinkSync(filePath); } catch (_) {}
     return res.status(500).json({ error: e.message });
   }
-  const pushResult = await gitPush(`Upload image: ${req.file.filename}`);
+  const pushResult = await pushToGitHub(`public/images/${req.file.filename}`, buf, `Upload image: ${req.file.filename}`);
   res.json({ url: "/images/" + req.file.filename, pushed: pushResult.ok });
 });
 
 // API: Publish post
 app.post("/api/publish", sessionAuth, async (req, res) => {
   try {
-    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags, slug: customSlug } = req.body;
+    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, slug: customSlug } = req.body;
     if (!title || !category) {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
     const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
     const slug = date + "-" + base + (lang && lang !== "zh" ? "." + lang : "");
-    const tagList = (tags || "").split(",").map(t => t.trim()).filter(Boolean);
 
     const frontmatter = [
       "---",
@@ -529,7 +611,6 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
       lang ? `lang: "${lang}"` : null,
       group ? `group: "${group}"` : null,
       subcategory ? `subcategory: "${subcategory}"` : null,
-      tagList.length ? `tags: [${tagList.map(t => `"${t}"`).join(", ")}]` : "tags: []",
       `featured: ${featured ? "true" : "false"}`,
       "---",
       "",
@@ -542,7 +623,7 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
 
-    const pushResult = await gitPush(`Publish: ${slug}`);
+    const pushResult = await pushToGitHub(`src/content/posts/${slug}.md`, frontmatter, `Publish: ${slug}`);
     res.json({ ok: true, slug, filePath, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -589,8 +670,8 @@ app.get("/api/posts", sessionAuth, (req, res) => {
       result = result.filter(g => g.langs.includes(filterLang));
     }
 
-    // Sort by date ascending (oldest first)
-    result.sort((a, b) => (a.date || "").localeCompare(b.date || ""));
+    // Sort by date descending (newest first)
+    result.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
     res.json(result);
   } catch (e) {
@@ -618,14 +699,15 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
         }
       }
       touchAstroConfig();
-      const pushResult = await gitPush(`Delete group: ${group} (${deleted} files)`);
+      // Push deletes via API for each file, then one summary push
+      const pushResult = await pushToGitHub(`src/content/posts/${files[0] || "deleted"}.md`, null, `Delete group: ${group} (${deleted} files)`);
       return res.json({ ok: true, deleted, pushed: pushResult.ok });
     }
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
     touchAstroConfig();
-    const pushResult = await gitPush(`Delete post: ${req.params.file}`);
+    const pushResult = await pushToGitHub(`src/content/posts/${req.params.file}`, null, `Delete post: ${req.params.file}`);
     res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -660,7 +742,7 @@ app.put("/api/categories", sessionAuth, async (req, res) => {
   try {
     writeFileSync(catsPath, JSON.stringify(req.body, null, 2), "utf-8");
     touchAstroConfig();
-    const pushResult = await gitPush("Update categories");
+    const pushResult = await pushToGitHub("src/config/categories.json", JSON.stringify(req.body, null, 2), "Update categories");
     res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -672,7 +754,7 @@ app.post("/api/categories/:name", sessionAuth, async (req, res) => {
     cats[req.params.name] = { label: { en: req.params.name, zh: req.params.name }, subcategories: req.body.subcategories || {} };
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
     touchAstroConfig();
-    const pushResult = await gitPush(`Add category: ${req.params.name}`);
+    const pushResult = await pushToGitHub("src/config/categories.json", JSON.stringify(cats, null, 2), `Add category: ${req.params.name}`);
     res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -682,7 +764,7 @@ app.delete("/api/categories/:name", sessionAuth, async (req, res) => {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     delete cats[req.params.name];
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
-    const pushResult = await gitPush(`Delete category: ${req.params.name}`);
+    const pushResult = await pushToGitHub("src/config/categories.json", JSON.stringify(cats, null, 2), `Delete category: ${req.params.name}`);
     res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -699,7 +781,7 @@ app.post("/api/categories/:name/subcategories", sessionAuth, async (req, res) =>
     }
     cats[req.params.name].subcategories[sub][subLang] = sub;
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
-    const pushResult = await gitPush(`Add subcategory: ${req.params.name}/${sub}`);
+    const pushResult = await pushToGitHub("src/config/categories.json", JSON.stringify(cats, null, 2), `Add subcategory: ${req.params.name}/${sub}`);
     res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -710,7 +792,7 @@ app.delete("/api/categories/:name/subcategories/:sub", sessionAuth, async (req, 
     if (!cats[req.params.name]) return res.status(404).json({ error: "Category not found" });
     delete cats[req.params.name].subcategories[req.params.sub];
     writeFileSync(catsPath, JSON.stringify(cats, null, 2), "utf-8");
-    const pushResult = await gitPush(`Delete subcategory: ${req.params.name}/${req.params.sub}`);
+    const pushResult = await pushToGitHub("src/config/categories.json", JSON.stringify(cats, null, 2), `Delete subcategory: ${req.params.name}/${req.params.sub}`);
     res.json({ ok: true, categories: cats, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -750,24 +832,22 @@ const ALL_REGIONS = Object.keys(REGION_LANG);
 app.listen(PORT, async () => {
   console.log(`\n🚀 Admin server running on port ${PORT}`);
   console.log(`   Site: ${SITE_URL}`);
-  console.log(`   Git push: ${GIT_PUSH ? "enabled" : "DISABLED (dev mode)"}`);
+  console.log(`   Push method: ${GITHUB_TOKEN ? "GitHub API (fast)" : GIT_PUSH ? "Git (slow)" : "DISABLED"}`);
   console.log(`   Login: http://localhost:${PORT}/login`);
   const tokPreview = ADMIN_TOKEN.length > 8 ? `${ADMIN_TOKEN.slice(0,4)}...${ADMIN_TOKEN.slice(-4)}` : "***";
   console.log(`   Token: ${tokPreview}\n`);
 
-  // Configure git for push: user identity + GitHub token
+  // Configure git for fallback pushes
   await runGit(`git config user.name ${shellEscape(GIT_USER)}`);
   await runGit(`git config user.email ${shellEscape(GIT_EMAIL)}`);
-  if (process.env.GITHUB_TOKEN) {
-    // Replace origin URL with token-embedded version for push auth
-    // Token chars are safe (no shell metacharacters), no shellEscape needed
-    await runGit(`git remote set-url origin https://x-access-token:${process.env.GITHUB_TOKEN}@github.com/NickAlphaWhite/blog.git`);
-    console.log("[git] remote configured with GITHUB_TOKEN");
+  if (GITHUB_TOKEN) {
+    await runGit(`git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/NickAlphaWhite/blog.git`);
+    console.log("[push] GitHub API ready + git fallback configured");
   } else {
-    console.log("[git] ⚠ GITHUB_TOKEN not set — git push will fail, articles saved to disk only");
+    console.log("[push] ⚠ GITHUB_TOKEN not set — using git push (may be slow)");
   }
 
-  // Pull latest from git on startup to sync with any changes made elsewhere
+  // Pull latest from git on startup to sync local files
   try {
     await runGit("git pull origin main");
     console.log("[git] pulled latest from origin\n");

@@ -7,7 +7,6 @@ const posts = defineCollection({
     image: z.string().optional(),
     category: z.string(),
     subcategory: z.string().optional(),
-    tags: z.array(z.string()).default([]),
     featured: z.boolean().default(false),
     draft: z.boolean().default(false),
     lang: z.string().default("zh"),
