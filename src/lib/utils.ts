@@ -80,7 +80,7 @@ export function buildDdObj(
             .slice(0, 3)
             .map((p: any) => ({
               title: p.data.title,
-              url: `/${lang}/${p.id.replace(/\.md$/, "")}`,
+              url: `/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`,
             })),
           subcategories: Object.entries(subs).map(([key, val]: [string, any]) => ({
             name: typeof val === "object" ? (val[langCode] || val.zh || val.en || key) : (val || key),
@@ -103,6 +103,6 @@ export function buildSearchPosts(
     title: p.data.title,
     excerpt: p.data.titleZh || p.body?.slice(0, 160) || "",
     category: catLabel(p.data.category, langCode, catsConfig),
-    url: `/${lang}/${p.id.replace(/\.md$/, "")}`,
+    url: `/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`,
   }));
 }

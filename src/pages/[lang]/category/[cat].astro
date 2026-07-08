@@ -107,7 +107,7 @@ const allLabel: Record<string, string> = {
           <div class="scroll-container" id={`scroll-${si}`}>
             <div class="scroll-row" id={`row-${si}`}>
               {posts.filter(p => p.data.subcategory === sub).map(p => (
-                <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="card">
+                <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card">
                   <div class="card-img">
                     {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
                   </div>
@@ -130,7 +130,7 @@ const allLabel: Record<string, string> = {
         <div class="scroll-container" id="scroll-all">
           <div class="scroll-row" id="row-all">
             {posts.map(p => (
-              <a href={`/${lang}/${p.id.replace(/\.md$/, "")}`} class="card"
+              <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card"
                  style="box-shadow:0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04);transition:all .5s"
                  onmouseover="this.style.transform='translateY(-2px) scale(1.04)';this.style.boxShadow='0 8px 32px rgba(0,0,0,0.08),0 16px 56px rgba(0,0,0,0.06)'"
                  onmouseout="this.style.transform='';this.style.boxShadow='0 1px 3px rgba(0,0,0,0.04),0 4px 12px rgba(0,0,0,0.06),0 8px 24px rgba(0,0,0,0.04)'">

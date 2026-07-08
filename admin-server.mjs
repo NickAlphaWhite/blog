@@ -448,6 +448,9 @@ app.get("/", (req, res) => {
 });
 
 app.get("/:region", (req, res, next) => {
+  // Only match exact /:region with no extra path segments (so /cn/slug goes to Astro)
+  const segments = req.path.split("/").filter(Boolean);
+  if (segments.length > 1) return next();
   const { region } = req.params;
   if (!ALL_REGIONS.includes(region)) return next();
   const cookies = parseCookies(req.headers.cookie);
@@ -456,10 +459,23 @@ app.get("/:region", (req, res, next) => {
   res.sendFile(join(__dirname, "admin.html"));
 });
 
+// ── Region helpers ──────────────────────────────────────────────
+function getPostsDir(region) {
+  return join(__dirname, "src", "content", "posts", region || "cn");
+}
+// Derive lang from region (same REGION_LANG map used in the frontend)
+const REGION_LANG = {
+  cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
+  uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt",
+  th: "th", ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru",
+  br: "pt", mx: "es", in: "en", ae: "en", za: "en", pr: "es",
+};
+
 // API: Get single post content
 app.get("/api/posts/:file", sessionAuth, (req, res) => {
   try {
-    const postsDir = join(__dirname, "src", "content", "posts");
+    const region = req.query.region || "cn";
+    const postsDir = getPostsDir(region);
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     const raw = readFileSync(filePath, "utf-8");
@@ -470,10 +486,12 @@ app.get("/api/posts/:file", sessionAuth, (req, res) => {
 // API: Update post
 app.put("/api/posts/:file", sessionAuth, async (req, res) => {
   try {
-    const postsDir = join(__dirname, "src", "content", "posts");
+    const region = req.query.region || "cn";
+    const lang = REGION_LANG[region] || "zh";
+    const postsDir = getPostsDir(region);
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
-    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, slug: customSlug } = req.body;
+    const { title, subtitle, date, category, subcategory, group, image, content, featured, slug: customSlug } = req.body;
     const frontmatter = [
       "---",
       `title: "${title}"`,
@@ -493,22 +511,22 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
     // If slug changed, rename the file
     if (customSlug) {
       const newBase = customSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
-      const newSlug = (date || new Date().toISOString().split("T")[0]) + "-" + newBase + (lang && lang !== "zh" ? "." + lang : "");
+      const newSlug = (date || new Date().toISOString().split("T")[0]) + "-" + newBase;
       const newPath = join(postsDir, `${newSlug}.md`);
       if (newPath !== filePath) {
         if (existsSync(filePath)) unlinkSync(filePath);
         writeFileSync(newPath, frontmatter, "utf-8");
         touchAstroConfig();
-        const pushResult = await pushToGitHub(`src/content/posts/${newSlug}.md`, frontmatter, `Update post (renamed): ${req.params.file} → ${newSlug}`);
+        const pushResult = await pushToGitHub(`src/content/posts/${region}/${newSlug}.md`, frontmatter, `Update post (renamed): ${req.params.file} → ${newSlug}`);
         // Also delete the old file from GitHub
-        pushAsync(`src/content/posts/${req.params.file}`, null, `Delete old file after rename: ${req.params.file}`);
+        pushAsync(`src/content/posts/${region}/${req.params.file}`, null, `Delete old file after rename: ${req.params.file}`);
         return res.json({ ok: true, renamed: true, file: `${newSlug}.md`, pushed: pushResult.ok });
       }
     }
 
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
-    const pushResult = await pushToGitHub(`src/content/posts/${req.params.file}`, frontmatter, `Update post: ${req.params.file}`);
+    const pushResult = await pushToGitHub(`src/content/posts/${region}/${req.params.file}`, frontmatter, `Update post: ${req.params.file}`);
     res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
@@ -593,13 +611,15 @@ app.post("/api/upload", sessionAuth, upload.single("image"), async (req, res) =>
 // API: Publish post
 app.post("/api/publish", sessionAuth, async (req, res) => {
   try {
-    const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, slug: customSlug } = req.body;
+    const region = req.query.region || "cn";
+    const lang = REGION_LANG[region] || "zh";
+    const { title, subtitle, date, category, subcategory, group, image, content, featured, slug: customSlug } = req.body;
     if (!title || !category) {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
     const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
-    const slug = date + "-" + base + (lang && lang !== "zh" ? "." + lang : "");
+    const slug = date + "-" + base;
 
     const frontmatter = [
       "---",
@@ -617,27 +637,27 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
 
-    const postsDir = join(__dirname, "src", "content", "posts");
+    const postsDir = getPostsDir(region);
     if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
     const filePath = join(postsDir, `${slug}.md`);
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
 
-    const pushResult = await pushToGitHub(`src/content/posts/${slug}.md`, frontmatter, `Publish: ${slug}`);
+    const pushResult = await pushToGitHub(`src/content/posts/${region}/${slug}.md`, frontmatter, `Publish: ${slug}`);
     res.json({ ok: true, slug, filePath, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }
 });
 
-// API: List posts (grouped by "group" field for multi-language awareness)
-// Query: ?lang=zh to filter to groups that contain that language
+// API: List posts for a region
 app.get("/api/posts", sessionAuth, (req, res) => {
   try {
-    const postsDir = join(__dirname, "src", "content", "posts");
+    const region = req.query.region || "cn";
+    const lang = REGION_LANG[region] || "zh";
+    const postsDir = getPostsDir(region);
     if (!existsSync(postsDir)) return res.json([]);
     const files = readdirSync(postsDir).filter(f => f.endsWith(".md"));
-    const filterLang = req.query.lang || null;
     const raw = files.map(f => {
       const raw = readFileSync(join(postsDir, f), "utf-8");
       const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
@@ -645,44 +665,25 @@ app.get("/api/posts", sessionAuth, (req, res) => {
         file: f,
         slug: f.replace(/\.md$/, ""),
         title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
-        lang: fm.match(/lang:\s*"?(\w+)"?/)?.[1] || "zh",
         group: fm.match(/group:\s*"([^"]+)"/)?.[1] || "",
         date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",
       };
     });
 
-    // Group by group field (fallback to slug base if no group)
-    const groups = {};
-    for (const p of raw) {
-      const key = p.group || p.slug.replace(/\.\w+$/, "");
-      if (!groups[key]) groups[key] = { title: p.title, date: p.date, slug: p.slug, file: p.file, group: key, langs: [] };
-      groups[key].langs.push(p.lang);
-    }
-
-    // Ensure zh is first in langs, then alphabetical
-    let result = Object.values(groups);
-    for (const g of result) {
-      g.langs = [...new Set(g.langs)].sort((a, b) => a === "zh" ? -1 : b === "zh" ? 1 : a < b ? -1 : 1);
-    }
-
-    // Filter by language if requested
-    if (filterLang) {
-      result = result.filter(g => g.langs.includes(filterLang));
-    }
-
     // Sort by date descending (newest first)
-    result.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
+    raw.sort((a, b) => (b.date || "").localeCompare(a.date || ""));
 
-    res.json(result);
+    res.json(raw);
   } catch (e) {
     res.json([]);
   }
 });
 
-// API: Delete post (accepts ?group= to delete all language files in a group)
+// API: Delete post (accepts ?group= to delete all files in a group)
 app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
   try {
-    const postsDir = join(__dirname, "src", "content", "posts");
+    const region = req.query.region || "cn";
+    const postsDir = getPostsDir(region);
     const group = req.query.group;
     if (group) {
       // Delete all files in the group
@@ -699,15 +700,14 @@ app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
         }
       }
       touchAstroConfig();
-      // Push deletes via API for each file, then one summary push
-      const pushResult = await pushToGitHub(`src/content/posts/${files[0] || "deleted"}.md`, null, `Delete group: ${group} (${deleted} files)`);
+      const pushResult = await pushToGitHub(`src/content/posts/${region}/${files[0] || "deleted"}.md`, null, `Delete group: ${group} (${deleted} files)`);
       return res.json({ ok: true, deleted, pushed: pushResult.ok });
     }
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     unlinkSync(filePath);
     touchAstroConfig();
-    const pushResult = await pushToGitHub(`src/content/posts/${req.params.file}`, null, `Delete post: ${req.params.file}`);
+    const pushResult = await pushToGitHub(`src/content/posts/${region}/${req.params.file}`, null, `Delete post: ${req.params.file}`);
     res.json({ ok: true, pushed: pushResult.ok });
   } catch (e) {
     res.status(500).json({ error: e.message });
@@ -811,13 +811,7 @@ app.get("/api/config", (req, res) => {
   res.json({ siteUrl: SITE_URL, regions: REGION_LANG, regionNames: REGION_NAMES, gitPush: GIT_PUSH });
 });
 
-// ── Region → language map (shared with frontend) ────────────────
-const REGION_LANG = {
-  cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
-  uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt",
-  th: "th", ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru",
-  br: "pt", mx: "es", in: "en", ae: "en", za: "en", pr: "es",
-};
+// ── Region → language map (defined above, shared with frontend) ──
 const REGION_NAMES = {
   cn: "中国大陆", us: "United States", jp: "日本", kr: "대한민국",
   tw: "台灣", hk: "香港", mo: "澳門", uk: "United Kingdom", fr: "France",

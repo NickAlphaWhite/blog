@@ -151,7 +151,7 @@ select{-webkit-appearance:none;cursor:pointer}
         <div class="form-cols" style="display:flex;gap:24px">
           <!-- LEFT COLUMN -->
           <div style="flex:1;display:flex;flex-direction:column;gap:16px">
-            <div class="sel"><span data-i18n="foreignTitle">外文标题</span><input name="titleEn" required placeholder="输入文章标题" id="langTitle" data-i18n-placeholder="foreignTitlePlaceholder"></div>
+            <div class="sel"><span>标题</span><input name="title" required placeholder="输入文章标题" id="langTitle"></div>
             <div class="sel"><span data-i18n="subtitle">副标题</span><input name="subtitle" id="langSubtitle" placeholder="卡片上的简短描述" data-i18n-placeholder="subtitlePlaceholder"></div>
             <div class="sel"><span data-i18n="coverImage">封面图片</span><div style="display:flex;gap:8px"><input name="image" type="text" placeholder="粘贴图片链接或上传" style="flex:1" data-i18n-placeholder="coverImagePlaceholder"><button type="button" class="btn ghost" onclick="document.getElementById('imageUpload').click()" style="white-space:nowrap;font-size:0.85rem;padding:10px 16px" data-i18n="upload">上传</button><input type="file" id="imageUpload" accept="image/*" style="display:none"></div></div>
           </div>
@@ -511,15 +511,15 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   e.preventDefault();
   var fd=new FormData(e.target),data=Object.fromEntries(fd.entries());
   data.featured=!!fd.get("featured");
-  var title=data.titleEn,date=data.date||new Date().toISOString().split("T")[0];
+  var title=data.title,date=data.date||new Date().toISOString().split("T")[0];
   if(!title)return toast("标题不能为空","err");
   var isEdit=!!editingFile;
   var base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"untitled";
-  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,lang:lang,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
+  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
   try{
     var url,method;
-    if(isEdit){url="/api/posts/"+encodeURIComponent(editingFile);method="PUT";}
-    else{url="/api/publish";method="POST";}
+    if(isEdit){url="/api/posts/"+encodeURIComponent(editingFile)+"?region="+region;method="PUT";}
+    else{url="/api/publish?region="+region;method="POST";}
     var res=await fetch(url,{method:method,headers:{"Content-Type":"application/json"},body:JSON.stringify(pd)});
     var j=await res.json();
     if(j.ok){
@@ -535,18 +535,20 @@ function resetEditor(){
   editingFile=null;groupSlug=null;document.getElementById("editFile").value="";document.getElementById("slugField").style.display="";
   document.getElementById("submitBtn").textContent=t("publish");
   document.getElementById("cancelEditBtn").style.display="none";
+  // Reset form title field
+  var form=document.getElementById("publishForm");if(form)form.title.value="";
 }
 function cancelEdit(){document.getElementById("publishForm").reset();resetEditor();document.getElementById("dateField").value=new Date().toISOString().split("T")[0];updatePreview()}
 
 async function editPost(file){
   try{
-    var res=await fetch("/api/posts/"+encodeURIComponent(file)),j=await res.json();
+    var res=await fetch("/api/posts/"+encodeURIComponent(file)+"?region="+region),j=await res.json();
     var raw=j.content,fmMatch=raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)/);
     if(!fmMatch)return;var fm=fmMatch[1],body=fmMatch[2]||"";
     var get=function(k){var m=fm.match(new RegExp(k+':\\s*"?([^\\n"]*)"?'));return m?m[1].trim():""};
     groupSlug=get("group")||"";
     resetEditor();var form=document.getElementById("publishForm");
-    form.titleEn.value=get("title").replace(/^"|"$/g,"");
+    form.title.value=get("title").replace(/^"|"$/g,"");
     form.date.value=get("date");form.category.value=get("category");
     form.subcategory.value=get("subcategory");form.image.value=get("image");
     form.subtitle.value=get("subtitle");form.content.value=body.trim();
@@ -565,7 +567,7 @@ async function editPost(file){
 async function loadPosts(){
   var el=document.getElementById("postList");if(!el)return;
   try{
-    var res=await fetch("/api/posts?lang="+window.lang),posts=await res.json(),h="";
+    var res=await fetch("/api/posts?region="+region),posts=await res.json(),h="";
     var q=(document.getElementById("postSearch").value||"").trim().toLowerCase();
     if(q)posts=posts.filter(function(p){return p.title.toLowerCase().indexOf(q)>=0||p.file.toLowerCase().indexOf(q)>=0||(p.group||"").toLowerCase().indexOf(q)>=0});
     if(!posts.length)h='<div class="post-item"><span style="color:var(--txt3)">'+(q?t("noResults"):t("noPosts"))+'</span></div>';
@@ -578,7 +580,7 @@ async function loadPosts(){
     el.innerHTML=h;
   }catch(err){el.innerHTML='<div class="post-item"><span style="color:var(--txt3)">'+t("errorLoading")+'</span></div>'}
 }
-async function delPost(file,group){if(!confirm("确认删除?"))return;var url="/api/posts/"+encodeURIComponent(file);if(group)url+="?group="+encodeURIComponent(group);var r=await fetch(url,{method:"DELETE"});var j=await r.json();if(j.pushed===false)toast("⚠️ Git 同步失败 — 重新部署后文章可能恢复","err");loadPosts();toast("已删除")}
+async function delPost(file,group){if(!confirm("确认删除?"))return;var url="/api/posts/"+encodeURIComponent(file)+"?region="+region;if(group)url+="&group="+encodeURIComponent(group);var r=await fetch(url,{method:"DELETE"});var j=await r.json();if(j.pushed===false)toast("⚠️ Git 同步失败 — 重新部署后文章可能恢复","err");loadPosts();toast("已删除")}
 
 async function loadCats(){
   var el=document.getElementById("catList");if(!el)return;
