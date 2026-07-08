@@ -378,7 +378,7 @@ app.get("/api/posts/:file", sessionAuth, (req, res) => {
 });
 
 // API: Update post
-app.put("/api/posts/:file", sessionAuth, (req, res) => {
+app.put("/api/posts/:file", sessionAuth, async (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     const filePath = join(postsDir, req.params.file);
@@ -481,7 +481,7 @@ const upload = multer({
 });
 
 // Upload route with magic byte validation after write
-app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
+app.post("/api/upload", sessionAuth, upload.single("image"), async (req, res) => {
   if (!req.file) return res.status(400).json({ error: "No file" });
   // Validate magic bytes on the written file
   const filePath = join(uploadDir, req.file.filename);
@@ -501,7 +501,7 @@ app.post("/api/upload", sessionAuth, upload.single("image"), (req, res) => {
 });
 
 // API: Publish post
-app.post("/api/publish", sessionAuth, (req, res) => {
+app.post("/api/publish", sessionAuth, async (req, res) => {
   try {
     const { title, subtitle, date, category, subcategory, lang, group, image, content, featured, tags, slug: customSlug } = req.body;
     if (!title || !category) {
@@ -592,7 +592,7 @@ app.get("/api/posts", sessionAuth, (req, res) => {
 });
 
 // API: Delete post (accepts ?group= to delete all language files in a group)
-app.delete("/api/posts/:file", sessionAuth, (req, res) => {
+app.delete("/api/posts/:file", sessionAuth, async (req, res) => {
   try {
     const postsDir = join(__dirname, "src", "content", "posts");
     const group = req.query.group;
@@ -649,7 +649,7 @@ app.get("/api/categories", sessionAuth, (req, res) => {
   } catch (e) { res.json({}); }
 });
 
-app.put("/api/categories", sessionAuth, (req, res) => {
+app.put("/api/categories", sessionAuth, async (req, res) => {
   try {
     writeFileSync(catsPath, JSON.stringify(req.body, null, 2), "utf-8");
     touchAstroConfig();
@@ -658,7 +658,7 @@ app.put("/api/categories", sessionAuth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post("/api/categories/:name", sessionAuth, (req, res) => {
+app.post("/api/categories/:name", sessionAuth, async (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     if (cats[req.params.name]) return res.status(400).json({ error: "Category already exists" });
@@ -670,7 +670,7 @@ app.post("/api/categories/:name", sessionAuth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete("/api/categories/:name", sessionAuth, (req, res) => {
+app.delete("/api/categories/:name", sessionAuth, async (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     delete cats[req.params.name];
@@ -680,7 +680,7 @@ app.delete("/api/categories/:name", sessionAuth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.post("/api/categories/:name/subcategories", sessionAuth, (req, res) => {
+app.post("/api/categories/:name/subcategories", sessionAuth, async (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     if (!cats[req.params.name]) return res.status(404).json({ error: "Category not found" });
@@ -697,7 +697,7 @@ app.post("/api/categories/:name/subcategories", sessionAuth, (req, res) => {
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
-app.delete("/api/categories/:name/subcategories/:sub", sessionAuth, (req, res) => {
+app.delete("/api/categories/:name/subcategories/:sub", sessionAuth, async (req, res) => {
   try {
     const cats = existsSync(catsPath) ? JSON.parse(readFileSync(catsPath, "utf-8")) : {};
     if (!cats[req.params.name]) return res.status(404).json({ error: "Category not found" });
