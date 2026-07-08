@@ -755,10 +755,13 @@ app.listen(PORT, async () => {
   const tokPreview = ADMIN_TOKEN.length > 8 ? `${ADMIN_TOKEN.slice(0,4)}...${ADMIN_TOKEN.slice(-4)}` : "***";
   console.log(`   Token: ${tokPreview}\n`);
 
-  // Configure git credentials if GITHUB_TOKEN is set
+  // Configure git for push: user identity + GitHub token
+  await runGit(`git config user.name ${shellEscape(GIT_USER)}`);
+  await runGit(`git config user.email ${shellEscape(GIT_EMAIL)}`);
   if (process.env.GITHUB_TOKEN) {
-    const repoUrl = `https://x-access-token:${process.env.GITHUB_TOKEN}@github.com/NickAlphaWhite/blog.git`;
-    await runGit(`git remote set-url origin ${shellEscape(repoUrl)}`);
+    // Replace origin URL with token-embedded version for push auth
+    // Token chars are safe (no shell metacharacters), no shellEscape needed
+    await runGit(`git remote set-url origin https://x-access-token:${process.env.GITHUB_TOKEN}@github.com/NickAlphaWhite/blog.git`);
     console.log("[git] remote configured with GITHUB_TOKEN");
   } else {
     console.log("[git] ⚠ GITHUB_TOKEN not set — git push will fail, articles saved to disk only");
