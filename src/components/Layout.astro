@@ -393,14 +393,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           var cat = link.getAttribute("data-cat");
           if (cat && cat !== currentCat) { currentCat = cat; show(cat); }
         });
-        document.addEventListener("mouseout", function (e) {
-          var link = e.target.closest && e.target.closest(".nav-link");
-          if (!link) return;
-          if (e.relatedTarget && e.relatedTarget.closest) {
-            if (e.relatedTarget.closest("#navDropdown")) return;
-          }
-          scheduleHide();
-        });
+        // Don't hide on nav-link mouseout — only hide when leaving the dropdown
 
         // Dropdown hover tracking
         document.addEventListener("mouseover", function (e) {
@@ -410,6 +403,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         document.addEventListener("mouseout", function (e) {
           var d = dd(); if (!d) return;
           if (e.target.closest && e.target.closest("#navDropdown")) {
+            // If moving from dropdown to ANY nav-link, stay open
             if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".nav-link")) return;
             scheduleHide();
           }
