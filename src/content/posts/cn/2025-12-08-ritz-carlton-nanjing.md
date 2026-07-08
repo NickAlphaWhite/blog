@@ -1,5 +1,5 @@
 ---
-title: "南京丽思卡尔顿入住体验"
+title: "南京丽思卡尔顿下午茶"
 subtitle: "第一张房卡，第一次酒店之旅的起点"
 date: 2025-12-17
 image: "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEOBjNpSnqCWGxQky74iBwc43-XW0wW1AACdiQAAig5UFYrkGpXj5TQRzYE.jpg"
