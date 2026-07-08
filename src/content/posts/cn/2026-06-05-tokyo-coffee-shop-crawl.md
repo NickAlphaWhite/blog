@@ -2,7 +2,7 @@
 title: "东京咖啡馆巡礼 — 两日八店"
 date: 2026-06-05
 lang: zh
-image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"
+image: "https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200"
 category: "Gastronomy"
 subcategory: "Cafés"
 tags: ["tokyo", "coffee", "cafes", "japan"]

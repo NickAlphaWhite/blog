@@ -113,10 +113,17 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           }
         }
 
-        mountWaline();
+        // First load: retry until #waline appears (SPA nav may delay DOM)
+        var walineRetries = 0;
+        function tryMount() {
+          if (document.getElementById('waline')) { mountWaline(); return; }
+          if (++walineRetries < 10) setTimeout(tryMount, 200);
+        }
+        tryMount();
         document.addEventListener('astro:after-swap', function () {
           walineMounted = false;
-          setTimeout(mountWaline, 50);
+          walineRetries = 0;
+          tryMount();
         });
       })();
     </script>
@@ -389,7 +396,10 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         document.addEventListener("mouseout", function (e) {
           var link = e.target.closest && e.target.closest(".nav-link");
           if (!link) return;
-          if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest("#navDropdown")) return;
+          // If moving to another nav-link or into dropdown, don't hide
+          if (e.relatedTarget && e.relatedTarget.closest) {
+            if (e.relatedTarget.closest(".nav-link") || e.relatedTarget.closest("#navDropdown")) return;
+          }
           scheduleHide();
         });
 
