@@ -755,6 +755,15 @@ app.listen(PORT, async () => {
   const tokPreview = ADMIN_TOKEN.length > 8 ? `${ADMIN_TOKEN.slice(0,4)}...${ADMIN_TOKEN.slice(-4)}` : "***";
   console.log(`   Token: ${tokPreview}\n`);
 
+  // Configure git credentials if GITHUB_TOKEN is set
+  if (process.env.GITHUB_TOKEN) {
+    const repoUrl = `https://x-access-token:${process.env.GITHUB_TOKEN}@github.com/NickAlphaWhite/blog.git`;
+    await runGit(`git remote set-url origin ${shellEscape(repoUrl)}`);
+    console.log("[git] remote configured with GITHUB_TOKEN");
+  } else {
+    console.log("[git] ⚠ GITHUB_TOKEN not set — git push will fail, articles saved to disk only");
+  }
+
   // Pull latest from git on startup to sync with any changes made elsewhere
   try {
     await runGit("git pull origin main");
