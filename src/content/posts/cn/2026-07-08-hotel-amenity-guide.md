@@ -2,7 +2,7 @@
 title: "各大酒店集团备品图鉴"
 subtitle: "从四季到万豪，一间间闻出来的洗护品牌指南"
 date: 2026-07-08
-image: "https://images.unsplash.com/photo-1556228578-0d85b1a4d571?w=1200"
+image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?w=1200"
 category: "Hotel"
 subcategory: "Hotel Tips"
 lang: zh
