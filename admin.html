@@ -32,7 +32,8 @@ body{font-family:var(--font);line-height:1.6;color:var(--txt);background:var(--b
 [data-theme="dark"] .theme-btn .sun{opacity:1;transform:scale(1) rotate(0)}
 [data-theme="dark"] .theme-btn .moon{opacity:0;transform:scale(0.4) rotate(90deg)}
 
-.wrap{max-width:1300px;margin:0 auto;padding:48px 32px}
+.wrap{max-width:1300px;margin:0 auto;padding:48px 32px;visibility:hidden;opacity:0;transition:opacity 0.15s}
+.wrap.ready{visibility:visible;opacity:1}
 .tabs{display:flex;gap:0;margin-bottom:32px}
 .tab{padding:8px 0;margin-right:24px;border:none;border-bottom:2px solid transparent;background:transparent;color:var(--txt2);font-size:0.88rem;font-weight:500;cursor:pointer;font-family:var(--font)}
 .tab:hover{color:var(--txt)}.tab.active{color:var(--txt);border-bottom-color:var(--txt);font-weight:600}
@@ -276,7 +277,7 @@ var langNames={zh:"简体中文","zh-tw":"繁體中文（台灣）","zh-yue":"�
 var allLangs=["zh","zh-tw","zh-yue","en","ja","ko","fr","de","es","it","pt","nl","ru","th"];
 var i18n={};
 function t(key){return (i18n[lang]||{})[key]||(i18n.en||{})[key]||key}
-async function loadI18n(){try{var r=await fetch("/api/i18n");i18n=await r.json()}catch(e){}applyLang()}
+async function loadI18n(){try{var r=await fetch("/api/i18n");i18n=await r.json()}catch(e){}applyLang();document.querySelector(".wrap").classList.add("ready")}
 function applyLang(){
   document.querySelectorAll("[data-i18n]").forEach(function(el){if(!el.tagName.match(/SELECT|BUTTON|INPUT|TEXTAREA/))el.textContent=t(el.dataset.i18n)});
   document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){el.placeholder=t(el.dataset.i18nPlaceholder)});
