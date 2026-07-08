@@ -2,7 +2,7 @@
 title: "Diptyque 蜡烛 — 有味道的家"
 date: 2026-04-15
 lang: zh
-image: "https://images.unsplash.com/photo-1600612253971-422e7f7faeb6?w=1200"
+image: "https://www.spacenk.com/on/demandware.static/-/Library-Sites-spacenk-global/default/dw04e3530f/best-diptyque-products-space-nk.jpg"
 category: "Odor"
 subcategory: "Candles"
 tags: ["diptyque", "candles", "home", "fragrance"]
