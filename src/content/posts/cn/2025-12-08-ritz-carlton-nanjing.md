@@ -1,33 +1,30 @@
 ---
 title: "南京丽思卡尔顿入住体验"
-date: 2025-12-08
-image: "https://cache.marriott.com/content/dam/marriott-renditions/NKGRZ/nkgrz-aerial-view-4134-hor-clsc.jpg?output-quality=70&interpolation=progressive-bilinear&downsize=1336px:*"
+subtitle: "第一张房卡，第一次酒店之旅的起点"
+date: 2025-12-17
+image: "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEOBjNpSnqCWGxQky74iBwc43-XW0wW1AACdiQAAig5UFYrkGpXj5TQRzYE.jpg"
 category: "Hotel"
 subcategory: "Hotel Reviews"
-tags: ["ritz-carlton", "nanjing", "marriott", "review"]
 lang: zh
 featured: true
 ---
-参观了南京丽思卡尔顿的酒廊和前台，整体体验非常出色。
 
-## 到达与入住
+12月17号参观了栗子的酒廊和前台，并要到了两张房卡。不得不说栗子的设计虽然没有很惊艳，但绝对算不上丑，字体选择也很符合其高端酒店的定位，更好的是每张房卡上都有当地的名字，这样可以满足某些人的收集癖。
 
-酒店位于南京市中心，交通便利。抵达时礼宾很热情地接待，帮忙提行李。
+![The Ritz-Carlton NJ](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEOBjNpSnqCWGxQky74iBwc43-XW0wW1AACdiQAAig5UFYrkGpXj5TQRzYE.jpg)
 
-## 酒廊体验
+## 餐饮
 
-酒廊位于酒店的高楼层，视野极佳。餐食种类丰富，从早到晚都有不同的供应。
+咖啡和蛋糕都很好吃，价格略贵，但是考虑到南栗的定位，也就很合理了。还有咖啡外带的服务，味道也很好，而且很便宜。
 
-### 下午茶
+## 酒廊氛围
 
-下午茶时间提供精致的甜点和咸点，配合多种茶饮选择。
+整个酒廊环境很好，很安静，但偶尔会有客人来回走动并说话。栗子的香水不知道用的什么，有点过于浓厚，不太符合我对他的印象。
 
-## 房卡收藏
+![psc.jpg](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEOBjppSntcIRSeC-VfHOc8STQFZueN5wACgiQAAig5UFbWEf0Iqn0YDzYE.jpg)
 
-丽思卡尔顿的房卡设计精美，不同城市的房卡有不同的图案设计。成功要到了两张不同款式的房卡。
+---
 
-## 总结
+> 这是我收集的第一张房卡，也是我开始住酒店的起点。
 
-> 南京丽思卡尔顿是南京最好的酒店之一，无论是商务出行还是度假，都非常推荐。
-
-**推荐指数：★★★★★**
+什么时候才能拥有尊贵大使会员啊，看网上说的，白挑的白金好像地位很低的样子（虽然我本身就够卑微了）。
