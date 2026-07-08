@@ -201,10 +201,8 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
 
       function checkArrows() {
         document.querySelectorAll(".scroll-outer").forEach(function (outer) {
-          var container = outer.querySelector(".scroll-container");
-          if (!container) return;
-          var left = container.querySelector(".arr-left");
-          var right = container.querySelector(".arr-right");
+          var left = outer.querySelector(".arr-left");
+          var right = outer.querySelector(".arr-right");
           if (!left || !right) return;
           var ovf = outer.scrollWidth > outer.clientWidth + 4;
           if (!ovf) { left.style.display = "none"; right.style.display = "none"; return; }

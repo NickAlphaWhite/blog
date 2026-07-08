@@ -191,13 +191,13 @@ a{color:var(--txt);text-decoration:none}
 .sub-slider{position:absolute;top:100%;left:0;width:0;height:2px;margin-top:-2px;background:var(--txt);pointer-events:none;will-change:left,width;transition:left 0.35s cubic-bezier(0.22,1,0.36,1),width 0.35s cubic-bezier(0.22,1,0.36,1)}
 
 /* Sub-category label in rows */
-.subcat-label{font-size:0.85rem;font-weight:600;letter-spacing:-0.01em;color:var(--txt2);margin-bottom:14px;margin-top:36px;padding:0 48px}
+.subcat-label{font-size:0.85rem;font-weight:600;letter-spacing:-0.01em;color:var(--txt2);margin-bottom:14px;margin-top:52px;padding:0 48px}
 .subcat-label:first-child{margin-top:0}
 .sub-tabs{padding:24px 48px 0!important}
 @media(max-width:768px){.subcat-label{padding:0 20px;font-size:0.78rem}.sub-tabs{padding:24px 20px 0!important}}
 
 /* ---- Scroll Row + Arrows (for category pages) ---- */
-.scroll-outer{overflow-x:auto;scrollbar-width:none;padding:8px 48px 40px;margin:-8px 0 -40px}
+.scroll-outer{overflow-x:auto;scrollbar-width:none;padding:8px 48px 40px;margin:-8px 0 -40px;position:relative}
 .scroll-outer::-webkit-scrollbar{display:none}
 .scroll-row{display:flex;gap:16px}
 .scroll-row::after{content:'';min-width:48px}
