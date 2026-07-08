@@ -206,11 +206,11 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           var left = wrap.querySelector(".arr-left");
           var right = wrap.querySelector(".arr-right");
           if (!left || !right) return;
-          var ovf = outer.scrollWidth > outer.clientWidth + 16;
+          var ovf = outer.scrollWidth > outer.clientWidth + 56;
           if (!ovf) { left.style.display = "none"; right.style.display = "none"; return; }
           left.style.display = ""; right.style.display = "";
-          left.classList.toggle("visible", outer.scrollLeft > 16);
-          right.classList.toggle("visible", outer.scrollLeft + outer.clientWidth < outer.scrollWidth - 16);
+          left.classList.toggle("visible", outer.scrollLeft > 32);
+          right.classList.toggle("visible", outer.scrollLeft + outer.clientWidth < outer.scrollWidth - 56);
         });
       }
       // Filmstrip peek-a-boo scroll
