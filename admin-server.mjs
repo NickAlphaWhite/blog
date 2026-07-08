@@ -76,9 +76,16 @@ function shellEscape(str) {
 }
 
 // ── Git helpers ────────────────────────────────────────────────
+const GIT_USER = process.env.GIT_USER || "NickAlphaWhite";
+const GIT_EMAIL = process.env.GIT_EMAIL || "nick@nickalphawhite.top";
+
 function runGit(cmd, cwd = __dirname) {
   return new Promise((resolve) => {
-    exec(cmd, { cwd, timeout: 30_000 }, (err, stdout, stderr) => {
+    exec(cmd, {
+      cwd,
+      timeout: 30_000,
+      env: { ...process.env, GIT_AUTHOR_NAME: GIT_USER, GIT_AUTHOR_EMAIL: GIT_EMAIL, GIT_COMMITTER_NAME: GIT_USER, GIT_COMMITTER_EMAIL: GIT_EMAIL },
+    }, (err, stdout, stderr) => {
       if (err) {
         console.error(`[git] ${cmd} → ${stderr || err.message}`);
         resolve(null);
