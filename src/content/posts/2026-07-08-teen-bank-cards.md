@@ -3,7 +3,7 @@ title: "17岁能拥有哪些银行卡"
 subtitle: "16-18岁未成年人办卡指南，附出国用卡推荐"
 date: 2026-07-08
 category: "Card"
-subcategory: "Debit"
+subcategory: "Guide"
 lang: zh
 featured: false
 ---
