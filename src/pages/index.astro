@@ -1,11 +1,16 @@
 ---
-// Root: detect language and redirect
-const url = new URL(Astro.request.url);
-const lang = url.searchParams.get("lang") || "zh";
-const path = url.searchParams.get("path") || "";
-const regionMap = { zh: "cn", en: "us", ja: "jp", ko: "kr", "zh-tw": "tw", "zh-hk": "hk", gb: "uk", fr: "fr", de: "de" };
-const region = regionMap[lang] || "cn";
-const base = import.meta.env.BASE_URL?.replace(/\/$/, "") || "";
-const dest = path ? `${base}/${region}/${path}` : `${base}/${region}/`;
-return Astro.redirect(dest);
+const defaultRegion = "cn";
 ---
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="refresh" content={`0;url=/${defaultRegion}/`}>
+<link rel="canonical" href={`https://blog.nickalphawhite.top/${defaultRegion}/`}>
+<script is:inline>
+  location.replace('/cn/');
+</script>
+<style is:inline>html,body{background:#f2f2f4}@media(prefers-color-scheme:dark){html,body{background:#0a0a0c}}</style>
+</head>
+<body></body>
+</html>
