@@ -5,7 +5,7 @@ date: 2026-07-08
 category: "Card"
 subcategory: "Guide"
 lang: zh
-image: "https://ts1.tc.mm.bing.net/th/id/OIP-C.IdNHbAyvxSIF-0-tpPcQ-wHaEK?cb=ucfimg2&ucfimg=1&rs=1&pid=ImgDetMain&o=7&rm=3"
+image: "https://static.independent.co.uk/s3fs-public/thumbnails/image/2016/04/13/16/pp-credit-cards-getty.jpg?width=1200&height=800&crop=1200:800"
 featured: false
 ---
 
