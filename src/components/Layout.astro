@@ -236,11 +236,11 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       }
 
       // Scroll filmstrip to median on load + after view transitions
-      function resetAndCenterFilm() {
+      function resetAndCenterFilm(scrollToTop) {
         var outer = document.getElementById('film-all');
         if (!outer) return;
-        // Always scroll page to top first (view transitions may preserve scroll)
-        window.scrollTo(0, 0);
+        // Only scroll to top on actual page loads / view transitions, not on resize
+        if (scrollToTop) window.scrollTo(0, 0);
         var filmData = document.getElementById('__filmData');
         if (!filmData || !filmData.dataset.median) return;
         var medianIdx = parseInt(filmData.dataset.median);
@@ -258,16 +258,16 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           });
         });
       }
-      window.addEventListener('load', function(){ setTimeout(resetAndCenterFilm, 500); });
+      window.addEventListener('load', function(){ setTimeout(function(){ resetAndCenterFilm(true); }, 500); });
       document.addEventListener('astro:after-swap', function(){
         window.scrollTo(0, 0);
-        setTimeout(resetAndCenterFilm, 300);
+        setTimeout(function(){ resetAndCenterFilm(false); }, 300);
       });
-      // Re-center on resize (debounced)
+      // Re-center filmstrip on resize WITHOUT scrolling to top (mobile address bar hide/show triggers resize)
       var _rcTimer;
       window.addEventListener('resize', function(){
         clearTimeout(_rcTimer);
-        _rcTimer = setTimeout(resetAndCenterFilm, 300);
+        _rcTimer = setTimeout(function(){ resetAndCenterFilm(false); }, 300);
       });
 
       window.addEventListener("load", function () {
