@@ -177,7 +177,8 @@ a{color:var(--txt);text-decoration:none}
 /* ============================================================
    SECTION — full-width strips
    ============================================================ */
-.section-wrap{padding:48px 0;margin:0 auto;max-width:1300px}
+.section-wrap{padding:48px 48px;margin:0 auto;max-width:1300px}
+@media(max-width:768px){.section-wrap{padding:48px 20px}}
 .section-hd{padding:0 48px;max-width:1300px;margin:0 auto 20px;display:flex;align-items:baseline;justify-content:space-between}
 .section-title{font-size:1.4rem;font-weight:700;letter-spacing:-0.03em;color:var(--txt)}
 .section-more{font-size:0.82rem;font-weight:500;color:var(--txt2);display:flex;align-items:center;gap:4px;transition:gap 0.2s var(--ease);white-space:nowrap}
@@ -191,18 +192,22 @@ a{color:var(--txt);text-decoration:none}
 .sub-slider{position:absolute;top:100%;left:0;width:0;height:2px;margin-top:-2px;background:var(--txt);pointer-events:none;will-change:left,width;transition:left 0.35s cubic-bezier(0.22,1,0.36,1),width 0.35s cubic-bezier(0.22,1,0.36,1)}
 
 /* Sub-category label in rows */
-.subcat-label{font-size:0.85rem;font-weight:600;letter-spacing:-0.01em;color:var(--txt2);margin-bottom:14px;margin-top:64px;padding:0 48px}
+.subcat-label{font-size:0.85rem;font-weight:600;letter-spacing:-0.01em;color:var(--txt2);margin-bottom:16px;margin-top:80px}
 .subcat-label:first-child{margin-top:0}
 .sub-tabs{padding:24px 48px 0!important}
-@media(max-width:768px){.subcat-label{padding:0 20px;font-size:0.78rem}.sub-tabs{padding:24px 20px 0!important}}
+@media(max-width:768px){.subcat-label{font-size:0.78rem}.sub-tabs{padding:24px 20px 0!important}}
 
-/* ---- Scroll Row + Arrows (for category pages) ---- */
+/* ---- Scroll Row + Arrows ---- */
 .scroll-wrap{position:relative}
-.scroll-outer{overflow-x:auto;scrollbar-width:none;padding:8px 48px 40px;margin:-8px 0 0}
+.scroll-outer{
+  overflow-x:auto;overflow-y:hidden;
+  scrollbar-width:none;-ms-overflow-style:none;
+  scroll-behavior:smooth;
+  scroll-snap-type:x mandatory;
+  padding-bottom:24px;
+}
 .scroll-outer::-webkit-scrollbar{display:none}
 .scroll-row{display:flex;gap:16px}
-.scroll-row::after{content:'';min-width:48px}
-@media(max-width:768px){.scroll-outer{padding:8px 20px 36px;margin:-8px 0 0}}
 
 /* ---- Homepage hero-strip — horizontal scroll with arrows ---- */
 .hero-strip{position:relative;margin-bottom:2px}
@@ -282,51 +287,54 @@ a{color:var(--txt);text-decoration:none}
   .film-strip{padding:16px 0 20px}
 }
 
-/* Circular scroll arrows — left & right */
+/* ---- Arrow buttons ---- */
 .scroll-arrow{
   position:absolute;top:50%;transform:translateY(-50%);
-  width:40px;height:40px;border-radius:50%;z-index:10;
+  width:42px;height:42px;border-radius:999px;z-index:10;
   background:var(--card);border:1px solid var(--hairline);
   color:var(--txt2);cursor:pointer;
   display:flex;align-items:center;justify-content:center;
-  transition:all 0.2s var(--ease);
-  box-shadow:
-    0 2px 8px rgba(0,0,0,0.06),
-    0 4px 16px rgba(0,0,0,0.04);
+  transition:opacity .25s var(--ease);
+  box-shadow:0 2px 8px rgba(0,0,0,0.06),0 4px 16px rgba(0,0,0,0.04);
   opacity:0;pointer-events:none;
 }
 .scroll-arrow svg{width:18px;height:18px}
 .scroll-arrow.visible{opacity:1;pointer-events:auto}
 .scroll-arrow:hover{background:var(--txt);color:var(--bg);border-color:var(--txt)}
-.scroll-arrow.arr-left{left:4px}
-.scroll-arrow.arr-right{right:4px}
+.scroll-arrow.arr-left{left:-20px}
+.scroll-arrow.arr-right{right:-20px}
 @media(max-width:768px){.scroll-arrow{display:none}}
 
 /* ============================================================
    CARD
    ============================================================ */
 .card{
-  flex:0 0 400px;scroll-snap-align:start;
+  flex:0 0 clamp(200px,20vw,280px);aspect-ratio:2/3;scroll-snap-align:start;
   background:var(--card);border-radius:var(--radius-lg);overflow:hidden;
-  cursor:pointer;display:flex;flex-direction:row;
+  cursor:pointer;display:flex;flex-direction:column;
   text-decoration:none!important;
-  box-shadow:var(--card-shadow);
+  box-shadow:0 0 0 1px var(--hairline);
   transition:transform 0.35s var(--ease),box-shadow 0.35s var(--ease);
 }
 .card:hover{
   transform:translateY(-2px);
-  box-shadow:var(--card-shadow-hover);
+  box-shadow:0 2px 12px rgba(0,0,0,0.06),0 0 0 1px var(--hairline);
 }
 
-.card-img{width:160px;flex-shrink:0;overflow:hidden;background:var(--bg3);position:relative}
-.card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0}
+.card-img{width:100%;flex:0 0 58%;overflow:hidden;background:var(--bg3);position:relative}
+.card-img img{width:100%;height:100%;object-fit:cover;position:absolute;inset:0;transition:transform 0.5s var(--ease)}
+.card:hover .card-img img{transform:scale(1.04)}
 
-.card-body{padding:20px 24px 16px;flex:1;display:flex;flex-direction:column;gap:6px;justify-content:center;min-width:0}
-.card-tag{font-size:0.65rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--txt3)}
-.card-title{font-size:1rem;font-weight:700;letter-spacing:-0.02em;line-height:1.2;color:var(--txt);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.card-desc{font-size:0.82rem;color:var(--txt2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.card-foot{padding:20px 24px 16px 0;font-size:0.7rem;color:var(--txt3);font-weight:500;display:flex;align-items:center;white-space:nowrap}
-@media(max-width:768px){.card{flex:0 0 340px}.card-img{width:120px}}
+.card-body{padding:18px 22px 0;flex:1;display:flex;flex-direction:column;gap:4px;min-width:0}
+.card-tag{font-size:clamp(0.52rem,0.8vw,0.68rem);font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--txt3)}
+.card-title{font-size:clamp(0.75rem,1.2vw,1.05rem);font-weight:700;letter-spacing:-0.02em;line-height:1.25;color:var(--txt);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.card-desc{font-size:clamp(0.6rem,1vw,0.82rem);color:var(--txt2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.card-foot{padding:8px 22px 16px;font-size:clamp(0.52rem,0.7vw,0.7rem);color:var(--txt3);font-weight:500}
+@media(max-width:768px){
+  .card{flex:0 0 clamp(160px,26vw,260px);aspect-ratio:2/3}
+  .card-body{padding:14px 16px 0}
+  .card-foot{padding:6px 16px 14px}
+}
 
 /* ============================================================
    CATEGORY PAGE HEADER

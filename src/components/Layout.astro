@@ -189,40 +189,54 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     switchLang(localStorage.getItem("lang")||langByRegion[urlRegion]||defaultLang, localStorage.getItem("region")||defaultRegion);
   })();
 
-      // Scroll arrows — scroll by exactly one card width, clamp to left edge
-      window.scrollRow = function (rowId, dir) {
-        var row = document.getElementById(rowId);
+      // ====================================
+      // Card Scroll — overflow-driven, 1 card per click
+      // ====================================
+
+      function getStep(row) {
+        var card = row.querySelector(".card");
+        if (!card) return 300;
+        var style = getComputedStyle(row);
+        var gap = parseFloat(style.gap || 16);
+        return card.offsetWidth + gap;
+      }
+
+      window.scrollRow = function (id, dir) {
+        var row = document.getElementById(id);
         if (!row) return;
         var outer = row.closest(".scroll-outer");
         if (!outer) return;
-        var card = row.querySelector(".card");
-        if (!card) return;
-        var style = getComputedStyle(row);
-        var gap = parseFloat(style.columnGap || style.gap || 16);
-        var step = card.offsetWidth + gap;
-        var target = outer.scrollLeft + dir * step;
-        // Clamp: never scroll past the left edge
-        target = Math.max(0, Math.min(target, outer.scrollWidth - outer.clientWidth));
-        outer.scrollTo({ left: target, behavior: "smooth" });
-        setTimeout(checkArrows, 400);
+        outer.scrollBy({ left: getStep(row) * dir, behavior: "smooth" });
       };
 
-      function checkArrows() {
-        document.querySelectorAll(".scroll-outer").forEach(function (outer) {
-          var wrap = outer.parentElement;
-          if (!wrap || !wrap.classList.contains("scroll-wrap")) return;
-          var left = wrap.querySelector(".arr-left");
-          var right = wrap.querySelector(".arr-right");
-          if (!left || !right) return;
-          // Hide both arrows if content fits without scrolling
-          var ovf = outer.scrollWidth > outer.clientWidth + 1;
-          if (!ovf) { left.classList.remove("visible"); right.classList.remove("visible"); return; }
-          // Left arrow: visible only when scrolled away from the start
-          left.classList.toggle("visible", outer.scrollLeft > 2);
-          // Right arrow: visible only when not fully scrolled to the end
-          right.classList.toggle("visible", outer.scrollLeft + outer.clientWidth < outer.scrollWidth - 2);
-        });
+      function updateScroller(outer) {
+        var row = outer.querySelector(".scroll-row");
+        if (!row) return;
+        var left = outer.parentElement.querySelector(".arr-left");
+        var right = outer.parentElement.querySelector(".arr-right");
+        if (!left || !right) return;
+
+        var need = row.scrollWidth > outer.clientWidth + 2;
+        if (!need) {
+          left.classList.remove("visible");
+          right.classList.remove("visible");
+          return;
+        }
+        var max = outer.scrollWidth - outer.clientWidth;
+        left.classList.toggle("visible", outer.scrollLeft > 4);
+        right.classList.toggle("visible", outer.scrollLeft < max - 4);
       }
+
+      function checkArrows() {
+        document.querySelectorAll(".scroll-outer").forEach(updateScroller);
+      }
+
+      window.addEventListener("load", checkArrows);
+      window.addEventListener("resize", checkArrows);
+      document.querySelectorAll(".scroll-outer").forEach(function (o) {
+        o.addEventListener("scroll", checkArrows);
+      });
+
       // Filmstrip peek-a-boo scroll
       window.filmScroll = function (filmId, dir) {
         var outer = document.getElementById(filmId);
@@ -249,21 +263,19 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       function resetAndCenterFilm(scrollToTop) {
         var outer = document.getElementById('film-all');
         if (!outer) return;
-        // Only scroll to top on actual page loads / view transitions, not on resize
         if (scrollToTop) window.scrollTo(0, 0);
         var filmData = document.getElementById('__filmData');
         if (!filmData || !filmData.dataset.median) return;
         var medianIdx = parseInt(filmData.dataset.median);
         if (medianIdx <= 0) return;
-        // Reset scroll, then center after layout settles
-        outer.scrollLeft = 0;
+        // Center on the median card without a visible reset-to-zero flash
         requestAnimationFrame(function(){
           requestAnimationFrame(function(){
             var cards = outer.querySelectorAll('.film-card');
             if (!cards[medianIdx]) return;
             var t = cards[medianIdx];
             var ow = outer.getBoundingClientRect().width;
-            outer.scrollLeft = t.offsetLeft - (ow - t.offsetWidth) / 2;
+            outer.scrollTo({ left: Math.max(0, t.offsetLeft - (ow - t.offsetWidth) / 2), behavior: "instant" });
             setTimeout(function(){ checkFilmArrows(); }, 200);
           });
         });
@@ -281,11 +293,8 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       });
 
       window.addEventListener("load", function () {
-        setTimeout(checkArrows, 200); setTimeout(checkArrows, 800);
         setTimeout(checkFilmArrows, 200); setTimeout(checkFilmArrows, 800);
       });
-      window.addEventListener("resize", function(){checkArrows();checkFilmArrows();});
-      document.querySelectorAll(".scroll-outer").forEach(function (r) { r.addEventListener("scroll", checkArrows); });
       document.querySelectorAll(".film-outer").forEach(function (r) { r.addEventListener("scroll", checkFilmArrows); });
 
       // Re-init arrows after ViewTransitions
