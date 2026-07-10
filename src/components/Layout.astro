@@ -189,13 +189,21 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     switchLang(localStorage.getItem("lang")||langByRegion[urlRegion]||defaultLang, localStorage.getItem("region")||defaultRegion);
   })();
 
-      // Scroll arrows
+      // Scroll arrows — scroll by exactly one card width, clamp to left edge
       window.scrollRow = function (rowId, dir) {
         var row = document.getElementById(rowId);
         if (!row) return;
         var outer = row.closest(".scroll-outer");
         if (!outer) return;
-        outer.scrollBy({ left: dir * 320, behavior: "smooth" });
+        var card = row.querySelector(".card");
+        if (!card) return;
+        var style = getComputedStyle(row);
+        var gap = parseFloat(style.columnGap || style.gap || 16);
+        var step = card.offsetWidth + gap;
+        var target = outer.scrollLeft + dir * step;
+        // Clamp: never scroll past the left edge
+        target = Math.max(0, Math.min(target, outer.scrollWidth - outer.clientWidth));
+        outer.scrollTo({ left: target, behavior: "smooth" });
         setTimeout(checkArrows, 400);
       };
 
@@ -206,11 +214,13 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           var left = wrap.querySelector(".arr-left");
           var right = wrap.querySelector(".arr-right");
           if (!left || !right) return;
-          var ovf = outer.scrollWidth > outer.clientWidth + 56;
-          if (!ovf) { left.style.display = "none"; right.style.display = "none"; return; }
-          left.style.display = ""; right.style.display = "";
-          left.classList.toggle("visible", outer.scrollLeft > 32);
-          right.classList.toggle("visible", outer.scrollLeft + outer.clientWidth < outer.scrollWidth - 56);
+          // Hide both arrows if content fits without scrolling
+          var ovf = outer.scrollWidth > outer.clientWidth + 1;
+          if (!ovf) { left.classList.remove("visible"); right.classList.remove("visible"); return; }
+          // Left arrow: visible only when scrolled away from the start
+          left.classList.toggle("visible", outer.scrollLeft > 2);
+          // Right arrow: visible only when not fully scrolled to the end
+          right.classList.toggle("visible", outer.scrollLeft + outer.clientWidth < outer.scrollWidth - 2);
         });
       }
       // Filmstrip peek-a-boo scroll
