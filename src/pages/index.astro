@@ -8,7 +8,23 @@ const defaultRegion = "cn";
 <meta http-equiv="refresh" content={`0;url=/${defaultRegion}/`}>
 <link rel="canonical" href={`https://blog.nickalphawhite.top/${defaultRegion}/`}>
 <script is:inline>
-  location.replace('/cn/');
+  // Try to detect region from IP first, fall back to default
+  (function(){
+    var d = 'cn';
+    var stored = localStorage.getItem('region');
+    if (stored) { location.replace('/' + stored + '/'); return; }
+    // Ask Cloudflare Function for geo suggestion
+    fetch('/api/geo')
+      .then(function(r){ return r.json(); })
+      .then(function(g){
+        var region = g.region || d;
+        localStorage.setItem('region', region);
+        location.replace('/' + region + '/');
+      })
+      .catch(function(){
+        location.replace('/' + d + '/');
+      });
+  })();
 </script>
 <style is:inline>html,body{background:#f2f2f4}@media(prefers-color-scheme:dark){html,body{background:#0a0a0c}}</style>
 </head>

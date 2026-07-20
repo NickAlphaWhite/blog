@@ -332,8 +332,8 @@ const CHOOSE_REGION_GROUPS = [
       { code: "kr", name: "대한민국", lang: "ko" },
       { code: "th", name: "ประเทศไทย", lang: "th" },
       { code: "au", name: "Australia", lang: "en" },
-      { code: "sg", name: "Singapore", lang: "en" },
-      { code: "sg-zh", name: "新加坡", lang: "zh" },
+      { code: "sg", name: "Singapore (English)", lang: "en" },
+      { code: "sg-zh", name: "新加坡（简体中文）", lang: "zh" },
     ],
   },
   {
@@ -822,7 +822,7 @@ const REGION_NAMES = {
   de: "Deutschland", es: "España", it: "Italia", pt: "Portugal",
   th: "ประเทศไทย", ca: "Canada (EN)", "ca-fr": "Canada (FR)",
   au: "Australia", nl: "Nederland", ru: "Россия", br: "Brasil",
-  mx: "México", in: "India", ae: "الإمارات", za: "South Africa", pr: "Puerto Rico", sg: "Singapore", "sg-zh": "新加坡",
+  mx: "México", in: "India", ae: "الإمارات", za: "South Africa", pr: "Puerto Rico", sg: "Singapore (English)", "sg-zh": "新加坡（简体中文）",
 };
 const ALL_REGIONS = Object.keys(REGION_LANG);
 
