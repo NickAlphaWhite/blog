@@ -54,8 +54,7 @@ a{color:var(--txt);text-decoration:none}
   font-size:0.9rem;font-weight:500;color:var(--txt2);
   transition:color 0.2s var(--ease);white-space:nowrap;
   text-decoration:none;
-  padding:0 12px;height:52px;display:flex;align-items:center;
-  cursor:default;
+  padding:0 8px;line-height:52px;
 }
 .nav-link:hover{color:var(--txt)}.nav-link.active{color:var(--txt);font-weight:600}
 
