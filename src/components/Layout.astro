@@ -307,7 +307,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
 
       // Nav dropdown — uses delegation so it survives view transitions
       (function () {
-        var open = false, timer = null, animating = false, currentCat = null;
+        var open = false, timer = null, animating = false, animTimer = null, currentCat = null;
         // Re-query DOM refs each time (survives view transitions)
         function dd(){return document.getElementById("navDropdown")}
         function mega(){return document.getElementById("megaInner")}
@@ -365,19 +365,26 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
 
           var ddEl=dd(), m=mega(), b=backdrop(), n=navBar();
           if (open && m.innerHTML !== h) {
-            if (animating) return;
-            animating = true;
-            ddEl.style.height = ddEl.offsetHeight + 'px';
-            m.style.opacity = '0';
-            setTimeout(function () {
+            // Fast switch in progress → just snap to new content
+            if (animating) {
+              if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+              animating = false;
+              m.style.opacity = ''; ddEl.style.height = '';
               m.innerHTML = h;
-              requestAnimationFrame(function () {
-                m.style.opacity = '1';
-                var newH = m.scrollHeight + 88;
-                ddEl.style.height = newH + 'px';
-                setTimeout(function () { animating = false; }, 650);
-              });
-            }, 60);
+            } else {
+              animating = true;
+              ddEl.style.height = ddEl.offsetHeight + 'px';
+              m.style.opacity = '0';
+              animTimer = setTimeout(function () {
+                m.innerHTML = h;
+                requestAnimationFrame(function () {
+                  m.style.opacity = '1';
+                  var newH = m.scrollHeight + 88;
+                  ddEl.style.height = newH + 'px';
+                  animTimer = setTimeout(function () { animating = false; animTimer = null; }, 650);
+                });
+              }, 60);
+            }
           } else if (!open) {
             m.innerHTML = h;
           }
@@ -394,19 +401,21 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           if(n) n.classList.remove("solid");
           open = false;
           animating = false;
-          if(ddEl) setTimeout(function () { ddEl.style.height = ''; }, 600);
+          if (animTimer) { clearTimeout(animTimer); animTimer = null; }
+          if(ddEl) { ddEl.style.height = ''; ddEl.style.opacity = ''; }
+          var m = mega(); if(m) m.style.opacity = '';
         }
 
         function cancelHide() { if (timer) { clearTimeout(timer); timer = null; } }
 
         function scheduleHide() {
           cancelHide();
-          timer = setTimeout(function () { hide(); currentCat = null; }, 200);
+          timer = setTimeout(function () { hide(); currentCat = null; }, 300);
         }
 
-        // Helper: is the target inside a nav-link or the dropdown?
+        // Helper: is the target inside the nav bar or dropdown?
         function isInNavOrDD(target) {
-          return target && target.closest && (target.closest(".nav-link") || target.closest("#navDropdown"));
+          return target && target.closest && (target.closest(".nav-link") || target.closest("#navDropdown") || target.closest(".nav"));
         }
 
         // Hover on nav-link → show dropdown
@@ -423,17 +432,15 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           if (e.target.closest && e.target.closest("#navDropdown")) cancelHide();
         });
 
-        // Leave nav-link OR leave dropdown → schedule hide (unless moving to the other)
+        // Leave nav-link OR leave dropdown → schedule hide (unless moving within nav/dropdown)
         document.addEventListener("mouseout", function (e) {
-          // If leaving a nav-link and NOT heading to another nav-link or dropdown
           if (e.target.closest && e.target.closest(".nav-link")) {
             if (isInNavOrDD(e.relatedTarget)) return;
             scheduleHide();
             return;
           }
-          // If leaving the dropdown and NOT heading back to a nav-link
           if (e.target.closest && e.target.closest("#navDropdown")) {
-            if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".nav-link")) return;
+            if (isInNavOrDD(e.relatedTarget)) return;
             scheduleHide();
           }
         });
