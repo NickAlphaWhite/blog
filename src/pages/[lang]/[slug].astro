@@ -4,7 +4,7 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, langMatcher, getCatsConfig, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+import { allRegions, regionMap, langMatcher, getCatsConfig, getSlug, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -14,7 +14,7 @@ export async function getStaticPaths() {
     const matchLang = langMatcher(langCode);
     const langPosts = posts.filter(p => matchLang(p.data.lang));
     for (const p of langPosts) {
-      paths.push({ params: { lang, slug: p.id.replace(lang + "/", "").replace(/\.md$/, "") } });
+      paths.push({ params: { lang, slug: getSlug(p.id) } });
     }
   }
   return paths;
@@ -26,7 +26,7 @@ const matchLang = langMatcher(langCode);
 const catsConfig = await getCatsConfig();
 const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
 const posts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
-const post = posts.find(p => p.id.replace(lang + "/", "").replace(/\.md$/, "") === slug);
+const post = posts.find(p => getSlug(p.id) === slug);
 
 if (!post) return Astro.redirect("/");
 
@@ -82,7 +82,7 @@ const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
           <div class="scroll-container" id="scroll-related">
             <div class="scroll-row" id="row-related">
               {related.map(p => (
-                <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="card">
+                <a href={`/${lang}/${getSlug(p.id)}`} class="card">
                   <div class="card-img">
                     {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
                   </div>

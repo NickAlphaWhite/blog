@@ -30,6 +30,14 @@ export function langMatcher(langCode: string): (postLang: string) => boolean {
   return (l: string) => l === langCode;
 }
 
+// ── Slug helper ──────────────────────────────────────────────────
+/** Strip the content-directory prefix and .md extension from a post ID.
+ *  e.g. "cn/2025-01-01-hello" → "2025-01-01-hello"
+ *  This lets regions share the same content directory (e.g. sg-zh reuses cn/). */
+export function getSlug(postId: string): string {
+  return postId.replace(/^[^/]+\//, "").replace(/\.md$/, "");
+}
+
 // ── Categories ──────────────────────────────────────────────────
 export async function getCatsConfig(): Promise<Record<string, any>> {
   const fs = await import("node:fs");
@@ -80,7 +88,7 @@ export function buildDdObj(
             .slice(0, 3)
             .map((p: any) => ({
               title: p.data.title,
-              url: `/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`,
+              url: `/${lang}/${getSlug(p.id)}`,
             })),
           subcategories: Object.entries(subs).map(([key, val]: [string, any]) => ({
             name: typeof val === "object" ? (val[langCode] || val.zh || val.en || key) : (val || key),
@@ -103,6 +111,6 @@ export function buildSearchPosts(
     title: p.data.title,
     excerpt: p.data.titleZh || p.body?.slice(0, 160) || "",
     category: catLabel(p.data.category, langCode, catsConfig),
-    url: `/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`,
+    url: `/${lang}/${getSlug(p.id)}`,
   }));
 }

@@ -4,7 +4,7 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, langMatcher, getCatsConfig, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+import { allRegions, regionMap, langMatcher, getCatsConfig, getSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
 
 export function getStaticPaths() {
   return allRegions.map(r => ({ params: { lang: r } }));
@@ -66,7 +66,7 @@ const readLabel: Record<string, string> = {
   {heroTop.length > 0 && (
     <section class="hero-section">
       {heroTop.map((p, i) => (
-        <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="hero-card"
+        <a href={`/${lang}/${getSlug(p.id)}`} class="hero-card"
            onclick={`event.preventDefault();var el=this;var r=el.getBoundingClientRect();el.style.top=r.top+'px';el.style.left=r.left+'px';el.style.width=r.width+'px';el.style.height=r.height+'px';el.style.position='fixed';el.style.margin='0';requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('zooming')})});setTimeout(function(){location.href=el.href},700)`}>
           {p.data.image && <img src={p.data.image} alt={p.data.title} loading={i===0?'eager':'lazy'} />}
           <div class="hero-mask"></div>
@@ -84,7 +84,7 @@ const readLabel: Record<string, string> = {
     <section class="mini-grid">
       <div class="mini-grid-inner">
         {heroGrid.map(p => (
-          <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="mini-card">
+          <a href={`/${lang}/${getSlug(p.id)}`} class="mini-card">
             {p.data.image && <img src={p.data.image} alt={p.data.title} loading="lazy" />}
             <div class="mini-card-content">
               <p class="mini-card-tag">{catLabel(p.data.category)}</p>
@@ -112,7 +112,7 @@ const readLabel: Record<string, string> = {
         <div class="film-outer" id={filmId}>
           <div class="film-row" style={`padding:0 ${filmPad}`}>
             {picks.map(p => (
-              <a href={`/${lang}/${p.id.replace(lang + "/", "").replace(/\.md$/, "")}`} class="film-card">
+              <a href={`/${lang}/${getSlug(p.id)}`} class="film-card">
                 {p.data.image && <img src={p.data.image} alt={p.data.title} loading="lazy" />}
                 <div class="film-content">
                   <span class="film-cat-tag">{catLabel(p.data.category)}</span>
