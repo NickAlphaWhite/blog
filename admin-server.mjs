@@ -332,6 +332,8 @@ const CHOOSE_REGION_GROUPS = [
       { code: "kr", name: "대한민국", lang: "ko" },
       { code: "th", name: "ประเทศไทย", lang: "th" },
       { code: "au", name: "Australia", lang: "en" },
+      { code: "sg", name: "Singapore", lang: "en" },
+      { code: "sg-zh", name: "新加坡", lang: "zh" },
     ],
   },
   {
@@ -466,7 +468,7 @@ const REGION_LANG = {
   cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
   uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt",
   th: "th", ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru",
-  br: "pt", mx: "es", in: "en", ae: "en", za: "en", pr: "es",
+  br: "pt", mx: "es", in: "en", ae: "en", za: "en", pr: "es", sg: "en", "sg-zh": "zh",
 };
 
 // API: Get single post content
@@ -820,7 +822,7 @@ const REGION_NAMES = {
   de: "Deutschland", es: "España", it: "Italia", pt: "Portugal",
   th: "ประเทศไทย", ca: "Canada (EN)", "ca-fr": "Canada (FR)",
   au: "Australia", nl: "Nederland", ru: "Россия", br: "Brasil",
-  mx: "México", in: "India", ae: "الإمارات", za: "South Africa", pr: "Puerto Rico",
+  mx: "México", in: "India", ae: "الإمارات", za: "South Africa", pr: "Puerto Rico", sg: "Singapore", "sg-zh": "新加坡",
 };
 const ALL_REGIONS = Object.keys(REGION_LANG);
 

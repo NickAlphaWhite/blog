@@ -168,8 +168,8 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       })();
 
       // Language — region-based display names
-      var regionNames={cn:'中国大陆',us:'United States',jp:'日本',kr:'대한민국',tw:'台灣',hk:'香港',mo:'澳門',uk:'United Kingdom',fr:'France',de:'Deutschland',es:'España',it:'Italia',pt:'Portugal',th:'ประเทศไทย',ca:'Canada (English)','ca-fr':'Canada (Français)',au:'Australia',nl:'Nederland',ru:'Россия',br:'Brasil',mx:'México',in:'India',ae:'الإمارات العربية المتحدة',za:'South Africa',pr:'Puerto Rico'};
-      var langByRegion={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es',in:'en',ae:'en',za:'en',pr:'es'};
+      var regionNames={cn:'中国大陆',us:'United States',jp:'日本',kr:'대한민국',tw:'台灣',hk:'香港',mo:'澳門',uk:'United Kingdom',fr:'France',de:'Deutschland',es:'España',it:'Italia',pt:'Portugal',th:'ประเทศไทย',ca:'Canada (English)','ca-fr':'Canada (Français)',au:'Australia',nl:'Nederland',ru:'Россия',br:'Brasil',mx:'México',in:'India',ae:'الإمارات العربية المتحدة',za:'South Africa',pr:'Puerto Rico',sg:'Singapore','sg-zh':'新加坡'};
+      var langByRegion={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es',in:'en',ae:'en',za:'en',pr:'es',sg:'en','sg-zh':'zh'};
 
       window.switchLang = function (lang, region) {
         var r = region || localStorage.getItem('region') || 'cn';
@@ -333,7 +333,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         };
         function t(key) {
           // Detect language from URL path first (most reliable)
-          var regionToLang={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es','in':'en',ae:'en',za:'en',pr:'es'};
+          var regionToLang={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es','in':'en',ae:'en',za:'en',pr:'es',sg:'en','sg-zh':'zh'};
           var m=location.pathname.match(/^\/(\w[\w-]*)/);
           var lang=regionToLang[m?m[1]:'']||localStorage.getItem('lang')||'zh';
           // Normalize zh-tw / zh-yue (split('-')[0] would break them)
@@ -363,48 +363,53 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           h += '<a href="' + d.all + '">' + t('subscribe') + '</a>';
           h += '</div>';
 
-          var d=dd(), m=mega(), b=backdrop(), n=navBar();
+          var ddEl=dd(), m=mega(), b=backdrop(), n=navBar();
           if (open && m.innerHTML !== h) {
             if (animating) return;
             animating = true;
-            d.style.height = d.offsetHeight + 'px';
+            ddEl.style.height = ddEl.offsetHeight + 'px';
             m.style.opacity = '0';
             setTimeout(function () {
               m.innerHTML = h;
               requestAnimationFrame(function () {
                 m.style.opacity = '1';
                 var newH = m.scrollHeight + 88;
-                d.style.height = newH + 'px';
+                ddEl.style.height = newH + 'px';
                 setTimeout(function () { animating = false; }, 650);
               });
             }, 60);
           } else if (!open) {
             m.innerHTML = h;
           }
-          d.classList.add("open");
+          ddEl.classList.add("open");
           if(b) b.classList.add("active");
           if(n) n.classList.add("solid");
           open = true;
         }
 
         function hide() {
-          var d=dd(), b=backdrop(), n=navBar();
-          if(d) d.classList.remove("open");
+          var ddEl=dd(), b=backdrop(), n=navBar();
+          if(ddEl) ddEl.classList.remove("open");
           if(b) b.classList.remove("active");
           if(n) n.classList.remove("solid");
           open = false;
           animating = false;
-          if(d) setTimeout(function () { d.style.height = ''; }, 600);
+          if(ddEl) setTimeout(function () { ddEl.style.height = ''; }, 600);
         }
 
         function cancelHide() { if (timer) { clearTimeout(timer); timer = null; } }
 
         function scheduleHide() {
           cancelHide();
-          timer = setTimeout(function () { hide(); currentCat = null; }, 400);
+          timer = setTimeout(function () { hide(); currentCat = null; }, 200);
         }
 
-        // Use event delegation on document so it survives ALL view transitions
+        // Helper: is the target inside a nav-link or the dropdown?
+        function isInNavOrDD(target) {
+          return target && target.closest && (target.closest(".nav-link") || target.closest("#navDropdown"));
+        }
+
+        // Hover on nav-link → show dropdown
         document.addEventListener("mouseover", function (e) {
           var link = e.target.closest && e.target.closest(".nav-link");
           if (!link) return;
@@ -412,17 +417,22 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
           var cat = link.getAttribute("data-cat");
           if (cat && cat !== currentCat) { currentCat = cat; show(cat); }
         });
-        // Don't hide on nav-link mouseout — only hide when leaving the dropdown
 
-        // Dropdown hover tracking
+        // Hover into dropdown → keep it open
         document.addEventListener("mouseover", function (e) {
-          var d = dd(); if (!d) return;
           if (e.target.closest && e.target.closest("#navDropdown")) cancelHide();
         });
+
+        // Leave nav-link OR leave dropdown → schedule hide (unless moving to the other)
         document.addEventListener("mouseout", function (e) {
-          var d = dd(); if (!d) return;
+          // If leaving a nav-link and NOT heading to another nav-link or dropdown
+          if (e.target.closest && e.target.closest(".nav-link")) {
+            if (isInNavOrDD(e.relatedTarget)) return;
+            scheduleHide();
+            return;
+          }
+          // If leaving the dropdown and NOT heading back to a nav-link
           if (e.target.closest && e.target.closest("#navDropdown")) {
-            // If moving from dropdown to ANY nav-link, stay open
             if (e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest(".nav-link")) return;
             scheduleHide();
           }

@@ -5,7 +5,7 @@ export const regionMap: Record<string, string> = {
   cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
   uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt", th: "th",
   ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru", br: "pt", mx: "es",
-  in: "en", ae: "en", za: "en", pr: "es",
+  in: "en", ae: "en", za: "en", pr: "es", sg: "en", "sg-zh": "zh",
 };
 
 export const allRegions = Object.keys(regionMap);
