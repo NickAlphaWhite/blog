@@ -3,7 +3,7 @@ title: "Staz 酒店东滩"
 subtitle: "京畿道华城的商务酒店——干净现代，只是离首尔有点远"
 date: 2026-07-22
 lang: zh
-image: ""
+image: "https://ak-d.tripcdn.com/images/0200l120003koarvbD84B_W_1280_853_R5.webp?proc=watermark/image_trip1,l_ne,x_16,y_16,w_67,h_16;digimark/t_image,logo_tripbinary;ignoredefaultwm,1A8F"
 category: "Hotel"
 subcategory: "Hotel Reviews"
 tags: ["dongtan", "hwaseong", "staz", "gyeonggi"]

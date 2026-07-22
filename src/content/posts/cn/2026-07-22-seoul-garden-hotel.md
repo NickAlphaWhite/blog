@@ -3,7 +3,7 @@ title: "首尔花园酒店"
 subtitle: "麻浦站门口的性价比之选——老旧但方便到无可挑剔"
 date: 2026-07-22
 lang: zh
-image: ""
+image: "https://ak-d.tripcdn.com/images/0580912000sq2azkbD54C_W_1280_853_R5.webp?proc=watermark/image_trip1,l_ne,x_16,y_16,w_67,h_16;digimark/t_image,logo_tripbinary;ignoredefaultwm,1A8F"
 category: "Hotel"
 subcategory: "Hotel Reviews"
 tags: ["seoul", "mapo", "best-western"]

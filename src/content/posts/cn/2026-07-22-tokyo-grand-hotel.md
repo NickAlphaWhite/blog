@@ -3,7 +3,7 @@ title: "东京大酒店"
 subtitle: "芝公园旁的老牌酒店，看东京塔最好的角度在房间里"
 date: 2026-07-22
 lang: zh
-image: ""
+image: "https://ak-d.tripcdn.com/images/1mc2z12000cgo3kar08BE_W_1280_853_R5.webp?proc=watermark/image_trip1,l_ne,x_16,y_16,w_67,h_16;digimark/t_image,logo_tripbinary;ignoredefaultwm,1A8F"
 category: "Hotel"
 subcategory: "Hotel Reviews"
 tags: ["tokyo", "minato", "shiba", "tokyo-tower"]
