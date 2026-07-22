@@ -8,12 +8,10 @@ const defaultRegion = "cn";
 <meta http-equiv="refresh" content={`0;url=/${defaultRegion}/`}>
 <link rel="canonical" href={`https://blog.nickalphawhite.top/${defaultRegion}/`}>
 <script is:inline>
-  // Try to detect region from IP first, fall back to default
+  // API first → localStorage as fallback on network error only
   (function(){
     var d = 'cn';
-    var stored = localStorage.getItem('region');
-    if (stored) { location.replace('/' + stored + '/'); return; }
-    // Ask Cloudflare Function for geo suggestion
+    var fallback = localStorage.getItem('region') || d;
     fetch('/api/geo')
       .then(function(r){ return r.json(); })
       .then(function(g){
@@ -22,7 +20,7 @@ const defaultRegion = "cn";
         location.replace('/' + region + '/');
       })
       .catch(function(){
-        location.replace('/' + d + '/');
+        location.replace('/' + fallback + '/');
       });
   })();
 </script>

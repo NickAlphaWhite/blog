@@ -35,7 +35,7 @@ export function langMatcher(langCode: string): (postLang: string) => boolean {
  *  e.g. "cn/2025-01-01-hello" → "2025-01-01-hello"
  *  This lets regions share the same content directory (e.g. sg-zh reuses cn/). */
 export function getSlug(postId: string): string {
-  return postId.replace(/^[^/]+\//, "").replace(/\.md$/, "");
+  return postId.replace(/^.*\//, "").replace(/\.md$/, "");
 }
 
 // ── Categories ──────────────────────────────────────────────────
