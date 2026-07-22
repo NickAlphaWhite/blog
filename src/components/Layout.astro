@@ -42,11 +42,14 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       document.addEventListener('astro:after-swap', applyTheme);
     </script>
 
+    <!-- Waline — preload on every page so SPA nav works immediately -->
+    <link rel="stylesheet" href="https://unpkg.com/@waline/client@v2/dist/waline.css" />
+    <script src="https://unpkg.com/@waline/client@v2/dist/waline.js"></script>
+
     <script>
       // Waline — dynamically load and mount with language detection
       (function () {
         var walineInstance = null;
-        var walineLoading = false;
 
         // Map site lang codes to Waline locale codes
         var walineLocale = {
@@ -86,43 +89,28 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
 
           var wLang = getWalineLang();
 
-          function doInit() {
-            if (typeof Waline === 'undefined') return;
-            walineInstance = Waline.init({
-              el: el,
-              serverURL: 'https://cm.nickalphawhite.top',
-              appId: 'YoYVf6jrZj9qbOHH7HIk5eAp-MdYXbMMI',
-              appKey: 'pQl3039kbz0eoqckIDgdSV0z',
-              lang: wLang,
-              avatar: 'monsterid',
-              recordIP: false,
-              requiredFields: ['nick'],
-              visitor: true,
-              dark: 'html[data-theme="dark"]',
-              placeholder: walinePlaceholder[wLang] || 'Leave your comment here...'
-            });
-          }
+          if (typeof Waline === 'undefined') return; // Still loading, retry
 
-          if (typeof Waline !== 'undefined') {
-            doInit();
-          } else if (!walineLoading) {
-            walineLoading = true;
-            var script = document.createElement('script');
-            script.src = 'https://unpkg.com/@waline/client@v2/dist/waline.js';
-            script.onload = function () { doInit(); };
-            document.head.appendChild(script);
-            var link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/@waline/client@v2/dist/waline.css';
-            document.head.appendChild(link);
-          }
+          walineInstance = Waline.init({
+            el: el,
+            serverURL: 'https://cm.nickalphawhite.top',
+            appId: 'YoYVf6jrZj9qbOHH7HIk5eAp-MdYXbMMI',
+            appKey: 'pQl3039kbz0eoqckIDgdSV0z',
+            lang: wLang,
+            avatar: 'monsterid',
+            recordIP: false,
+            requiredFields: ['nick'],
+            visitor: true,
+            dark: 'html[data-theme="dark"]',
+            placeholder: walinePlaceholder[wLang] || 'Leave your comment here...'
+          });
         }
 
-        // First load: retry until #waline appears (SPA nav may delay DOM)
+        // Retry until both #waline and Waline are ready (SPA nav + script load)
         var walineRetries = 0;
         function tryMount() {
-          if (document.getElementById('waline')) { mountWaline(); return; }
-          if (++walineRetries < 10) setTimeout(tryMount, 200);
+          if (document.getElementById('waline') && typeof Waline !== 'undefined') { mountWaline(); return; }
+          if (++walineRetries < 20) setTimeout(tryMount, 200);
         }
         tryMount();
         document.addEventListener('astro:after-swap', function () {
