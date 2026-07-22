@@ -179,7 +179,21 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     var urlRegion=(location.pathname.match(/^\/([\w-]+)/)||[])[1]||"";
     var defaultRegion=langByRegion[urlRegion]?urlRegion:(defaultLang==="en"?"us":"cn");
     switchLang(localStorage.getItem("lang")||langByRegion[urlRegion]||defaultLang, localStorage.getItem("region")||defaultRegion);
-  })();
+      })();
+
+      // Update region label on every SPA navigation
+      document.addEventListener('astro:after-swap', function () {
+        var m = location.pathname.match(/^\/([\w-]+)/);
+        var region = m ? m[1] : '';
+        if (region && regionNames[region]) {
+          var rl = document.getElementById('regionLabel');
+          if (rl) rl.textContent = regionNames[region];
+          var l = langByRegion[region] || 'zh';
+          document.documentElement.setAttribute('lang', l);
+          localStorage.setItem('lang', l);
+          localStorage.setItem('region', region);
+        }
+      });
 
       // ====================================
       // Card Scroll — overflow-driven, 1 card per click

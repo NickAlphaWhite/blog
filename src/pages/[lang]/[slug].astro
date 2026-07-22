@@ -4,15 +4,13 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, langMatcher, getCatsConfig, getSlug, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+import { allRegions, regionMap, getCatsConfig, getSlug, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
   const paths: { params: { lang: string; slug: string } }[] = [];
   for (const lang of allRegions) {
-    const langCode = regionMap[lang] || "zh";
-    const matchLang = langMatcher(langCode);
-    const langPosts = posts.filter(p => matchLang(p.data.lang));
+    const langPosts = posts.filter(p => p.id.startsWith(lang + '/'));
     for (const p of langPosts) {
       paths.push({ params: { lang, slug: getSlug(p.id) } });
     }
@@ -22,22 +20,22 @@ export async function getStaticPaths() {
 
 const { lang, slug } = Astro.params;
 const langCode = regionMap[lang] || "zh";
-const matchLang = langMatcher(langCode);
 const catsConfig = await getCatsConfig();
 const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
-const posts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
-const post = posts.find(p => getSlug(p.id) === slug);
+const posts = await getCollection("posts", ({ data }) => !data.draft);
+const regionPosts = posts.filter(p => p.id.startsWith(lang + '/'));
+const post = regionPosts.find(p => getSlug(p.id) === slug);
 
 if (!post) return Astro.redirect("/");
 
 const { title, titleZh, subtitle, date, image, category } = post.data;
 const { Content } = await post.render();
 
-const related = posts.filter(p => p.data.category === category && p.id !== post.id).slice(0, 4);
+const related = regionPosts.filter(p => p.data.category === category && p.id !== post.id).slice(0, 4);
 const categories = Object.keys(catsConfig);
-const byCategory = (cat: string) => posts.filter(p => p.data.category === cat);
+const byCategory = (cat: string) => regionPosts.filter(p => p.data.category === cat);
 const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
-const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
+const searchPosts = buildSearchPosts(regionPosts, lang, catsConfig, langCode);
 ---
 
 <Layout title={title} description={post.body?.slice(0, 200)}>

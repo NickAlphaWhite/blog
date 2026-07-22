@@ -4,7 +4,7 @@ import Layout from "../../../components/Layout.astro";
 import Nav from "../../../components/Nav.astro";
 import Footer from "../../../components/Footer.astro";
 import Search from "../../../components/Search.astro";
-import { allRegions, regionMap, langMatcher, getCatsConfig, getSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../../lib/utils";
+import { allRegions, regionMap, getCatsConfig, getSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../../lib/utils";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -12,9 +12,7 @@ export async function getStaticPaths() {
   const cats = Object.keys(catsConfig2);
   const paths: { params: { lang: string; cat: string } }[] = [];
   for (const lang of allRegions) {
-    const langCode = regionMap[lang] || "zh";
-    const matchLang = langMatcher(langCode);
-    if (posts.some(p => matchLang(p.data.lang))) {
+    if (posts.some(p => p.id.startsWith(lang + '/'))) {
       for (const cat of cats) {
         paths.push({ params: { lang, cat } });
       }
@@ -25,11 +23,10 @@ export async function getStaticPaths() {
 
 const { lang, cat } = Astro.params;
 const langCode = regionMap[lang] || "zh";
-const matchLang = langMatcher(langCode);
 const catsConfig = await getCatsConfig();
 const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
 const subLabel = (catKey: string, subKey: string) => _subLabel(catKey, subKey, langCode, catsConfig);
-const allPosts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
+const allPosts = await getCollection("posts", ({ data }) => !data.draft && data.lang === langCode);
 const posts = allPosts
   .filter(p => p.data.category === cat)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());

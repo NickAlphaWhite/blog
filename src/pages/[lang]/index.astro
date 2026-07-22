@@ -4,7 +4,7 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, langMatcher, getCatsConfig, getSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+import { allRegions, regionMap, getCatsConfig, getSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
 
 export function getStaticPaths() {
   return allRegions.map(r => ({ params: { lang: r } }));
@@ -12,9 +12,8 @@ export function getStaticPaths() {
 
 const { lang } = Astro.params;
 const langCode = regionMap[lang] || "zh";
-const matchLang = langMatcher(langCode);
 
-const allPosts = await getCollection("posts", ({ data }) => !data.draft && matchLang(data.lang));
+const allPosts = await getCollection("posts", ({ data }) => !data.draft && data.lang === langCode);
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const featured = posts.filter(p => p.data.featured).slice(0, 3);
