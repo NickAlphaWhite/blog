@@ -45,7 +45,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     <script>
       // Waline — dynamically load and mount with language detection
       (function () {
-        var walineMounted = false;
+        var walineInstance = null;
         var walineLoading = false;
 
         // Map site lang codes to Waline locale codes
@@ -76,14 +76,19 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         function mountWaline() {
           var el = document.getElementById('waline');
           if (!el) return;
+
+          // Destroy previous instance before re-init (SPA navigation)
+          if (walineInstance && typeof walineInstance.destroy === 'function') {
+            try { walineInstance.destroy(); } catch(e) {}
+            walineInstance = null;
+          }
           el.innerHTML = '';
 
           var wLang = getWalineLang();
 
           function doInit() {
             if (typeof Waline === 'undefined') return;
-            walineMounted = true;
-            Waline.init({
+            walineInstance = Waline.init({
               el: el,
               serverURL: 'https://cm.nickalphawhite.top',
               appId: 'YoYVf6jrZj9qbOHH7HIk5eAp-MdYXbMMI',
@@ -121,7 +126,6 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         }
         tryMount();
         document.addEventListener('astro:after-swap', function () {
-          walineMounted = false;
           walineRetries = 0;
           tryMount();
         });
