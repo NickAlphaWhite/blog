@@ -1,6 +1,7 @@
 ---
 import { ViewTransitions } from "astro:transitions";
 import "../styles/global.css";
+import { regionMap, regionNames } from "../lib/utils";
 
 interface Props {
   title: string;
@@ -19,6 +20,11 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     <meta name="description" content={description || title} />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <ViewTransitions />
+    <!-- Language and region choices always come from src/config/regions.json. -->
+    <script define:vars={{ regionMap, regionNames }}>
+      window.__BYNAW_REGION_MAP__ = regionMap;
+      window.__BYNAW_REGION_NAMES__ = regionNames;
+    </script>
     <title>{title}</title>
 
     <script is:inline>
@@ -68,11 +74,10 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
 
         function getWalineLang() {
           // Try localStorage first, then URL path, fallback to en
-          var stored = localStorage.getItem('lang');
-          if (stored && walineLocale[stored]) return walineLocale[stored];
-          var regionToLang = {cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es','in':'en',ae:'en',za:'en',pr:'es'};
+          // URL edition overrides preferences retained from other regions.
+          var regionToLang = window.__BYNAW_REGION_MAP__ || {};
           var m = location.pathname.match(/^\/([\w-]+)/);
-          var lang = m ? (regionToLang[m[1]] || 'en') : 'en';
+          var lang = (m && regionToLang[m[1]]) || localStorage.getItem('lang') || 'en';
           return walineLocale[lang] || 'en-US';
         }
 
@@ -160,8 +165,8 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
       })();
 
       // Language — region-based display names
-      var regionNames={cn:'中国大陆',us:'United States',jp:'日本',kr:'대한민국',tw:'台灣',hk:'香港',mo:'澳門',uk:'United Kingdom',fr:'France',de:'Deutschland',es:'España',it:'Italia',pt:'Portugal',th:'ประเทศไทย',ca:'Canada (English)','ca-fr':'Canada (Français)',au:'Australia',nl:'Nederland',ru:'Россия',br:'Brasil',mx:'México',in:'India',ae:'الإمارات العربية المتحدة',za:'South Africa',pr:'Puerto Rico',sg:'Singapore (English)','sg-zh':'新加坡（简体中文）'};
-      var langByRegion={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es',in:'en',ae:'en',za:'en',pr:'es',sg:'en','sg-zh':'zh'};
+      var regionNames = window.__BYNAW_REGION_NAMES__ || {};
+      var langByRegion = window.__BYNAW_REGION_MAP__ || {};
 
       window.switchLang = function (lang, region) {
         var r = region || localStorage.getItem('region') || 'cn';
@@ -178,7 +183,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
     var defaultLang = (document.documentElement.lang || "zh-CN").startsWith("en") ? "en" : "zh";
     var urlRegion=(location.pathname.match(/^\/([\w-]+)/)||[])[1]||"";
     var defaultRegion=langByRegion[urlRegion]?urlRegion:(defaultLang==="en"?"us":"cn");
-    switchLang(localStorage.getItem("lang")||langByRegion[urlRegion]||defaultLang, localStorage.getItem("region")||defaultRegion);
+    switchLang(langByRegion[defaultRegion] || defaultLang, defaultRegion);
       })();
 
       // Update region label on every SPA navigation
@@ -339,7 +344,7 @@ const { title, description, htmlLang = "zh-CN" } = Astro.props;
         };
         function t(key) {
           // Detect language from URL path first (most reliable)
-          var regionToLang={cn:'zh',us:'en',jp:'ja',kr:'ko',tw:'zh-tw',hk:'zh-yue',mo:'zh-yue',uk:'en',fr:'fr',de:'de',es:'es',it:'it',pt:'pt',th:'th',ca:'en','ca-fr':'fr',au:'en',nl:'nl',ru:'ru',br:'pt',mx:'es','in':'en',ae:'en',za:'en',pr:'es',sg:'en','sg-zh':'zh'};
+          var regionToLang = window.__BYNAW_REGION_MAP__ || {};
           var m=location.pathname.match(/^\/(\w[\w-]*)/);
           var lang=regionToLang[m?m[1]:'']||localStorage.getItem('lang')||'zh';
           // Normalize zh-tw / zh-yue (split('-')[0] would break them)
