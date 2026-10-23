@@ -2,6 +2,7 @@
 title: "Opening CITIC's Black Pixiu Mastercard World Debit Card as a Minor"
 subtitle: "A very useful Mastercard"
 date: 2026-07-10
+image: "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAELKodpIrmIQqSpgRv_-vpLD3Y4AAFJvQ0AAlg4AALCqRhVOHSjWspEW982BA.png"
 category: "Card"
 lang: "en"
 group: "2026-07-10-untitled"

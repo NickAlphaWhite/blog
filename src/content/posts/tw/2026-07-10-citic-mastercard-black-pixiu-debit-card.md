@@ -2,6 +2,7 @@
 title: "中信銀行黑貔貅萬事達世界簽帳金融卡未成年開卡攻略"
 subtitle: "很好用的萬事達"
 date: 2026-07-10
+image: "https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAELKodpIrmIQqSpgRv_-vpLD3Y4AAFJvQ0AAlg4AALCqRhVOHSjWspEW982BA.png"
 category: "Card"
 lang: "zh-tw"
 group: "2026-07-10-untitled"
