@@ -3,7 +3,7 @@ title: "Breaking: Apple Pay in Mainland China Now Supports Visa Cards"
 subtitle: "Eight banks launch on day one, covering most major card issuers"
 date: 2026-01-15
 lang: en
-image: "https://tse3.mm.bing.net/th/id/OIP.wIvWz4E9MQkI1L8fEt3peQAAAA?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+image: "https://images.unsplash.com/photo-1705948482595-606e2848c65b?w=1200&q=85"
 category: "Card"
 subcategory: "Credit"
 tags: ["visa", "apple-pay", "credit-card", "debit-card"]

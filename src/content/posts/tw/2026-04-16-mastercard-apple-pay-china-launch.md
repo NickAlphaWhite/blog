@@ -3,7 +3,7 @@ title: "終於！國行萬事達 Apple Pay 正式上線（附攻略）"
 subtitle: "繼 Visa 三個月前首發之後，萬事達也來了——首發四家銀行"
 date: 2026-04-16
 lang: zh-tw
-image: "https://tse1.mm.bing.net/th/id/OIF.GD5GSfI97XhcLm4yTMVtLg?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+image: "https://images.unsplash.com/photo-1705948353932-505cb52be4a5?w=1200&q=85"
 category: "Card"
 subcategory: "Credit"
 tags: ["mastercard", "apple-pay", "debit-card", "credit-card"]

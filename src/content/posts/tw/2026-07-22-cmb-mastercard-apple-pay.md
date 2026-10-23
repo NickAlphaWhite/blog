@@ -3,7 +3,7 @@ title: "萬事達 Apple Pay 再添兩家：招行和平安加入，附招行萬�
 subtitle: "六行陣容成型——招行萬事達簽帳金融卡仍是未成年人的最優解"
 date: 2026-07-22
 lang: zh-tw
-image: "https://cnews.com.tw/wp-content/uploads/2024/10/2024-10-01_18-13-44_660230.jpg"
+image: "https://images.unsplash.com/photo-1705948354275-d55101017fb6?w=1200&q=85"
 category: "Card"
 subcategory: "Debit"
 tags: ["cmb", "mastercard", "apple-pay", "debit-card", "underage"]
