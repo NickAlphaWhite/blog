@@ -472,7 +472,7 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
     const otherFiles = readdirSync(postsDir).filter(name => name.endsWith(".md") && name !== req.params.file);
     if (otherFiles.some(name => {
       const raw = readFileSync(join(postsDir, name), "utf8");
-      const otherSlug = (raw.match(/^urlSlug:\\s*"([^"]+)"/m) || [])[1] || (raw.match(/^title:\\s*"([^"]+)"/m) || [])[1] || name;
+      const otherSlug = (raw.match(/^urlSlug:\s*"([^"]+)"/m) || [])[1] || (raw.match(/^title:\s*"([^"]+)"/m) || [])[1] || name;
       return localizedSlug(otherSlug) === stableUrl;
     })) return res.status(409).json({ error: "This URL is already used by another article in this region." });
 
@@ -617,7 +617,7 @@ app.get("/api/posts", sessionAuth, (req, res) => {
       const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
       return {
         file: f,
-        slug: localizedSlug((fm.match(/^urlSlug:\\s*"([^"]+)"/m) || [])[1] || (fm.match(/^title:\\s*"([^"]+)"/m) || [])[1] || f.replace(/\.md$/, "")),
+        slug: localizedSlug((fm.match(/^urlSlug:\s*"([^"]+)"/m) || [])[1] || (fm.match(/^title:\s*"([^"]+)"/m) || [])[1] || f.replace(/\.md$/, "")),
         title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
         group: fm.match(/group:\s*"([^"]+)"/)?.[1] || "",
         date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",
