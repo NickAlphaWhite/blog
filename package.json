@@ -6,7 +6,8 @@
     "dev": "node admin-server.mjs & astro dev",
     "start": "node admin-server.mjs",
     "build": "astro build",
-    "preview": "astro preview"
+    "preview": "astro preview",
+    "check:regions": "node scripts/validate-regions.mjs"
   },
   "dependencies": {
     "astro": "^5.0.0",

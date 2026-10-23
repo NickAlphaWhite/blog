@@ -3,8 +3,8 @@
 
 const COUNTRY_TO_REGION = {
   CN: "cn", HK: "hk", MO: "mo", TW: "tw",
-  JP: "jp", KR: "kr", TH: "th", SG: "sg",
-  US: "us", CA: "ca", PR: "pr",
+  JP: "jp", KR: "kr", TH: "th", SG: "sg-en",
+  US: "us", CA: "ca-en", PR: "pr",
   GB: "uk", FR: "fr", DE: "de", ES: "es",
   IT: "it", PT: "pt", NL: "nl", RU: "ru",
   BR: "br", MX: "mx",

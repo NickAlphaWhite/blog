@@ -6,6 +6,12 @@ import crypto from "node:crypto";
 import { exec } from "node:child_process";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+const REGION_CONFIG = JSON.parse(readFileSync(join(__dirname, "src/config/regions.json"), "utf8"));
+const CHOOSE_REGION_GROUPS = REGION_CONFIG.groups;
+const REGION_LANG = Object.fromEntries(REGION_CONFIG.groups.flatMap(g => g.items.map(r => [r.code, r.lang])));
+const REGION_NAMES = Object.fromEntries(REGION_CONFIG.groups.flatMap(g => g.items.map(r => [r.code, r.name])));
+const ALL_REGIONS = Object.keys(REGION_LANG);
+const LEGACY_REGION_ALIASES = REGION_CONFIG.aliases;
 const app = express();
 
 // ── Configuration ──────────────────────────────────────────────
@@ -311,60 +317,6 @@ function codeToFlag(code) {
   var c = code === "uk" ? "gb" : code.split("-")[0];
   return "https://flagcdn.com/w80/" + c + ".png";
 }
-const CHOOSE_REGION_GROUPS = [
-  {
-    label: "The United States, Canada, and Puerto Rico",
-    items: [
-      { code: "us", name: "United States", lang: "en" },
-      { code: "ca", name: "Canada (English)", lang: "en" },
-      { code: "ca-fr", name: "Canada (Français)", lang: "fr" },
-      { code: "pr", name: "Puerto Rico", lang: "es" },
-    ],
-  },
-  {
-    label: "Asia Pacific",
-    items: [
-      { code: "cn", name: "中国大陆", lang: "zh" },
-      { code: "hk", name: "香港", lang: "zh-yue" },
-      { code: "mo", name: "澳門", lang: "zh-yue" },
-      { code: "tw", name: "台灣", lang: "zh-tw" },
-      { code: "jp", name: "日本", lang: "ja" },
-      { code: "kr", name: "대한민국", lang: "ko" },
-      { code: "th", name: "ประเทศไทย", lang: "th" },
-      { code: "au", name: "Australia", lang: "en" },
-      { code: "sg", name: "Singapore (English)", lang: "en" },
-      { code: "sg-zh", name: "新加坡（简体中文）", lang: "zh" },
-    ],
-  },
-  {
-    label: "Europe",
-    items: [
-      { code: "uk", name: "United Kingdom", lang: "en" },
-      { code: "fr", name: "France", lang: "fr" },
-      { code: "de", name: "Deutschland", lang: "de" },
-      { code: "es", name: "España", lang: "es" },
-      { code: "it", name: "Italia", lang: "it" },
-      { code: "pt", name: "Portugal", lang: "pt" },
-      { code: "nl", name: "Nederland", lang: "nl" },
-      { code: "ru", name: "Россия", lang: "ru" },
-    ],
-  },
-  {
-    label: "Latin America and the Caribbean",
-    items: [
-      { code: "br", name: "Brasil", lang: "pt" },
-      { code: "mx", name: "México", lang: "es" },
-    ],
-  },
-  {
-    label: "Africa, Middle East, and India",
-    items: [
-      { code: "in", name: "India", lang: "en" },
-      { code: "ae", name: "الإمارات العربية المتحدة", lang: "en" },
-      { code: "za", name: "South Africa", lang: "en" },
-    ],
-  },
-];
 
 function buildChooseRegionHtml(siteUrl) {
   const itemsHtml = CHOOSE_REGION_GROUPS.map(g => `
@@ -450,6 +402,11 @@ app.get("/", (req, res) => {
 // Compatibility: old language-code links should reach the Chinese region route.
 app.get("/zh", (req, res) => res.redirect(302, "/cn"));
 
+// Preserve links issued before adopting explicit region-language editions.
+for (const [legacyCode, editionCode] of Object.entries(LEGACY_REGION_ALIASES)) {
+  app.get(`/${legacyCode}`, (req, res) => res.redirect(301, `/${editionCode}`));
+}
+
 app.get("/:region", (req, res, next) => {
   // Only match exact /:region with no extra path segments (so /cn/slug goes to Astro)
   const segments = req.path.split("/").filter(Boolean);
@@ -467,12 +424,6 @@ function getPostsDir(region) {
   return join(__dirname, "src", "content", "posts", region || "cn");
 }
 // Derive lang from region (same REGION_LANG map used in the frontend)
-const REGION_LANG = {
-  cn: "zh", us: "en", jp: "ja", kr: "ko", tw: "zh-tw", hk: "zh-yue", mo: "zh-yue",
-  uk: "en", fr: "fr", de: "de", es: "es", it: "it", pt: "pt",
-  th: "th", ca: "en", "ca-fr": "fr", au: "en", nl: "nl", ru: "ru",
-  br: "pt", mx: "es", in: "en", ae: "en", za: "en", pr: "es", sg: "en", "sg-zh": "zh",
-};
 
 // API: Get single post content
 app.get("/api/posts/:file", sessionAuth, (req, res) => {
@@ -813,21 +764,17 @@ app.get("/api/i18n", sessionAuth, (req, res) => {
   } catch (e) { res.json({}); }
 });
 
+// Serve the same regional metadata to the standalone admin HTML.
+app.get("/api/regions.js", (req, res) => {
+  res.type("application/javascript");
+  res.setHeader("Cache-Control", "public, max-age=300");
+  res.send(`window.__BYNAW_REGION_MAP__ = ${JSON.stringify(REGION_LANG)};\nwindow.__BYNAW_REGION_NAMES__ = ${JSON.stringify(REGION_NAMES)};`);
+});
+
 // API: Public config (no auth needed — for admin page to know site URL)
 app.get("/api/config", (req, res) => {
   res.json({ siteUrl: SITE_URL, regions: REGION_LANG, regionNames: REGION_NAMES, gitPush: GIT_PUSH });
 });
-
-// ── Region → language map (defined above, shared with frontend) ──
-const REGION_NAMES = {
-  cn: "中国大陆", us: "United States", jp: "日本", kr: "대한민국",
-  tw: "台灣", hk: "香港", mo: "澳門", uk: "United Kingdom", fr: "France",
-  de: "Deutschland", es: "España", it: "Italia", pt: "Portugal",
-  th: "ประเทศไทย", ca: "Canada (EN)", "ca-fr": "Canada (FR)",
-  au: "Australia", nl: "Nederland", ru: "Россия", br: "Brasil",
-  mx: "México", in: "India", ae: "الإمارات", za: "South Africa", pr: "Puerto Rico", sg: "Singapore (English)", "sg-zh": "新加坡（简体中文）",
-};
-const ALL_REGIONS = Object.keys(REGION_LANG);
 
 // ── Startup ────────────────────────────────────────────────────
 app.listen(PORT, async () => {
