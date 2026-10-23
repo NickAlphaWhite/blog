@@ -447,8 +447,12 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     const { title, subtitle, date, category, subcategory, group, image, content, featured, slug: customSlug } = req.body;
+    const storedPost = readFileSync(filePath, "utf8");
+    const priorTitleSlug = (storedPost.match(/^urlSlug:\s*"([^"]+)"/m) || [])[1] || (storedPost.match(/^title:\s*"([^"]+)"/m) || [])[1] || title;
+    const stableUrl = localizedSlug(customSlug || priorTitleSlug);
     const frontmatter = [
       "---",
+      `urlSlug: "${stableUrl}"`,
       `title: "${title}"`,
       subtitle ? `subtitle: "${subtitle}"` : null,
       `date: ${date || new Date().toISOString().split("T")[0]}`,
@@ -575,9 +579,14 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
 
     const base = localizedSlug(customSlug || title);
     const slug = (date || new Date().toISOString().split("T")[0]) + "-" + base;
+    const postsDir = getPostsDir(region);
+    if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
+    const filePath = join(postsDir, `${slug}.md`);
+    if (existsSync(filePath)) return res.status(409).json({ error: "An article already has this filename" });
 
     const frontmatter = [
       "---",
+      `urlSlug: "${base}"`,
       `title: "${title}"`,
       subtitle ? `subtitle: "${subtitle}"` : null,
       `date: ${date || new Date().toISOString().split("T")[0]}`,
@@ -592,9 +601,6 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
 
-    const postsDir = getPostsDir(region);
-    if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
-    const filePath = join(postsDir, `${slug}.md`);
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
 
