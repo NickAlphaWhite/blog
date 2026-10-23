@@ -9,7 +9,7 @@ lang: zh-tw
 featured: true
 ---
 
-12月17號參觀了栗子的酒廊和前臺，並要到了兩張房卡。不得不說栗子的設計雖然沒有很驚豔，但絕對算不上醜，字型選擇也很符合其高階酒店的定位，更好的是每張房卡上都有當地的名字，這樣可以滿足某些人的收集癖。
+12月17號參觀了栗子的酒廊和櫃檯，並要到了兩張房卡。不得不說栗子的設計雖然沒有很驚豔，但絕對算不上醜，字型選擇也很符合其高階酒店的定位，更好的是每張房卡上都有當地的名字，這樣可以滿足某些人的收集癖。
 
 ![The Ritz-Carlton NJ](https://img.remit.ee/api/file/BQACAgUAAyEGAASHRsPbAAEOBjNpSnqCWGxQky74iBwc43-XW0wW1AACdiQAAig5UFYrkGpXj5TQRzYE.jpg)
 
