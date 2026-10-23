@@ -161,7 +161,7 @@ select{-webkit-appearance:none;cursor:pointer}
             <div class="sel"><span data-i18n="category">分类</span><select name="category" id="catSelect" required><option value="">请选择</option>
             </select></div>
             <div class="sel"><span data-i18n="subcategory">子分类</span><select name="subcategory" id="subcatSelect"><option value="">请选择</option></select></div>
-            <div class="sel"><span>文章网址</span><input name="slug" type="text" id="slugField" placeholder="自动根据标题生成，可手动填写"></div>
+            <div class="sel"><span>文章网址</span><input name="slug" type="text" id="slugField" placeholder="自动根据标题生成，可手动填写"><small id="publicUrlPreview" style="font-size:.75rem;color:var(--txt2);overflow-wrap:anywhere"></small></div>
           </div>
         </div>
         <div class="md-toolbar">
@@ -321,7 +321,7 @@ document.querySelectorAll(".tab").forEach(function(t){
   });
 });
 
-document.getElementById("dateField").value=new Date().toISOString().split("T")[0];
+document.getElementById("dateField").value=new Date().toISOString().split("T")[0];setTimeout(updatePublicUrl,0);
 
 document.getElementById("imageUpload").addEventListener("change",async function(){
   var file=this.files[0];if(!file)return;
@@ -509,6 +509,9 @@ document.getElementById("catSelect").addEventListener("change",function(){
 });
 
 var editingFile=null,groupSlug=null;
+function slugifyTitle(value){return String(value||"").normalize("NFKC").toLocaleLowerCase().trim().replace(/[’\x27`]/g,"").replace(/[^\\p{L}\\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,115)||"article"}
+function updatePublicUrl(){var title=document.getElementById("langTitle").value,custom=document.getElementById("slugField").value;var el=document.getElementById("publicUrlPreview");if(el)el.textContent="blog.bynaw.top/"+region+"/"+slugifyTitle(custom||title)+"/"}
+["langTitle","slugField"].forEach(function(id){document.getElementById(id).addEventListener("input",updatePublicUrl)});
 document.getElementById("publishForm").addEventListener("submit",async function(e){
   e.preventDefault();
   var fd=new FormData(e.target),data=Object.fromEntries(fd.entries());
@@ -517,7 +520,7 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   if(!title)return toast("标题不能为空","err");
   var isEdit=!!editingFile;
   var base=title.toLocaleLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")||"article";
-  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||(isEdit?"":base)};
+  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
   try{
     var url,method;
     if(isEdit){url="/api/posts/"+encodeURIComponent(editingFile)+"?region="+region;method="PUT";}
@@ -558,11 +561,11 @@ async function editPost(file){
     editingFile=file;document.getElementById("editFile").value=file;
     // Pre-fill slug from current filename (strip date prefix + lang suffix)
     var slugBase=file.replace(/\.md$/,"").replace(/^\d{4}-\d{2}-\d{2}-/,"").replace(/\.\w+(-\w+)?$/,"");
-    document.getElementById("slugField").value=get("urlSlug")||slugBase;
+    document.getElementById("slugField").value=get("urlSlug")||"";
     document.getElementById("submitBtn").textContent="更新";
     document.getElementById("cancelEditBtn").style.display="";
     document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
-    setTimeout(updatePreview,100);
+    setTimeout(function(){updatePreview();updatePublicUrl()},100);
   }catch(e){toast("加载失败","err")}
 }
 
