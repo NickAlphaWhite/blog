@@ -27,4 +27,4 @@ Tokyo is one of the best cities for solo travel. It's safe, convenient, and neve
 
 ## Budget
 
-Five days, including airfare, on ¥3,500 RMB can be very comfortable.
+Five days, including airfare, on RMB 3,500 can be very comfortable.
