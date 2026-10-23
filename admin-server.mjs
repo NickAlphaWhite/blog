@@ -447,6 +447,9 @@ app.get("/", (req, res) => {
   res.redirect("/cn");
 });
 
+// Compatibility: old language-code links should reach the Chinese region route.
+app.get("/zh", (req, res) => res.redirect(302, "/cn"));
+
 app.get("/:region", (req, res, next) => {
   // Only match exact /:region with no extra path segments (so /cn/slug goes to Astro)
   const segments = req.path.split("/").filter(Boolean);
