@@ -3,6 +3,12 @@ import Layout from "../components/Layout.astro";
 import Nav from "../components/Nav.astro";
 import { regionGroups } from "../lib/utils";
 const groups=regionGroups;
+const englishRegionNames: Record<string,string> = {
+  us:"United States", "ca-en":"Canada (English)", "ca-fr":"Canada (French)",
+  cn:"Mainland China", hk:"Hong Kong", tw:"Taiwan",
+  "sg-en":"Singapore (English)", "sg-zh":"Singapore (Simplified Chinese)",
+  au:"Australia", uk:"United Kingdom", fr:"France"
+};
 const flag=(code:string)=>"https://flagcdn.com/w80/"+(code==="uk"?"gb":code.split("-")[0])+".png";
 ---
 <Layout title="Choose your country or region — NAW Journal" description="Choose the country or region and language for NAW Journal">
@@ -11,7 +17,7 @@ const flag=(code:string)=>"https://flagcdn.com/w80/"+(code==="uk"?"gb":code.spli
     <div class="choose-heading">
       <p class="choose-eyebrow">NAW JOURNAL</p>
       <h1>Choose your country or region.</h1>
-      <p>选择国家或地区以切换对应语言和文章内容。</p>
+      <p>Choose a region to view its language and available stories.</p>
     </div>
     <div class="choose-groups">
       {groups.map(group=>(
@@ -21,7 +27,7 @@ const flag=(code:string)=>"https://flagcdn.com/w80/"+(code==="uk"?"gb":code.spli
             {group.items.map(item=>(
               <a class="choose-item" href={'/'+item.code+'/'} onclick={'localStorage.setItem("region",'+JSON.stringify(item.code)+');localStorage.setItem("lang",'+JSON.stringify(item.lang)+')'}>
                 <img src={flag(item.code)} alt="" width="28" height="19" loading="lazy"/>
-                <span>{item.name}</span>
+                <span>{englishRegionNames[item.code] || item.name}</span>
                 <span class="choose-chevron" aria-hidden="true">↗</span>
               </a>
             ))}
@@ -29,7 +35,7 @@ const flag=(code:string)=>"https://flagcdn.com/w80/"+(code==="uk"?"gb":code.spli
         </section>
       ))}
     </div>
-    <p class="choose-footer">部分地区尚无已发布文章，可以随时返回这里切换。</p>
+    <p class="choose-footer">Some editions have no published stories yet. You can switch regions at any time.</p>
   </main>
 </Layout>
 <style>
