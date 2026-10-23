@@ -4,144 +4,131 @@ import Layout from "../../../components/Layout.astro";
 import Nav from "../../../components/Nav.astro";
 import Footer from "../../../components/Footer.astro";
 import Search from "../../../components/Search.astro";
-import { allRegions, regionMap, getCatsConfig, getSlug, postSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../../lib/utils";
-
-export async function getStaticPaths() {
-  const posts = await getCollection("posts", ({ data }) => !data.draft);
-  const catsConfig2 = await getCatsConfig();
-  const cats = Object.keys(catsConfig2);
-  const paths: { params: { lang: string; cat: string } }[] = [];
-  for (const lang of allRegions) {
-    for (const cat of cats) paths.push({ params: { lang, cat } });
-  }
-  return paths;
+import { allRegions, regionMap, getCatsConfig, postSlug, catLabel as localCat, subLabel as localSub, buildDdObj, buildSearchPosts } from "../../../lib/utils";
+export async function getStaticPaths(){
+  const config=await getCatsConfig();
+  return allRegions.flatMap(lang=>Object.keys(config).map(cat=>({params:{lang,cat}})));
 }
-
-const { lang, cat } = Astro.params;
-const langCode = regionMap[lang] || "zh";
-const catsConfig = await getCatsConfig();
-const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
-const subLabel = (catKey: string, subKey: string) => _subLabel(catKey, subKey, langCode, catsConfig);
-const allPosts = await getCollection("posts", ({ id, data }) => !data.draft && data.lang === langCode && id.startsWith(lang + "/"));
-const posts = allPosts
-  .filter(p => p.data.category === cat)
-  .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-if (posts.length === 0) return Astro.redirect(`/${lang}/`);
-
-const categories = Object.keys(catsConfig);
-const byCategory = (c: string) => allPosts.filter(p => p.data.category === c);
-const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
-const subcats = [...new Set(posts.map(p => p.data.subcategory).filter(Boolean))];
-const searchPosts = buildSearchPosts(allPosts, lang, catsConfig, langCode);
-
-const countLabel: Record<string, string> = {
-  zh: " 篇文章", "zh-tw": " 篇文章", "zh-yue": " 篇文章",
-  en: " articles", ja: " 件の記事", ko: "개의 글",
-  fr: " articles", de: " Artikel", es: " artículos",
-  it: " articoli", pt: " artigos", nl: " artikelen",
-  ru: " статей", th: " บทความ",
-};
-const allLabel: Record<string, string> = {
-  zh: "全部", "zh-tw": "全部", "zh-yue": "全部",
-  en: "All", ja: "すべて", ko: "전체",
-  fr: "Tout", de: "Alle", es: "Todo",
-  it: "Tutto", pt: "Tudo", nl: "Alles",
-  ru: "Всё", th: "ทั้งหมด",
-};
+const {lang,cat}=Astro.params;
+const langCode=regionMap[lang]||"zh";
+const config=await getCatsConfig();
+const catLabel=(key:string)=>localCat(key,langCode,config);
+const subLabel=(key:string)=>localSub(cat,key,langCode,config);
+const allPosts=await getCollection("posts",({id,data})=>!data.draft&&data.lang===langCode&&id.startsWith(lang+"/"));
+const posts=allPosts.filter(p=>p.data.category===cat).sort((a,b)=>b.data.date.valueOf()-a.data.date.valueOf());
+if(!posts.length)return Astro.redirect("/"+lang+"/");
+const lead=posts.find(p=>p.data.image)||posts[0];
+const rest=posts.filter(p=>p.id!==lead.id);
+const subs=[...new Set(posts.map(p=>p.data.subcategory).filter(Boolean))] as string[];
+const activeCats=Object.keys(config).map(key=>({key,count:allPosts.filter(p=>p.data.category===key).length})).filter(x=>x.count).sort((a,b)=>b.count-a.count).slice(0,5).map(x=>x.key);
+const ddObj=buildDdObj(activeCats,config,langCode,lang,(key:string)=>allPosts.filter(p=>p.data.category===key));
+const searchPosts=buildSearchPosts(allPosts,lang,config,langCode);
+const href=(p:any)=>"/"+lang+"/"+postSlug(p.id,p.data)+"/";
+const strings=langCode==="zh"?{home:"首页",collection:"主题分类",latest:"全部文章",all:"全部",featured:"精选文章",count:"篇文章",intro:"在这一主题中，发现值得记录的故事。"}:
+ langCode==="zh-tw"||langCode==="zh-yue"?{home:"首頁",collection:"主題分類",latest:"全部文章",all:"全部",featured:"精選文章",count:"篇文章",intro:"在這個主題中，發現值得記錄的故事。"}:
+ langCode==="fr"?{home:"Accueil",collection:"Collection",latest:"Tous les articles",all:"Tout",featured:"À la une",count:"articles",intro:"Histoires, expériences et découvertes autour de ce thème."}:
+ {home:"Home",collection:"Collection",latest:"All stories",all:"All",featured:"Editor's pick",count:"stories",intro:"Stories, experiences and discoveries in this collection."};
 ---
-
-<Layout title={`${catLabel(cat)} — NickAlphaWhite`} description={`${catLabel(cat)}${countLabel[langCode] || countLabel.en}`}>
-  <Nav {lang} {categories} {catLabel} {ddObj} activeCat={cat} />
-
-  <Search searchPosts={searchPosts} />
-
-  <div class="cat-header">
-    <h1 class="cat-title">{catLabel(cat)}</h1>
-    <p class="cat-count">{posts.length}{countLabel[langCode] || countLabel.en}</p>
-  </div>
-
-  {subcats.length > 0 && (
-    <div class="sub-tabs" style="max-width:1300px;margin:0 auto" id="subTabs">
-      <button class="sub-tab active" data-filter="all">{allLabel[langCode] || allLabel.en}</button>
-      {subcats.map(sub => <button class="sub-tab" data-filter={sub}>{subLabel(cat, sub)}</button>)}
-      <span class="sub-slider" id="subSlider"></span>
-    </div>
-  )}
-
-  <script>
-    (function(){
-      var tabs=document.getElementById('subTabs');
-      if(!tabs)return;
-      var slider=document.getElementById('subSlider');
-      var active=tabs.querySelector('.sub-tab.active');
-      function move(t){if(!t||!slider)return;slider.style.left=t.offsetLeft+'px';slider.style.width=t.offsetWidth+'px'}
-      if(active)move(active);
-      tabs.querySelectorAll('.sub-tab').forEach(function(t){
-        t.addEventListener('click',function(){
-          tabs.querySelectorAll('.sub-tab').forEach(function(b){b.classList.remove('active')});
-          t.classList.add('active');move(t);
-          var filter = t.getAttribute('data-filter');
-          document.querySelectorAll('[data-section]').forEach(function(s){
-            var key = s.getAttribute('data-section');
-            s.style.display = (filter === 'all' || key === filter) ? '' : 'none';
-          });
-        });
-      });
-      window.addEventListener('resize',function(){var a=tabs.querySelector('.sub-tab.active');if(a)move(a)});
-    })();
-  </script>
-
-  <section class="section-wrap">
-    {subcats.length > 0 ? subcats.map((sub, si) => (
-      <div data-section={sub}>
-        <p class="subcat-label">{subLabel(cat, sub)}</p>
-        <div class="scroll-wrap">
-          <button class="scroll-arrow arr-left" id={`arrow-${si}-l`} onclick={`scrollRow('row-${si}',-1)`} title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-          <div class="scroll-outer">
-              <div class="scroll-row" id={`row-${si}`}>
-                {posts.filter(p => p.data.subcategory === sub).map(p => (
-                  <a href={`/${lang}/${postSlug(p.id, p.data)}`} class="card">
-                    <div class="card-img">
-                      {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
-                    </div>
-                    <div class="card-body">
-                      <span class="card-tag">{catLabel(p.data.category)}</span>
-                      <h3 class="card-title">{p.data.title}</h3>
-                      {(p.data.subtitle || p.data.titleZh) && <p class="card-desc">{p.data.subtitle || p.data.titleZh}</p>}
-                    </div>
-                    <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
-                  </a>
-                ))}
-              </div>
-          </div>
-          <button class="scroll-arrow arr-right" id={`arrow-${si}-r`} onclick={`scrollRow('row-${si}',1)`} title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+<Layout title={catLabel(cat)+" — NAW Journal"} description={catLabel(cat)}>
+  <Nav lang={lang} categories={activeCats} {catLabel} {ddObj} activeCat={cat}/>
+  <Search searchPosts={searchPosts}/>
+  <main class="jc-main">
+    <header class="jc-heading">
+      <div class="jc-breadcrumb"><a href={"/"+lang+"/"}>{strings.home}</a><span>/</span><span>{catLabel(cat)}</span></div>
+      <p class="jc-kicker">{strings.collection} / {String(posts.length).padStart(2,"0")}</p>
+      <div class="jc-heading-row"><h1>{catLabel(cat)}<span>.</span></h1><p>{strings.intro}</p></div>
+    </header>
+    <section class="jc-pick" data-sub={lead.data.subcategory||""}>
+      <a href={href(lead)} class="jc-pick-link">
+        <div class="jc-pick-img">{lead.data.image&&<img src={lead.data.image} alt={lead.data.title} loading="eager"/>}</div>
+        <div class="jc-pick-copy">
+          <span>{strings.featured} / {lead.data.date.toISOString().slice(0,10)}</span>
+          <h2>{lead.data.title}</h2>
+          {lead.data.subtitle&&<p>{lead.data.subtitle}</p>}
+          <span class="jc-arrow">↗</span>
         </div>
-      </div>
-    )) : (
-      <div class="scroll-wrap">
-        <button class="scroll-arrow arr-left" id="arrow-all-l" onclick="scrollRow('row-all',-1)" title="Scroll left"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <div class="scroll-outer">
-            <div class="scroll-row" id="row-all">
-              {posts.map(p => (
-                <a href={`/${lang}/${postSlug(p.id, p.data)}`} class="card">
-                  <div class="card-img">
-                    {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
-                  </div>
-                  <div class="card-body">
-                    <span class="card-tag">{catLabel(p.data.category)}</span>
-                    <h3 class="card-title">{p.data.title}</h3>
-                    {(p.data.subtitle || p.data.titleZh) && <p class="card-desc">{p.data.subtitle || p.data.titleZh}</p>}
-                  </div>
-                  <div class="card-foot">{p.data.date.toISOString().split("T")[0]}</div>
-                </a>
-              ))}
-            </div>
+      </a>
+    </section>
+    <section class="jc-list" aria-labelledby="jc-list-title">
+      <div class="jc-list-head"><h2 id="jc-list-title">{strings.latest}</h2><span id="jc-count">{posts.length} {strings.count}</span></div>
+      {subs.length>0&&(
+        <div class="jc-filters" id="jc-filters">
+          <button class="jc-filter is-on" type="button" data-filter="all" aria-pressed="true">{strings.all}</button>
+          {subs.map(sub=><button type="button" class="jc-filter" data-filter={sub} aria-pressed="false">{subLabel(sub)}</button>)}
         </div>
-        <button class="scroll-arrow arr-right" id="arrow-all-r" onclick="scrollRow('row-all',1)" title="Scroll right"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
+      )}
+      <div class="jc-grid">
+        {rest.map(p=>(
+          <a class="jc-story" data-sub={p.data.subcategory||""} href={href(p)}>
+            <div class="jc-story-img">{p.data.image&&<img src={p.data.image} alt={p.data.title} loading="lazy"/>}</div>
+            <p class="jc-meta">{p.data.subcategory?subLabel(p.data.subcategory):catLabel(cat)} · {p.data.date.toISOString().slice(0,10)}</p>
+            <h3>{p.data.title}</h3>
+            {p.data.subtitle&&<p class="jc-excerpt">{p.data.subtitle}</p>}
+          </a>
+        ))}
       </div>
-    )}
-  </section>
-
-  <Footer />
+    </section>
+  </main>
+  <Footer/>
 </Layout>
+<script>
+  function initFilters(){
+    const nav=document.getElementById("jc-filters");
+    if(!nav||nav.dataset.ready)return;
+    nav.dataset.ready="yes";
+    const items=Array.from(document.querySelectorAll<HTMLElement>(".jc-story,.jc-pick"));
+    const labels=Array.from(nav.querySelectorAll<HTMLButtonElement>("button[data-filter]"));
+    const counter=document.getElementById("jc-count");
+    function apply(filter:string,update:boolean){
+      if(!labels.some(x=>x.dataset.filter===filter))filter="all";
+      labels.forEach(x=>{let active=x.dataset.filter===filter;x.classList.toggle("is-on",active);x.setAttribute("aria-pressed",String(active))});
+      let visible=0;
+      items.forEach(x=>{const show=filter==="all"||x.dataset.sub===filter;x.hidden=!show;if(show)visible++});
+      if(counter)counter.textContent=String(visible);
+      if(update){const url=new URL(location.href);if(filter==="all")url.searchParams.delete("sub");else url.searchParams.set("sub",filter);history.replaceState(null,"",url)}
+    }
+    labels.forEach(x=>x.addEventListener("click",()=>apply(x.dataset.filter||"all",true)));
+    apply(new URLSearchParams(location.search).get("sub")||"all",false);
+  }
+  initFilters();
+  document.addEventListener("astro:after-swap",initFilters);
+</script>
+<style>
+.jc-main{max-width:1350px;margin:0 auto;padding:0 46px 95px}
+.jc-heading{padding:42px 0 36px}
+.jc-breadcrumb{display:flex;align-items:center;gap:12px;color:var(--txt3);font-size:.84rem;margin-bottom:62px}
+.jc-breadcrumb a{color:var(--txt2)}
+.jc-kicker{text-transform:uppercase;letter-spacing:.12em;font-size:.76rem;font-weight:700;color:var(--txt3);margin:0 0 14px}
+.jc-heading-row{display:flex;align-items:end;justify-content:space-between;gap:35px}
+.jc-heading-row h1{font-size:clamp(3rem,7vw,6rem);font-weight:750;line-height:1;letter-spacing:-.074em;margin:0}
+.jc-heading-row h1 span{color:var(--txt3)}
+.jc-heading-row>p{max-width:290px;color:var(--txt2);font-size:.97rem;line-height:1.8;margin:0 0 3px}
+.jc-pick{margin-bottom:67px}
+.jc-pick[hidden],.jc-story[hidden]{display:none}
+.jc-pick-link{display:grid;grid-template-columns:1.48fr 1fr;min-height:405px;border-radius:19px;overflow:hidden;background:var(--card);box-shadow:0 0 0 1px var(--hairline)}
+.jc-pick-img{background:var(--bg3);min-height:405px;overflow:hidden}
+.jc-pick-img img{width:100%;height:100%;object-fit:cover;transition:transform .65s ease}
+.jc-pick-link:hover img,.jc-story:hover img{transform:scale(1.045)}
+.jc-pick-copy{padding:48px 40px;display:flex;align-items:flex-start;flex-direction:column}
+.jc-pick-copy>span:first-child{font-size:.77rem;color:var(--txt3);font-weight:600}
+.jc-pick-copy h2{font-size:clamp(1.7rem,2.9vw,3rem);letter-spacing:-.044em;line-height:1.2;margin:24px 0 14px}
+.jc-pick-copy p{font-size:.95rem;line-height:1.75;color:var(--txt2);margin:0}
+.jc-arrow{margin-top:auto;padding-top:20px;font-size:1.75rem;color:var(--txt2)}
+.jc-list-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px}
+.jc-list-head h2{font-size:2.1rem;font-weight:730;letter-spacing:-.044em;margin:0}
+.jc-list-head>span{font-size:.87rem;color:var(--txt3)}
+.jc-filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:28px}
+.jc-filter{font:inherit;font-size:.86rem;color:var(--txt2);background:transparent;border:1px solid var(--hairline);border-radius:99px;padding:8px 16px;cursor:pointer}
+.jc-filter.is-on{color:var(--card);background:var(--txt);border-color:var(--txt)}
+.jc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:44px 20px}
+.jc-story{min-width:0}
+.jc-story-img{aspect-ratio:1.52;background:var(--bg3);overflow:hidden;border-radius:14px;margin-bottom:15px}
+.jc-story-img img{width:100%;height:100%;object-fit:cover;transition:transform .65s ease}
+.jc-story:hover img{transform:scale(1.045)}
+.jc-meta{font-size:.75rem;color:var(--txt3);margin:0 0 8px}
+.jc-story h3{font-size:1.22rem;letter-spacing:-.028em;line-height:1.38;font-weight:670;margin:0 0 8px}
+.jc-excerpt{font-size:.88rem;color:var(--txt2);line-height:1.6;margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+@media(max-width:850px){.jc-main{padding:0 28px 70px}.jc-pick-link{grid-template-columns:1.2fr 1fr}.jc-pick-copy{padding:32px 25px}.jc-heading-row>p{max-width:220px}.jc-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:610px){.jc-main{padding:0 18px 68px}.jc-heading{padding:26px 0 30px}.jc-breadcrumb{margin-bottom:42px}.jc-heading-row{display:block}.jc-heading-row h1{font-size:clamp(2.8rem,12vw,4.4rem)}.jc-heading-row p{max-width:100%;margin-top:17px}.jc-pick-link{display:block}.jc-pick-img{height:238px;min-height:0}.jc-pick-copy{padding:26px}.jc-pick-copy h2{margin:19px 0;font-size:1.75rem}.jc-pick{margin-bottom:50px}.jc-grid{grid-template-columns:1fr}.jc-list-head h2{font-size:1.7rem}}
+@media(prefers-reduced-motion:reduce){.jc-pick-img img,.jc-story-img img{transition:none}}
+</style>

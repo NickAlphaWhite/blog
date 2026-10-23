@@ -1,13 +1,29 @@
 {
-  "note": "The URL path is a region edition code. For countries offering language variants, use region-language names (e.g., sg-zh for Simplified Chinese and sg-en for English).",
+  "note": "Apple-inspired region selection with supported editions only. Older paths redirect to a supported edition.",
   "aliases": {
     "sg": "sg-en",
     "ca": "ca-en",
-    "sg-cn": "sg-zh"
+    "sg-cn": "sg-zh",
+    "pr": "us",
+    "mo": "hk",
+    "jp": "us",
+    "kr": "us",
+    "th": "sg-en",
+    "de": "fr",
+    "es": "fr",
+    "it": "fr",
+    "pt": "fr",
+    "nl": "uk",
+    "ru": "uk",
+    "br": "us",
+    "mx": "us",
+    "in": "uk",
+    "ae": "uk",
+    "za": "uk"
   },
   "groups": [
     {
-      "label": "The United States, Canada, and Puerto Rico",
+      "label": "North America",
       "items": [
         {
           "code": "us",
@@ -23,11 +39,6 @@
           "code": "ca-fr",
           "name": "Canada (Français)",
           "lang": "fr"
-        },
-        {
-          "code": "pr",
-          "name": "Puerto Rico",
-          "lang": "es"
         }
       ]
     },
@@ -45,34 +56,9 @@
           "lang": "zh-yue"
         },
         {
-          "code": "mo",
-          "name": "澳門",
-          "lang": "zh-yue"
-        },
-        {
           "code": "tw",
           "name": "台灣",
           "lang": "zh-tw"
-        },
-        {
-          "code": "jp",
-          "name": "日本",
-          "lang": "ja"
-        },
-        {
-          "code": "kr",
-          "name": "대한민국",
-          "lang": "ko"
-        },
-        {
-          "code": "th",
-          "name": "ประเทศไทย",
-          "lang": "th"
-        },
-        {
-          "code": "au",
-          "name": "Australia",
-          "lang": "en"
         },
         {
           "code": "sg-en",
@@ -83,6 +69,11 @@
           "code": "sg-zh",
           "name": "新加坡（简体中文）",
           "lang": "zh"
+        },
+        {
+          "code": "au",
+          "name": "Australia",
+          "lang": "en"
         }
       ]
     },
@@ -98,71 +89,6 @@
           "code": "fr",
           "name": "France",
           "lang": "fr"
-        },
-        {
-          "code": "de",
-          "name": "Deutschland",
-          "lang": "de"
-        },
-        {
-          "code": "es",
-          "name": "España",
-          "lang": "es"
-        },
-        {
-          "code": "it",
-          "name": "Italia",
-          "lang": "it"
-        },
-        {
-          "code": "pt",
-          "name": "Portugal",
-          "lang": "pt"
-        },
-        {
-          "code": "nl",
-          "name": "Nederland",
-          "lang": "nl"
-        },
-        {
-          "code": "ru",
-          "name": "Россия",
-          "lang": "ru"
-        }
-      ]
-    },
-    {
-      "label": "Latin America and the Caribbean",
-      "items": [
-        {
-          "code": "br",
-          "name": "Brasil",
-          "lang": "pt"
-        },
-        {
-          "code": "mx",
-          "name": "México",
-          "lang": "es"
-        }
-      ]
-    },
-    {
-      "label": "Africa, Middle East, and India",
-      "items": [
-        {
-          "code": "in",
-          "name": "India",
-          "lang": "en"
-        },
-        {
-          "code": "ae",
-          "name": "الإمارات العربية المتحدة",
-          "lang": "en"
-        },
-        {
-          "code": "za",
-          "name": "South Africa",
-          "lang": "en"
         }
       ]
     }

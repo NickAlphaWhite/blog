@@ -711,5 +711,106 @@ document.getElementById("regionLabel").textContent=regionNames[region]||region;
 })();
 </script>
 
+
+<!-- NAW Journal admin workspace layout; preserves original form and API bindings. -->
+<style id="naw-workspace-styles">
+:root,[data-theme="light"]{--bg:#f5f5f7;--card:#fff;--bg3:#f5f5f7;--txt:#1d1d1f;--txt2:#55555d;--txt3:#86868b}
+body{background:var(--bg);min-width:0}
+.nav{position:fixed;left:0;top:0;bottom:0;width:205px;right:auto;background:var(--card);z-index:101;border-right:1px solid var(--hairline);box-shadow:none}
+.nav-inner{height:100%;display:flex;align-items:stretch;flex-direction:column;justify-content:flex-start;padding:25px 18px}
+.nav-brand{display:flex;align-items:center;gap:10px;font-size:.92rem;font-weight:700;letter-spacing:-.02em;white-space:nowrap}
+.naw-logo{width:38px;height:38px;background:#1d1d1f;color:#fff;border-radius:11px;display:inline-flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:750;letter-spacing:-.045em;flex-shrink:0}
+.nav-right{margin-top:auto;display:flex;flex-direction:column;align-items:stretch;gap:7px}
+.nav-right .nav-site{font-size:.83rem;padding:10px 12px;text-align:left}
+.nav-right .theme-btn{margin-left:3px}
+.wrap{max-width:1480px;margin:0 0 0 205px;padding:73px 30px 90px}
+.tabs{position:fixed;top:104px;left:12px;width:180px;display:flex;flex-direction:column;gap:4px;margin:0;padding:0;z-index:110}
+.tab{width:100%;font-size:.91rem;border:none;border-radius:10px;padding:13px 13px;text-align:left;margin:0;color:var(--txt2);transition:background .2s}
+.tab.active{background:#ebebee;color:var(--txt);font-weight:700;border:0}
+[data-theme="dark"] .tab.active{background:#303036}
+.naw-workspace-title{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:25px;gap:20px}
+.naw-workspace-title h1{font-size:2rem;letter-spacing:-.045em;font-weight:730;margin:0}
+.naw-workspace-title .naw-workspace-state{font-size:.8rem;color:var(--txt3)}
+.naw-editor-workspace{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(340px,1fr);gap:18px;align-items:start}
+#view-write>.naw-editor-workspace>.card{border-radius:18px;padding:28px 30px;box-shadow:0 0 0 1px var(--hairline);min-width:0}
+#publishForm{gap:20px}
+.naw-detail-fields{display:flex;flex-direction:column;gap:17px}
+.naw-detail-fields .sel>span,.naw-meta-fields .sel>span{color:var(--txt2);text-transform:none;letter-spacing:0;font-size:.8rem;font-weight:600}
+.naw-detail-fields input,.naw-meta-fields input,.naw-meta-fields select{background:var(--bg3);font-size:.95rem;min-height:42px}
+#langTitle{font-size:1.15rem;font-weight:650;min-height:55px}
+.naw-meta-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.naw-url-row .sel input{width:100%}
+.naw-url-row #publicUrlPreview{color:var(--txt3);line-height:1.4;font-size:.75rem;display:block;margin-top:5px}
+#publishForm .md-toolbar{border-radius:9px;display:flex;align-items:center;gap:1px;min-height:42px;padding:4px 6px;overflow-x:auto;white-space:nowrap;scrollbar-width:thin}
+#publishForm .md-toolbar button{flex-shrink:0}
+#publishForm .editor-split{min-height:480px}
+#publishForm .editor-split>.editor-pane{width:100%;min-width:0}
+#publishForm .editor-pane textarea{min-height:470px;background:var(--card);font-size:.93rem;line-height:1.85;border:1px solid var(--hairline)}
+#publishForm .editor-label{color:var(--txt2);font-size:.8rem;font-weight:650;text-transform:none;letter-spacing:0}
+.naw-preview-aside{border-radius:18px;overflow:hidden;background:var(--card);box-shadow:0 0 0 1px var(--hairline);position:sticky;top:22px;min-height:530px}
+.naw-preview-heading{font-size:.92rem;font-weight:700;padding:18px 22px;border-bottom:1px solid var(--hairline);display:flex;align-items:center;justify-content:space-between}
+.naw-preview-reader{margin:18px;border:1px solid var(--hairline);border-radius:13px;overflow:hidden;background:var(--card);padding:30px 24px;min-height:450px}
+.naw-reader-meta{font-size:.74rem;color:var(--txt3);margin-bottom:13px}
+.naw-reader-title{font-size:1.45rem;line-height:1.35;letter-spacing:-.03em;margin:0 0 12px;font-weight:700}
+.naw-reader-subtitle{font-size:.91rem;line-height:1.65;color:var(--txt2);margin:0 0 22px}
+.naw-preview-aside .editor-label{display:none}
+.naw-preview-aside .editor-pane{display:block}
+.naw-preview-aside .preview-box{border:none;padding:0;min-height:0;border-radius:0;font-size:.94rem;line-height:1.8;max-height:none;overflow:visible}
+.naw-preview-aside .preview-box p{margin-bottom:1.2em}
+.naw-preview-aside #previewBox{background:transparent}
+#nawUploadZone{min-height:84px;border-radius:12px}
+#nawEditorState{margin-top:2px}
+#nawDraftActions{margin-left:auto}
+#view-list,#view-cats{max-width:1000px}
+#view-list .post-list,#view-cats .card{background:var(--card);border-radius:15px}
+.footer{display:none}
+@media(max-width:1240px){.naw-editor-workspace{grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)}.wrap{padding:70px 18px}.naw-meta-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:960px){.naw-editor-workspace{display:flex;flex-direction:column}.naw-editor-workspace>.card,.naw-preview-aside{width:100%}.naw-preview-aside{position:static}}
+@media(max-width:700px){.nav{position:sticky;width:100%;height:58px;border-right:0;border-bottom:1px solid var(--hairline)}.nav-inner{padding:0 15px;flex-direction:row;align-items:center;justify-content:space-between}.nav-right{flex-direction:row;margin:0;align-items:center}.naw-logo{height:32px;width:32px}.wrap{margin:0;padding:28px 15px 50px}.tabs{position:static;flex-direction:row;width:auto;overflow:auto;margin-bottom:25px;padding:0;gap:4px}.tab{width:auto;flex:0 0 auto;text-align:center;padding:10px 13px}.naw-workspace-title h1{font-size:1.6rem}#view-write>.naw-editor-workspace>.card{padding:19px}.naw-meta-fields{grid-template-columns:1fr 1fr}.naw-preview-reader{padding:23px 18px}}
+</style>
+<script id="naw-workspace-init">
+(function(){
+  const form=document.getElementById("publishForm");
+  const view=document.getElementById("view-write");
+  const navTitle=document.getElementById("navTitle");
+  if(!form||!view||document.querySelector(".naw-editor-workspace"))return;
+  const logo=document.createElement("span");logo.className="naw-logo";logo.textContent="NAW";navTitle.before(logo);
+  const intro=document.createElement("header");
+  intro.className="naw-workspace-title";
+  intro.innerHTML='<h1>撰写文章</h1><span class="naw-workspace-state" id="nawTopState">草稿将在浏览器中保存</span>';
+  view.prepend(intro);
+  const card=view.querySelector(".card");
+  const workspace=document.createElement("div");workspace.className="naw-editor-workspace";
+  card.before(workspace);workspace.append(card);
+  const columns=form.querySelector(".form-cols");
+  const getField=name=>form.elements.namedItem(name)?.closest(".sel");
+  const title=getField("title"),subtitle=getField("subtitle"),date=getField("date"),cat=getField("category"),subcat=getField("subcategory"),cover=getField("image"),slug=getField("slug");
+  const details=document.createElement("div");details.className="naw-detail-fields";
+  const meta=document.createElement("div");meta.className="naw-meta-fields";
+  const permalink=document.createElement("div");permalink.className="naw-url-row";
+  [title,subtitle].forEach(el=>el&&details.append(el));
+  [date,cat,subcat].forEach(el=>el&&meta.append(el));
+  if(cover)details.append(cover);
+  if(slug)permalink.append(slug);
+  columns.replaceWith(details,meta,permalink);
+  const split=form.querySelector(".editor-split");
+  const preview=split.children[1];
+  const aside=document.createElement("aside");aside.className="naw-preview-aside";
+  aside.innerHTML='<div class="naw-preview-heading"><span>实时预览</span><span style="color:var(--txt3);font-size:.75rem;font-weight:400">LIVE</span></div><div class="naw-preview-reader"><div class="naw-reader-meta" id="nawReaderMeta"></div><h2 class="naw-reader-title" id="nawReaderTitle"></h2><p class="naw-reader-subtitle" id="nawReaderSubtitle"></p></div>';
+  aside.querySelector(".naw-preview-reader").append(preview);
+  workspace.append(aside);
+  function refresh(){
+    document.getElementById("nawReaderTitle").textContent=title.querySelector("input").value||"文章标题";
+    document.getElementById("nawReaderSubtitle").textContent=subtitle.querySelector("input").value||"";
+    document.getElementById("nawReaderMeta").textContent=(cat.querySelector("select").selectedOptions[0]?.textContent||"") + " · " + (date.querySelector("input").value||"");
+    const draft=document.getElementById("nawDraftMessage");
+    if(draft)document.getElementById("nawTopState").textContent=draft.textContent;
+  }
+  form.addEventListener("input",refresh);form.addEventListener("change",refresh);
+  new MutationObserver(refresh).observe(document.getElementById("nawDraftMessage"),{childList:true,subtree:true,characterData:true});
+  refresh();
+})();
+</script>
+
 </body>
 </html>

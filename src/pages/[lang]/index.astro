@@ -4,131 +4,148 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, getCatsConfig, getSlug, postSlug, legacyRegionAliases, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
-
-export function getStaticPaths() {
-  return [...allRegions, ...Object.keys(legacyRegionAliases)].map(r => ({ params: { lang: r } }));
+import { allRegions, legacyRegionAliases, regionMap, getCatsConfig, postSlug, catLabel as localCat, buildDdObj, buildSearchPosts } from "../../lib/utils";
+export function getStaticPaths(){
+  return [...allRegions,...Object.keys(legacyRegionAliases)].map(lang=>({params:{lang}}));
 }
-
-const { lang } = Astro.params;
-if (legacyRegionAliases[lang]) return Astro.redirect(`/${legacyRegionAliases[lang]}/`, 301);
-const langCode = regionMap[lang] || "zh";
-
-const allPosts = await getCollection("posts", ({ id, data }) => !data.draft && data.lang === langCode && id.startsWith(lang + "/"));
-const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
-
-const featured = posts.filter(p => p.data.featured).slice(0, 3);
-const catsConfig = await getCatsConfig();
-const categories = Object.keys(catsConfig);
-const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
-const subLabel = (catKey: string, subKey: string) => _subLabel(catKey, subKey, langCode, catsConfig);
-const byCategory = (cat: string) => posts.filter(p => p.data.category === cat);
-
-const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
-const searchPosts = buildSearchPosts(posts, lang, catsConfig, langCode);
-
-const featLabel: Record<string, string> = {
-  zh: "精选", "zh-tw": "精選", "zh-yue": "精選",
-  en: "Featured", ja: "おすすめ", ko: "추천",
-  fr: "Sélection", de: "Empfohlen", es: "Destacado",
-};
-
-// Build hero + mini-grid server-side (no more client JS timing issues)
-const heroPosts = posts.filter(p => p.data.featured);
-const heroByCat: Record<string, typeof heroPosts> = {};
-heroPosts.forEach(p => { if (!heroByCat[p.data.category]) heroByCat[p.data.category] = []; heroByCat[p.data.category].push(p); });
-const heroCats = Object.keys(heroByCat).sort(() => Math.random() - 0.5);
-const heroPicks: typeof heroPosts = [];
-for (let i = 0; i < Math.min(9, heroCats.length); i++) {
-  heroPicks.push(heroByCat[heroCats[i]][Math.floor(Math.random() * heroByCat[heroCats[i]].length)]);
-}
-heroPicks.sort(() => Math.random() - 0.5);
-const heroTop = heroPicks.slice(0, 3);
-const heroGrid = heroPicks.slice(3, 9);
-
-const viewAllLabel: Record<string, string> = {
-  zh: "查看全部 →", "zh-tw": "查看全部 →", "zh-yue": "查看全部 →",
-  en: "View all →", ja: "すべて見る →", ko: "전체 보기 →",
-  fr: "Tout voir →", de: "Alle anzeigen →", es: "Ver todo →",
-};
-const readLabel: Record<string, string> = {
-  zh: "阅读文章 →", "zh-tw": "閱讀文章 →", "zh-yue": "閱讀文章 →",
-  en: "Read the article →", ja: "記事を読む →", ko: "글 읽기 →",
-};
+const {lang}=Astro.params;
+if(legacyRegionAliases[lang])return Astro.redirect("/"+legacyRegionAliases[lang]+"/",301);
+const langCode=regionMap[lang]||"zh";
+const posts=(await getCollection("posts",({id,data})=>!data.draft && id.startsWith(lang+"/") && data.lang===langCode)).sort((a,b)=>b.data.date.valueOf()-a.data.date.valueOf());
+const config=await getCatsConfig();
+const totalCats=Object.keys(config).map(key=>({key,items:posts.filter(p=>p.data.category===key)})).filter(x=>x.items.length).sort((a,b)=>b.items.length-a.items.length);
+const categories=totalCats.slice(0,5).map(x=>x.key);
+const catLabel=(key:string)=>localCat(key,langCode,config);
+const ddObj=buildDdObj(categories,config,langCode,lang,(cat:string)=>posts.filter(p=>p.data.category===cat));
+const searchPosts=buildSearchPosts(posts,lang,config,langCode);
+const lead=posts.find(p=>p.data.featured&&p.data.image)||posts.find(p=>p.data.image)||posts[0];
+const others=posts.filter(p=>p.id!==lead?.id);
+const side=others.slice(0,2);
+const remaining=others.slice(2);
+const t=langCode==="zh"?{label:"个人日志",heading:"记录值得留意的日常。",sub:"旅行、设计、文化与生活中的细微发现。",feature:"特别推荐",latest:"最新文章",topic:"浏览主题",read:"阅读文章",empty:"这个地区的文章还在准备中。",browse:"阅读中国大陆版本",all:"全部文章"}:
+  langCode==="zh-tw"||langCode==="zh-yue"?{label:"個人日誌",heading:"記錄值得留意的日常。",sub:"旅行、設計、文化與生活裡的細微發現。",feature:"精選文章",latest:"最新文章",topic:"探索主題",read:"閱讀文章",empty:"這個地區的文章還在準備中。",browse:"閱讀中國大陸版本",all:"全部文章"}:
+  langCode==="fr"?{label:"Journal personnel",heading:"Des histoires qui méritent d'être racontées.",sub:"Voyages, design, culture et observations du quotidien.",feature:"À la une",latest:"Derniers articles",topic:"Explorer les thèmes",read:"Lire l'article",empty:"Les articles arrivent bientôt dans cette édition.",browse:"Lire l'édition chinoise",all:"Tous les articles"}:
+  {label:"Personal journal",heading:"Stories worth noticing.",sub:"Travel, design, culture and observations from everyday life.",feature:"Editor's pick",latest:"Latest stories",topic:"Explore topics",read:"Read story",empty:"Stories for this edition are coming soon.",browse:"Browse the Chinese edition",all:"All stories"};
+const href=(p:any)=>"/"+lang+"/"+postSlug(p.id,p.data)+"/";
 ---
-
-<Layout title="NickAlphaWhite" description="NickAlphaWhite's Blog">
-  <Nav {lang} {categories} {catLabel} {ddObj} />
-
-  <Search searchPosts={searchPosts} />
-
-  <!-- HERO + GRID — server-rendered, no client JS needed -->
-  {heroTop.length > 0 && (
-    <section class="hero-section">
-      {heroTop.map((p, i) => (
-        <a href={`/${lang}/${postSlug(p.id, p.data)}`} class="hero-card"
-           onclick={`event.preventDefault();var el=this;var r=el.getBoundingClientRect();el.style.top=r.top+'px';el.style.left=r.left+'px';el.style.width=r.width+'px';el.style.height=r.height+'px';el.style.position='fixed';el.style.margin='0';requestAnimationFrame(function(){requestAnimationFrame(function(){el.classList.add('zooming')})});setTimeout(function(){location.href=el.href},700)`}>
-          {p.data.image && <img src={p.data.image} alt={p.data.title} loading={i===0?'eager':'lazy'} />}
-          <div class="hero-mask"></div>
-          <div class="hero-content">
-            <p class="hero-tag">{catLabel(p.data.category)}{p.data.featured ? ' · '+featLabel[langCode] || featLabel.en : ''}</p>
-            <h1 class="hero-title">{p.data.title}</h1>
-            {p.data.subtitle && <p class="hero-sub">{p.data.subtitle}</p>}
-            <span class="hero-cta">{readLabel[langCode] || readLabel.en}</span>
+<Layout title="NAW Journal" description="A journal about travel, design and life.">
+  <Nav {lang} {categories} {catLabel} {ddObj}/>
+  <Search searchPosts={searchPosts}/>
+  <main class="jn-main">
+    <header class="jn-intro">
+      <div>
+        <p class="jn-kicker">NAW JOURNAL <span>—</span> {t.label}</p>
+        <h1>{t.heading}</h1>
+      </div>
+      <p class="jn-intro-sub">{t.sub}</p>
+    </header>
+    {lead?(
+      <section class="jn-feature" aria-label={t.feature}>
+        <a class="jn-hero" href={href(lead)}>
+          {lead.data.image&&<img src={lead.data.image} alt={lead.data.title} loading="eager"/>}
+          <div class="jn-hero-shade"></div>
+          <div class="jn-hero-text">
+            <p>{t.feature} <span>·</span> {catLabel(lead.data.category)}</p>
+            <h2>{lead.data.title}</h2>
+            {lead.data.subtitle&&<span class="jn-hero-sub">{lead.data.subtitle}</span>}
+            <span class="jn-hero-link">{t.read} ↗</span>
           </div>
         </a>
-      ))}
-    </section>
-  )}
-  {heroGrid.length > 0 && (
-    <section class="mini-grid">
-      <div class="mini-grid-inner">
-        {heroGrid.map(p => (
-          <a href={`/${lang}/${postSlug(p.id, p.data)}`} class="mini-card">
-            {p.data.image && <img src={p.data.image} alt={p.data.title} loading="lazy" />}
-            <div class="mini-card-content">
-              <p class="mini-card-tag">{catLabel(p.data.category)}</p>
-              <h3 class="mini-card-title">{p.data.title}</h3>
-            </div>
-          </a>
-        ))}
-      </div>
-    </section>
-  )}
-
-  <!-- SINGLE FILMSTRIP — 9 random posts from all categories -->
-  {(() => {
-    const filmPosts = posts.filter(p => p.data.featured);
-    if (filmPosts.length === 0) return null;
-    // Shuffle and pick up to 9, force odd
-    const shuffled = [...filmPosts].sort(() => Math.random() - 0.5);
-    let picks = shuffled.slice(0, 9);
-    while (picks.length > 3 && picks.length % 2 === 0) picks = picks.slice(0, -1);
-    const medianIdx = Math.floor(picks.length / 2);
-    const filmId = 'film-all';
-    const filmPad = picks.length < 4 ? '0' : '15%';
-    return (
-      <section class="film-strip" style="position:relative">
-        <div class="film-outer" id={filmId}>
-          <div class="film-row" style={`padding:0 ${filmPad}`}>
-            {picks.map(p => (
-              <a href={`/${lang}/${postSlug(p.id, p.data)}`} class="film-card">
-                {p.data.image && <img src={p.data.image} alt={p.data.title} loading="lazy" />}
-                <div class="film-content">
-                  <span class="film-cat-tag">{catLabel(p.data.category)}</span>
-                  <h2 class="film-title">{p.data.title}</h2>
-                  {p.data.subtitle && <p class="film-sub">{p.data.subtitle}</p>}
-                </div>
-              </a>
-            ))}
-          </div>
+        <div class="jn-feature-side">
+          {side.map(p=>(
+            <a class="jn-feature-small" href={href(p)}>
+              <div class="jn-small-img">{p.data.image&&<img src={p.data.image} alt={p.data.title} loading="lazy"/>}</div>
+              <div class="jn-small-body">
+                <p>{catLabel(p.data.category)} / {p.data.date.toISOString().slice(0,10)}</p>
+                <h3>{p.data.title}</h3>
+                <span>{t.read} ↗</span>
+              </div>
+            </a>
+          ))}
         </div>
-        <button class="film-arrow arr-left" id="film-all-l" onclick="filmScroll('film-all',-1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg></button>
-        <button class="film-arrow arr-right" id="film-all-r" onclick="filmScroll('film-all',1)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="9 18 15 12 9 6"/></svg></button>
-        <div id="__filmData" style="display:none" data-median={medianIdx}></div>
       </section>
-    );
-  })()}
-
-  <Footer />
+    ):(
+      <section class="jn-empty">
+        <h2>{t.empty}</h2>
+        <a href="/cn/">{t.browse} ↗</a>
+      </section>
+    )}
+    {totalCats.length>0&&(
+      <section class="jn-topics" id="topics">
+        <div class="jn-section-head"><h2>{t.topic}</h2><span>{totalCats.length} topics</span></div>
+        <div class="jn-topic-grid">
+          {totalCats.map(entry=>(
+            <a href={"/"+lang+"/category/"+encodeURIComponent(entry.key)} class="jn-topic">
+              <span>{catLabel(entry.key)}</span><span>{entry.items.length} ↗</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+    {remaining.length>0&&(
+      <section class="jn-latest">
+        <div class="jn-section-head"><h2>{t.latest}</h2><span>{t.all} · {posts.length}</span></div>
+        <div class="jn-latest-grid">
+          {remaining.map(p=>(
+            <a href={href(p)} class="jn-story">
+              <div class="jn-story-image">{p.data.image&&<img src={p.data.image} alt={p.data.title} loading="lazy"/>}</div>
+              <p class="jn-story-meta">{catLabel(p.data.category)} <span>·</span> {p.data.date.toISOString().slice(0,10)}</p>
+              <h3>{p.data.title}</h3>
+              {p.data.subtitle&&<p class="jn-story-desc">{p.data.subtitle}</p>}
+            </a>
+          ))}
+        </div>
+      </section>
+    )}
+  </main>
+  <Footer/>
 </Layout>
+<style>
+  .jn-main{max-width:1350px;padding:0 46px 100px;margin:0 auto}
+  .jn-intro{display:flex;gap:40px;align-items:end;justify-content:space-between;padding:82px 0 42px}
+  .jn-intro h1{font-size:clamp(2.5rem,5.2vw,4.8rem);font-weight:730;line-height:1.13;letter-spacing:-.062em;margin:0;max-width:850px}
+  .jn-kicker{font-size:.74rem;color:var(--txt3);letter-spacing:.12em;font-weight:700;text-transform:uppercase;margin:0 0 21px}
+  .jn-kicker span{margin:0 8px}
+  .jn-intro-sub{color:var(--txt2);font-size:.95rem;line-height:1.85;max-width:240px;margin:0 0 7px}
+  .jn-feature{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);gap:16px;min-height:510px}
+  .jn-hero{position:relative;overflow:hidden;isolation:isolate;background:#34383d;border-radius:19px;min-height:510px;display:flex;align-items:flex-end;color:#fff}
+  .jn-hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:-2;transition:transform .7s ease}
+  .jn-hero:hover img,.jn-feature-small:hover img,.jn-story:hover img{transform:scale(1.045)}
+  .jn-hero-shade{position:absolute;inset:0;z-index:-1;background:linear-gradient(180deg,transparent 15%,rgba(0,0,0,.75) 100%)}
+  .jn-hero-text{padding:45px;max-width:740px}
+  .jn-hero-text>p{font-size:.76rem;font-weight:600;color:#eee;margin:0 0 14px}
+  .jn-hero-text>p span{padding:0 5px}
+  .jn-hero-text h2{font-size:clamp(1.7rem,3vw,3rem);letter-spacing:-.045em;line-height:1.2;margin:0 0 16px}
+  .jn-hero-sub{display:block;color:#e6e6e6;font-size:.93rem;line-height:1.6;margin-bottom:15px}
+  .jn-hero-link{font-size:.86rem;font-weight:650}
+  .jn-feature-side{display:grid;grid-template-rows:repeat(2,1fr);gap:16px}
+  .jn-feature-small{display:grid;grid-template-columns:42% 58%;min-height:0;border-radius:19px;overflow:hidden;background:var(--card);box-shadow:0 0 0 1px var(--hairline)}
+  .jn-small-img{background:var(--bg3);overflow:hidden}
+  .jn-small-img img,.jn-story-image img{width:100%;height:100%;object-fit:cover;transition:transform .7s ease}
+  .jn-small-body{padding:25px 21px;display:flex;flex-direction:column}
+  .jn-small-body p,.jn-story-meta{font-size:.74rem;color:var(--txt3);margin:0 0 12px}
+  .jn-small-body h3{font-size:clamp(1.05rem,1.5vw,1.35rem);line-height:1.35;letter-spacing:-.025em;margin:0;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+  .jn-small-body>span{font-size:.8rem;color:var(--txt2);font-weight:600;margin-top:auto;padding-top:14px}
+  .jn-empty{padding:85px 25px;background:var(--card);border-radius:19px;text-align:center}
+  .jn-empty h2{font-size:1.6rem;margin:0 0 16px}
+  .jn-empty a{font-size:.94rem;text-decoration:underline}
+  .jn-topics,.jn-latest{margin-top:76px}
+  .jn-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:18px;margin-bottom:22px}
+  .jn-section-head h2{font-size:clamp(1.6rem,2.7vw,2.25rem);letter-spacing:-.045em;margin:0;font-weight:730}
+  .jn-section-head>span{font-size:.8rem;color:var(--txt3)}
+  .jn-topic-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  .jn-topic{display:flex;align-items:center;justify-content:space-between;background:var(--card);box-shadow:0 0 0 1px var(--hairline);border-radius:12px;padding:20px;font-size:.96rem;font-weight:600;transition:background .2s}
+  .jn-topic:hover{background:var(--bg3)}
+  .jn-topic span:last-child{font-size:.8rem;font-weight:500;color:var(--txt3)}
+  .jn-latest-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:44px 20px}
+  .jn-story{min-width:0}
+  .jn-story-image{aspect-ratio:1.55;border-radius:15px;overflow:hidden;background:var(--bg3);margin-bottom:15px}
+  .jn-story-meta{margin-bottom:7px}
+  .jn-story-meta span{padding:0 4px}
+  .jn-story h3{font-size:1.18rem;line-height:1.38;letter-spacing:-.025em;margin:0 0 7px;font-weight:680}
+  .jn-story-desc{font-size:.86rem;line-height:1.65;color:var(--txt2);margin:0;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  @media(max-width:1050px){.jn-main{padding:0 26px 70px}.jn-feature{grid-template-columns:1.25fr 1fr}.jn-feature-small{grid-template-columns:1fr}.jn-small-img{height:110px}.jn-small-body{padding:15px}.jn-topic-grid{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:730px){.jn-main{padding:0 18px 64px}.jn-intro{display:block;padding:48px 0 32px}.jn-intro h1{font-size:clamp(2.2rem,8vw,3.7rem)}.jn-intro-sub{max-width:100%;margin-top:16px}.jn-feature{display:block}.jn-hero{min-height:420px}.jn-hero-text{padding:27px}.jn-feature-side{grid-template-columns:1fr 1fr;grid-template-rows:auto;margin-top:12px;gap:12px}.jn-feature-small{border-radius:13px}.jn-small-img{height:118px}.jn-small-body{padding:13px}.jn-small-body h3{font-size:.99rem;-webkit-line-clamp:2}.jn-small-body>span{display:none}.jn-topic-grid{grid-template-columns:repeat(2,1fr)}.jn-latest-grid{grid-template-columns:repeat(2,1fr);gap:30px 14px}.jn-topics,.jn-latest{margin-top:55px}}
+  @media(max-width:470px){.jn-topic-grid,.jn-latest-grid{grid-template-columns:1fr}.jn-topic{padding:16px}}
+  @media(prefers-reduced-motion:reduce){.jn-hero img,.jn-small-img img,.jn-story img{transition:none}}
+</style>
