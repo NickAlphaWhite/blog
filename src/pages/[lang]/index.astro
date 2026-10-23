@@ -14,7 +14,7 @@ const langCode=regionMap[lang]||"zh";
 const posts=(await getCollection("posts",({id,data})=>!data.draft && id.startsWith(lang+"/") && data.lang===langCode)).sort((a,b)=>b.data.date.valueOf()-a.data.date.valueOf());
 const config=await getCatsConfig();
 const totalCats=Object.keys(config).map(key=>({key,items:posts.filter(p=>p.data.category===key)})).filter(x=>x.items.length).sort((a,b)=>b.items.length-a.items.length);
-const categories=totalCats.slice(0,5).map(x=>x.key);
+const categories=totalCats.map(x=>x.key);
 const catLabel=(key:string)=>localCat(key,langCode,config);
 const ddObj=buildDdObj(categories,config,langCode,lang,(cat:string)=>posts.filter(p=>p.data.category===cat));
 const searchPosts=buildSearchPosts(posts,lang,config,langCode);
