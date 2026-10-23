@@ -2,7 +2,7 @@
 title: "国泰航空玉衡堂头等舱休息室"
 date: 2026-06-01
 lang: zh
-image: "https://commons.wikimedia.org/wiki/Special:FilePath/CX_The_Pier_Lounge_HK.jpg?width=1280"
+image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/ab/CX_The_Pier_Lounge_HK.jpg/1280px-CX_The_Pier_Lounge_HK.jpg"
 category: "Aviation"
 subcategory: "Lounges"
 tags: ["cathay-pacific", "lounge", "hong-kong", "the-pier"]
