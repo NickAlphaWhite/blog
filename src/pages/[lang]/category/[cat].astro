@@ -12,11 +12,7 @@ export async function getStaticPaths() {
   const cats = Object.keys(catsConfig2);
   const paths: { params: { lang: string; cat: string } }[] = [];
   for (const lang of allRegions) {
-    if (posts.some(p => p.id.startsWith(lang + '/'))) {
-      for (const cat of cats) {
-        paths.push({ params: { lang, cat } });
-      }
-    }
+    for (const cat of cats) paths.push({ params: { lang, cat } });
   }
   return paths;
 }
@@ -31,7 +27,7 @@ const posts = allPosts
   .filter(p => p.data.category === cat)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
-if (posts.length === 0) return Astro.redirect("/");
+if (posts.length === 0) return Astro.redirect(`/${lang}/`);
 
 const categories = Object.keys(catsConfig);
 const byCategory = (c: string) => allPosts.filter(p => p.data.category === c);
