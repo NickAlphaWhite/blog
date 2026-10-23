@@ -20,7 +20,7 @@ if(!posts.length)return Astro.redirect("/"+lang+"/");
 const lead=posts.find(p=>p.data.image)||posts[0];
 const rest=posts.filter(p=>p.id!==lead.id);
 const subs=[...new Set(posts.map(p=>p.data.subcategory).filter(Boolean))] as string[];
-const activeCats=Object.keys(config).map(key=>({key,count:allPosts.filter(p=>p.data.category===key).length})).filter(x=>x.count).sort((a,b)=>b.count-a.count).slice(0,5).map(x=>x.key);
+const activeCats=Object.keys(config).map(key=>({key,count:allPosts.filter(p=>p.data.category===key).length})).filter(x=>x.count).sort((a,b)=>b.count-a.count).map(x=>x.key);
 const ddObj=buildDdObj(activeCats,config,langCode,lang,(key:string)=>allPosts.filter(p=>p.data.category===key));
 const searchPosts=buildSearchPosts(allPosts,lang,config,langCode);
 const href=(p:any)=>"/"+lang+"/"+postSlug(p.id,p.data)+"/";
