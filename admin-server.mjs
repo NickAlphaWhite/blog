@@ -467,21 +467,14 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
 
-    // If slug changed, rename the file
-    if (customSlug) {
-      const newBase = localizedSlug(customSlug);
-      const newSlug = newBase;
-      const newPath = join(postsDir, `${newSlug}.md`);
-      if (newPath !== filePath) {
-        if (existsSync(filePath)) unlinkSync(filePath);
-        writeFileSync(newPath, frontmatter, "utf-8");
-        touchAstroConfig();
-        const pushResult = await pushToGitHub(`src/content/posts/${region}/${newSlug}.md`, frontmatter, `Update post (renamed): ${req.params.file} → ${newSlug}`);
-        // Also delete the old file from GitHub
-        pushAsync(`src/content/posts/${region}/${req.params.file}`, null, `Delete old file after rename: ${req.params.file}`);
-        return res.json({ ok: true, renamed: true, file: `${newSlug}.md`, pushed: pushResult.ok });
-      }
-    }
+    // Public URL slug is metadata, never rename/delete the source Markdown file.
+    // Filename remains the stable Waline comment identity.
+    const otherFiles = readdirSync(postsDir).filter(name => name.endsWith(".md") && name !== req.params.file);
+    if (otherFiles.some(name => {
+      const raw = readFileSync(join(postsDir, name), "utf8");
+      const otherSlug = (raw.match(/^urlSlug:\\s*"([^"]+)"/m) || [])[1] || (raw.match(/^title:\\s*"([^"]+)"/m) || [])[1] || name;
+      return localizedSlug(otherSlug) === stableUrl;
+    })) return res.status(409).json({ error: "This URL is already used by another article in this region." });
 
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
@@ -624,7 +617,7 @@ app.get("/api/posts", sessionAuth, (req, res) => {
       const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
       return {
         file: f,
-        slug: f.replace(/\.md$/, ""),
+        slug: localizedSlug((fm.match(/^urlSlug:\\s*"([^"]+)"/m) || [])[1] || (fm.match(/^title:\\s*"([^"]+)"/m) || [])[1] || f.replace(/\.md$/, "")),
         title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
         group: fm.match(/group:\s*"([^"]+)"/)?.[1] || "",
         date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",
