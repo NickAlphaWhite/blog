@@ -1,9 +1,10 @@
 ---
 // Admin panel: deployed separately
-import { allRegions } from "../../lib/utils";
+import { allRegions, legacyRegionAliases } from "../../lib/utils";
 export function getStaticPaths() {
-  return allRegions.map(region => ({ params: { lang: region } }));
+  return [...allRegions, ...Object.keys(legacyRegionAliases)].map(region => ({ params: { lang: region } }));
 }
 const lang = Astro.params.lang || "cn";
-return Astro.redirect(`https://admin.bynaw.top/${lang}`);
+const edition = legacyRegionAliases[lang] || lang;
+return Astro.redirect(`https://admin.bynaw.top/${edition}`);
 ---
