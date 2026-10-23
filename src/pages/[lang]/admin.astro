@@ -1,9 +1,9 @@
 ---
 // Admin panel: deployed separately
-import { allLangs } from "../../lib/utils";
+import { allRegions } from "../../lib/utils";
 export function getStaticPaths() {
-  return allLangs.map(l => ({ params: { lang: l } }));
+  return allRegions.map(region => ({ params: { lang: region } }));
 }
-const lang = Astro.params.lang || "zh";
+const lang = Astro.params.lang || "cn";
 return Astro.redirect(`https://admin.bynaw.top/${lang}`);
 ---
