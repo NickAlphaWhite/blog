@@ -284,7 +284,7 @@ function applyLang(){
   document.querySelectorAll("[data-i18n-placeholder]").forEach(function(el){el.placeholder=t(el.dataset.i18nPlaceholder)});
   var cs=document.querySelector('select[name="category"]');if(cs)cs.options[0].text=t("categoryPlaceholder");
   var ss=document.getElementById("subcatSelect");if(ss)ss.options[0].text=t("subcategoryPlaceholder");
-  var nt=document.getElementById("navTitle");if(nt)nt.textContent=t("siteTitle");
+  var nt=document.getElementById("navTitle");if(nt)nt.textContent="NAW Journal";
   var vs=document.getElementById("viewSiteLink");if(vs)vs.textContent=t("viewSite");
   document.title=t("siteTitle");
   var ef=document.getElementById("editFile").value;
