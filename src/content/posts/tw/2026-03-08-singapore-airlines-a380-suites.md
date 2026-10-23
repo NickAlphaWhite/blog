@@ -2,7 +2,7 @@
 title: "新航 A380 套房 — 飛往新加坡"
 date: 2026-03-08
 lang: zh-tw
-image: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200"
+image: "https://images.unsplash.com/photo-1753749519485-fb08b1034664?w=1200&q=85"
 category: "Aviation"
 subcategory: "Trip Reports"
 tags: ["singapore-airlines", "a380", "suites", "first-class"]
