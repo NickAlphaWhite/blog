@@ -2,7 +2,7 @@
 title: "藍瓶咖啡 — 第三波浪潮的設計哲學"
 date: 2026-05-20
 lang: zh-tw
-image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"
+image: "https://images.unsplash.com/photo-1778034759141-caff5450ee49?w=1200&q=85"
 category: "Design"
 subcategory: "Branding"
 tags: ["blue-bottle", "branding", "coffee", "design"]

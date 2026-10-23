@@ -2,7 +2,7 @@
 title: "Blue Bottle Coffee — The Design Philosophy of Third-Wave Coffee"
 date: 2026-05-20
 lang: en
-image: "https://images.unsplash.com/photo-1501339847302-ac426a4a7cbb?w=1200"
+image: "https://images.unsplash.com/photo-1778034759141-caff5450ee49?w=1200&q=85"
 category: "Design"
 subcategory: "Branding"
 tags: ["blue-bottle", "branding", "coffee", "design"]

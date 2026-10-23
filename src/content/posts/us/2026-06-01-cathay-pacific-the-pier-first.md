@@ -2,7 +2,7 @@
 title: "Cathay Pacific's The Pier First Class Lounge"
 date: 2026-06-01
 lang: en
-image: "https://images.unsplash.com/photo-1540339832862-474599807836?w=1200"
+image: "https://commons.wikimedia.org/wiki/Special:FilePath/CX_The_Pier_Lounge_HK.jpg?width=1280"
 category: "Aviation"
 subcategory: "Lounges"
 tags: ["cathay-pacific", "lounge", "hong-kong", "the-pier"]
@@ -28,3 +28,8 @@ Eight private shower suites with Aesop amenities and no time limit.
 ## My Take
 
 More comfortable than many hotel lobbies. A four-hour layover somehow didn't feel long enough.
+
+
+---
+
+*Cover photograph: [Okadiputera](https://commons.wikimedia.org/wiki/File:CX_The_Pier_Lounge_HK.jpg) / Wikimedia Commons · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)*

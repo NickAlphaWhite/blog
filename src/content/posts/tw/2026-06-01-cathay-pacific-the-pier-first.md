@@ -2,7 +2,7 @@
 title: "國泰航空玉衡堂頭等艙休息室"
 date: 2026-06-01
 lang: zh-tw
-image: "https://images.unsplash.com/photo-1540339832862-474599807836?w=1200"
+image: "https://commons.wikimedia.org/wiki/Special:FilePath/CX_The_Pier_Lounge_HK.jpg?width=1280"
 category: "Aviation"
 subcategory: "Lounges"
 tags: ["cathay-pacific", "lounge", "hong-kong", "the-pier"]
@@ -28,3 +28,8 @@ featured: true
 ## 點評
 
 比很多酒店大堂還要舒適。轉機 4 小時，只嫌不夠。
+
+
+---
+
+*封面攝影：[Okadiputera](https://commons.wikimedia.org/wiki/File:CX_The_Pier_Lounge_HK.jpg) / Wikimedia Commons · [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/)*
