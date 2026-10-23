@@ -647,5 +647,69 @@ function toast(msg,type){var t=document.createElement("div");t.className="toast"
 <script>
 document.getElementById("regionLabel").textContent=regionNames[region]||region;
 </script>
+
+<style>
+#nawUploadZone{margin-top:12px;border:1.5px dashed var(--txt3);border-radius:12px;padding:18px 16px;text-align:center;color:var(--txt2);font-size:.86rem;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s}
+#nawUploadZone.dragging{border-color:#007aff;background:rgba(0,122,255,.07)}
+#nawUploadZone button{border:0;background:none;color:var(--txt);font-size:inherit;text-decoration:underline;cursor:pointer}
+#nawEditorState{display:flex;align-items:center;gap:14px;font-size:.76rem;color:var(--txt2);margin-top:12px;flex-wrap:wrap}
+#nawDraftActions button{background:none;border:0;color:var(--txt2);text-decoration:underline;padding:0;cursor:pointer;font:inherit}
+</style>
+<script>
+(function(){
+  var editor=document.getElementById("contentTA"),form=document.getElementById("publishForm");
+  if(!editor||!form)return;
+  var upload=document.createElement("div");
+  upload.id="nawUploadZone";
+  upload.innerHTML='拖入图片、粘贴截图，或 <button type="button">选择图片</button>';
+  editor.parentElement.appendChild(upload);
+  var picker=document.createElement("input");picker.type="file";picker.accept="image/png,image/jpeg,image/webp,image/gif";picker.multiple=true;picker.hidden=true;upload.appendChild(picker);
+  upload.querySelector("button").onclick=function(){picker.click()};
+  var state=document.createElement("div");state.id="nawEditorState";
+  state.innerHTML='<span id="nawDraftMessage">草稿尚未保存</span><span id="nawDraftActions"><button type="button" id="nawRestoreDraft">恢复草稿</button> · <button type="button" id="nawDiscardDraft">删除本地草稿</button></span>';
+  upload.after(state);
+  var status=document.getElementById("nawDraftMessage");
+  function currentRegion(){return typeof region!=="undefined"?region:"cn"}
+  function storageKey(){return "naw-draft-v2:"+currentRegion()+":"+(typeof editingFile!=="undefined"&&editingFile?editingFile:"new")}
+  var draftTimer=0;
+  function draftData(){var out={};["title","subtitle","date","category","subcategory","image","slug","content"].forEach(function(k){var field=form.elements.namedItem(k);if(field)out[k]=field.value});out.featured=!!form.elements.namedItem("featured")?.checked;return out}
+  function saveDraft(){
+    try{localStorage.setItem(storageKey(),JSON.stringify({saved:Date.now(),fields:draftData()}));status.textContent="草稿已保存到此浏览器"}catch(e){status.textContent="无法保存草稿：浏览器存储不可用"}
+  }
+  function scheduleSave(){status.textContent="正在保存草稿…";clearTimeout(draftTimer);draftTimer=setTimeout(saveDraft,700)}
+  form.addEventListener("input",scheduleSave);
+  form.addEventListener("change",scheduleSave);
+  document.getElementById("nawRestoreDraft").onclick=function(){
+    var raw=localStorage.getItem(storageKey());if(!raw){status.textContent="这个地区没有可恢复的草稿";return}
+    if(!confirm("将本地草稿恢复到编辑器？当前未保存的编辑将被覆盖。"))return;
+    try{var data=JSON.parse(raw).fields;Object.entries(data).forEach(function(entry){var el=form.elements.namedItem(entry[0]);if(!el)return;if(entry[0]==="featured")el.checked=!!entry[1];else el.value=entry[1]});if(typeof updatePreview==="function")updatePreview();if(typeof updatePublicUrl==="function")updatePublicUrl();status.textContent="草稿已恢复"}catch(e){status.textContent="无法恢复本地草稿"}
+  };
+  document.getElementById("nawDiscardDraft").onclick=function(){localStorage.removeItem(storageKey());status.textContent="本地草稿已删除"};
+  function insertAtCaret(value){var pos=editor.selectionStart;editor.setRangeText((pos>0?"\n\n":"")+value+"\n",pos,editor.selectionEnd,"end");editor.focus();editor.dispatchEvent(new Event("input",{bubbles:true}));if(typeof updatePreview==="function")updatePreview()}
+  async function addImage(file){
+    if(!/^image\/(png|jpeg|webp|gif)$/i.test(file.type)){status.textContent="仅支持 PNG、JPG、WebP、GIF 图片";return}
+    if(file.size>10*1024*1024){status.textContent="单张图片请小于 10 MB";return}
+    var payload=new FormData();payload.append("image",file);
+    status.textContent="正在上传 "+file.name+"…";
+    try{
+      var res=await fetch("/api/upload",{method:"POST",body:payload,credentials:"same-origin"});
+      var data=await res.json();
+      if(!res.ok||!data.url||!data.pushed)throw Error("图片未完成 GitHub 同步");
+      var alt=file.name.replace(/\.[^.]+$/,"").replace(/[\[\]()]/g," ");
+      insertAtCaret("!["+alt+"]("+data.url+")");
+      status.textContent="图片已上传并同步到 GitHub";
+    }catch(e){status.textContent="上传失败："+e.message}
+  }
+  async function addFiles(files){for(var i=0;i<files.length;i++)await addImage(files[i])}
+  picker.onchange=function(){addFiles(Array.from(this.files));this.value=""};
+  editor.addEventListener("paste",function(e){var files=Array.from(e.clipboardData?.files||[]).filter(function(f){return f.type.startsWith("image/")});if(files.length){e.preventDefault();addFiles(files)}});
+  upload.ondragover=function(e){e.preventDefault();upload.classList.add("dragging")};
+  upload.ondragleave=function(){upload.classList.remove("dragging")};
+  upload.ondrop=function(e){e.preventDefault();upload.classList.remove("dragging");addFiles(Array.from(e.dataTransfer.files))};
+  editor.ondragover=function(e){if(e.dataTransfer?.types?.includes("Files"))e.preventDefault()};
+  editor.ondrop=function(e){if(e.dataTransfer?.files?.length){e.preventDefault();addFiles(Array.from(e.dataTransfer.files))}};
+})();
+</script>
+
 </body>
 </html>
