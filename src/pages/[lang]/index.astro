@@ -4,13 +4,14 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, getCatsConfig, getSlug, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+import { allRegions, regionMap, getCatsConfig, getSlug, legacyRegionAliases, catLabel as _catLabel, subLabel as _subLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
 
 export function getStaticPaths() {
-  return allRegions.map(r => ({ params: { lang: r } }));
+  return [...allRegions, ...Object.keys(legacyRegionAliases)].map(r => ({ params: { lang: r } }));
 }
 
 const { lang } = Astro.params;
+if (legacyRegionAliases[lang]) return Astro.redirect(`/${legacyRegionAliases[lang]}/`, 301);
 const langCode = regionMap[lang] || "zh";
 
 const allPosts = await getCollection("posts", ({ data }) => !data.draft && data.lang === langCode);
