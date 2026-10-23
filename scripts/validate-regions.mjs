@@ -15,8 +15,9 @@ for (const [oldCode, newCode] of Object.entries(cfg.aliases)) {
   assert.ok(!byId[oldCode], `Legacy alias collides with a canonical edition: ${oldCode}`);
   assert.ok(byId[newCode], `Alias ${oldCode} points to an unknown edition ${newCode}`);
 }
-assert.equal(byId["sg-cn"].lang, "zh");
+assert.equal(byId["sg-zh"].lang, "zh");
 assert.equal(byId["sg-en"].lang, "en");
 assert.equal(byId["ca-en"].lang, "en");
 assert.equal(byId["ca-fr"].lang, "fr");
+assert.equal(cfg.aliases["sg-cn"], "sg-zh");
 console.log(`Region config OK: ${ids.length} regional editions, ${Object.keys(cfg.aliases).length} aliases.`);

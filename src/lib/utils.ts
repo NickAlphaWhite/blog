@@ -34,7 +34,7 @@ export function langMatcher(langCode: string): (postLang: string) => boolean {
 // ── Slug helper ──────────────────────────────────────────────────
 /** Strip the content-directory prefix and .md extension from a post ID.
  *  e.g. "cn/2025-01-01-hello" → "2025-01-01-hello"
- *  This lets regions share the same content directory (e.g. sg-zh reuses cn/). */
+ *  Regions have separate content directories, even when they share a language. */
 export function getSlug(postId: string): string {
   return postId.replace(/^.*\//, "").replace(/\.md$/, "");
 }

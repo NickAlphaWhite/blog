@@ -8,15 +8,14 @@ attribute controls interface strings, labels, and article language.
 
 - `/cn/` — mainland China (Simplified Chinese, `lang: zh`)
 - `/us/` — United States (English, `lang: en`)
-- `/sg-cn/` — Singapore, Simplified Chinese (the site-specific `cn` suffix is
-  **not** an ISO language tag; its underlying language is `zh`)
+- `/sg-zh/` — Singapore, Simplified Chinese (`zh` is the language code)
 - `/sg-en/` — Singapore, English
 - `/ca-en/` — Canada, English
 - `/ca-fr/` — Canada, French
 - Other one-language country editions use their established country codes.
 
-Legacy edition paths `/sg/`, `/sg-zh/` and `/ca/` redirect to
-`/sg-en/`, `/sg-cn/` and `/ca-en/`, respectively. The admin also recognizes
+Legacy edition paths `/sg/`, `/sg-cn/` and `/ca/` redirect to
+`/sg-en/`, `/sg-zh/` and `/ca-en/`, respectively. The admin also recognizes
 those aliases; `/zh` redirects to `/cn` for previously shared admin links.
 
 ## Single source of truth
@@ -41,18 +40,19 @@ frontmatter `lang` must match the language associated with that edition in
 `regions.json`. For example:
 
 - `src/content/posts/cn/example.md` + `lang: zh`
-- `src/content/posts/sg-cn/example.md` + `lang: zh`
+- `src/content/posts/sg-zh/example.md` + `lang: zh`
 - `src/content/posts/sg-en/example.md` + `lang: en`
 
 Regional listings and article detail pages both select markdown by **edition
-folder**, rather than borrowing all posts in the same language. A new edition
-with no posts will remain empty until content is authored for that edition.
+folder**, rather than borrowing all posts in the same language. The 44 existing China-region Chinese articles are copied unchanged into
+`src/content/posts/sg-zh/` as initial Singapore Chinese content; the two folders can
+subsequently be edited independently. New editions without posts remain empty.
 Existing `cn` articles are not automatically copied or translated.
 
 ## Admin routes
 
 The Express admin backend is at `admin.bynaw.top/<edition>`, such as
-`/cn`, `/sg-cn`, and `/sg-en`, while `/login` is a shared login page.
+`/cn`, `/sg-zh`, and `/sg-en`, while `/login` is a shared login page.
 The public Astro blog at `blog.bynaw.top/<edition>/` uses the same edition
 code.
 

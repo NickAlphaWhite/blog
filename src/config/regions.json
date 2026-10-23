@@ -1,9 +1,9 @@
 {
-  "note": "The URL path is a region edition code, not an ISO language tag. Multi-language regions use explicit region-language editions (sg-cn/sg-en).",
+  "note": "The URL path is a region edition code. For countries offering language variants, use region-language names (e.g., sg-zh for Simplified Chinese and sg-en for English).",
   "aliases": {
     "sg": "sg-en",
-    "sg-zh": "sg-cn",
-    "ca": "ca-en"
+    "ca": "ca-en",
+    "sg-cn": "sg-zh"
   },
   "groups": [
     {
@@ -80,7 +80,7 @@
           "lang": "en"
         },
         {
-          "code": "sg-cn",
+          "code": "sg-zh",
           "name": "新加坡（简体中文）",
           "lang": "zh"
         }
