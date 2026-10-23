@@ -32,7 +32,7 @@ const { title, titleZh, subtitle, date, image, category } = post.data;
 const { Content } = await post.render();
 
 const related = regionPosts.filter(p => p.data.category === category && p.id !== post.id).slice(0, 4);
-const categories = Object.keys(catsConfig);
+const categories = Object.keys(catsConfig).filter(key => regionPosts.some(p => p.data.category === key));
 const byCategory = (cat: string) => regionPosts.filter(p => p.data.category === cat);
 const ddObj = buildDdObj(categories, catsConfig, langCode, lang, byCategory);
 const searchPosts = buildSearchPosts(regionPosts, lang, catsConfig, langCode);

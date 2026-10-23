@@ -10,15 +10,36 @@ interface Props {
 }
 
 const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, showSearch = true } = Astro.props;
+// Keep primary categories visible, and provide the remaining categories in "More".
+const menuOrder = ["Travel", "Hotel", "Aviation", "Card", "Gastronomy", "Design", "Visual", "Music", "Literature", "Drinks", "Odor"];
+const orderedCategories = [...categories].sort((a, b) => {
+  const ai = menuOrder.indexOf(a), bi = menuOrder.indexOf(b);
+  return (ai < 0 ? 999 : ai) - (bi < 0 ? 999 : bi);
+});
+const moreLabel = /^(cn|sg-zh)$/.test(lang) ? "更多" : /^(tw|hk)$/.test(lang) ? "更多" : /^(fr|ca-fr)$/.test(lang) ? "Plus" : "More";
+
 ---
 <nav class="nav">
   <div class="nav-inner">
     <a href={`/${lang}/`} class="nav-brand"><img src="/logo.png" id="logoLight" alt="NickAlphaWhite" /><img src="/logo-light.png" id="logoDark" alt="NickAlphaWhite" style="display:none" /></a>
     <!-- Desktop links — hidden on mobile -->
-    {categories.map(cat => (
-      <a href={`/${lang}/category/${cat}`} class={`nav-link${cat === activeCat ? " active" : ""}`} data-cat={cat}>{catLabel(cat)}</a>
+    {orderedCategories.map((cat, i) => (
+      <a href={`/${lang}/category/${cat}`} class={`nav-link nav-main-cat${i >= 8 ? " nav-extra" : ""}${i >= 6 ? " nav-secondary" : ""}${cat === activeCat ? " active" : ""}`} data-cat={cat}>{catLabel(cat)}</a>
     ))}
+    <details class={`nav-more${orderedCategories.length > 8 ? " nav-more-xl" : ""}${orderedCategories.length > 6 ? " nav-more-md" : ""}`}>
+      <summary class="nav-more-trigger">{moreLabel} <span aria-hidden="true">⌄</span></summary>
+      <div class="nav-more-popup">
+        {orderedCategories.map((cat, i) => (
+          <a href={`/${lang}/category/${cat}`} class={`nav-more-entry${i < 6 ? " nav-more-core" : i < 8 ? " nav-more-middle" : ""}${cat === activeCat ? " is-active" : ""}`}>{catLabel(cat)}</a>
+        ))}
+      </div>
+    </details>
     <div class="nav-right">
+      {showDropdowns && (
+        <a href="/choose-country-region/" class="nav-region-btn" aria-label="选择国家或地区 / Choose country or region" title="Choose country or region">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a16 16 0 0 1 0 18M12 3a16 16 0 0 0 0 18"/></svg>
+        </a>
+      )}
       <button class="theme-btn" onclick="toggleTheme()" aria-label="Toggle theme">
         <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
         <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
@@ -39,7 +60,7 @@ const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, show
 <!-- Mobile fullscreen menu -->
 <div class="mobile-menu" id="mobileMenu">
   <div class="mobile-menu-inner">
-    {categories.map(cat => {
+    {orderedCategories.map(cat => {
       const d = ddObj[cat];
       const subs = d?.subcategories || [];
       return (
@@ -119,4 +140,29 @@ const { lang, categories, catLabel, ddObj, activeCat, showDropdowns = true, show
   .hamburger{display:flex}
   .nav-dropdown,.nav-backdrop{display:none!important}
 }
+
+/* Expanded top navigation: eight links at wide widths, six at medium widths. */
+.nav-main-cat.nav-extra{display:none}
+.nav-more{display:none;position:relative;height:52px;align-items:center;flex-shrink:0}
+.nav-more.nav-more-xl{display:flex}
+.nav-more-trigger{list-style:none;display:flex;align-items:center;gap:6px;padding:0 8px;height:52px;cursor:pointer;font-size:.9rem;font-weight:500;color:var(--txt2);white-space:nowrap;user-select:none}
+.nav-more-trigger::-webkit-details-marker{display:none}
+.nav-more-trigger span{font-size:1rem;line-height:1;transform:translateY(-2px)}
+.nav-more[open] .nav-more-trigger,.nav-more-trigger:hover{color:var(--txt)}
+.nav-more-popup{position:absolute;z-index:115;top:48px;right:-12px;min-width:168px;padding:8px;background:var(--card);border:1px solid var(--hairline);border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.13)}
+.nav-more-entry{display:block;padding:10px 13px;border-radius:7px;color:var(--txt2);font-size:.88rem;white-space:nowrap}
+.nav-more-entry:hover,.nav-more-entry.is-active{color:var(--txt);background:var(--bg3)}
+.nav-more-entry.nav-more-core,.nav-more-entry.nav-more-middle{display:none}
+.nav-region-btn{width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center;flex-shrink:0;border-radius:50%;color:var(--txt2)}
+.nav-region-btn:hover{color:var(--txt);background:var(--bg3)}
+@media(max-width:1220px) and (min-width:901px){
+  .nav-main-cat.nav-secondary{display:none}
+  .nav-more.nav-more-md{display:flex}
+  .nav-more-entry.nav-more-middle{display:block}
+  .nav-inner{padding:0 25px;gap:2px}
+}
+@media(max-width:900px){
+  .nav-more{display:none!important}
+}
+@media(max-width:380px){.nav-region-btn{display:none}}
 </style>
