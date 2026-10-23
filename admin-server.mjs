@@ -1,3 +1,4 @@
+import { localizedSlug } from "./src/lib/permalinks.mjs";
 import express from "express";
 import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync, unlinkSync, utimesSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -464,8 +465,8 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
 
     // If slug changed, rename the file
     if (customSlug) {
-      const newBase = customSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
-      const newSlug = (date || new Date().toISOString().split("T")[0]) + "-" + newBase;
+      const newBase = localizedSlug(customSlug);
+      const newSlug = newBase;
       const newPath = join(postsDir, `${newSlug}.md`);
       if (newPath !== filePath) {
         if (existsSync(filePath)) unlinkSync(filePath);
@@ -572,8 +573,8 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
-    const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
-    const slug = date + "-" + base;
+    const base = localizedSlug(customSlug || title);
+    const slug = (date || new Date().toISOString().split("T")[0]) + "-" + base;
 
     const frontmatter = [
       "---",
