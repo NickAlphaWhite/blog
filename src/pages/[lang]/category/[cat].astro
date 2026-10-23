@@ -22,7 +22,7 @@ const langCode = regionMap[lang] || "zh";
 const catsConfig = await getCatsConfig();
 const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
 const subLabel = (catKey: string, subKey: string) => _subLabel(catKey, subKey, langCode, catsConfig);
-const allPosts = await getCollection("posts", ({ data }) => !data.draft && data.lang === langCode);
+const allPosts = await getCollection("posts", ({ id, data }) => !data.draft && data.lang === langCode && id.startsWith(lang + "/"));
 const posts = allPosts
   .filter(p => p.data.category === cat)
   .sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
