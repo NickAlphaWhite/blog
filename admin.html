@@ -509,7 +509,7 @@ document.getElementById("catSelect").addEventListener("change",function(){
 });
 
 var editingFile=null,groupSlug=null;
-function slugifyTitle(value){return String(value||"").normalize("NFKC").toLocaleLowerCase().trim().replace(/[’\x27`]/g,"").replace(/[^\\p{L}\\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,115)||"article"}
+function slugifyTitle(value){return String(value||"").normalize("NFKC").toLocaleLowerCase().trim().replace(/[’\x27`]/g,"").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,115)||"article"}
 function updatePublicUrl(){var title=document.getElementById("langTitle").value,custom=document.getElementById("slugField").value;var el=document.getElementById("publicUrlPreview");if(el)el.textContent="blog.bynaw.top/"+region+"/"+slugifyTitle(custom||title)+"/"}
 ["langTitle","slugField"].forEach(function(id){document.getElementById(id).addEventListener("input",updatePublicUrl)});
 document.getElementById("publishForm").addEventListener("submit",async function(e){
