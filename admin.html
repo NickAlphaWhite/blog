@@ -161,7 +161,7 @@ select{-webkit-appearance:none;cursor:pointer}
             <div class="sel"><span data-i18n="category">分类</span><select name="category" id="catSelect" required><option value="">请选择</option>
             </select></div>
             <div class="sel"><span data-i18n="subcategory">子分类</span><select name="subcategory" id="subcatSelect"><option value="">请选择</option></select></div>
-            <div class="sel"><span>文件名 (Slug)</span><input name="slug" type="text" id="slugField" placeholder="自动生成，留空则使用标题"></div>
+            <div class="sel"><span>文章网址</span><input name="slug" type="text" id="slugField" placeholder="自动根据标题生成，可手动填写"></div>
           </div>
         </div>
         <div class="md-toolbar">
@@ -516,8 +516,8 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   var title=data.title,date=data.date||new Date().toISOString().split("T")[0];
   if(!title)return toast("标题不能为空","err");
   var isEdit=!!editingFile;
-  var base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"untitled";
-  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
+  var base=title.toLocaleLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")||"article";
+  var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||base};
   try{
     var url,method;
     if(isEdit){url="/api/posts/"+encodeURIComponent(editingFile)+"?region="+region;method="PUT";}
