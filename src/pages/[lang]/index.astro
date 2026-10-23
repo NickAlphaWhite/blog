@@ -14,7 +14,7 @@ const { lang } = Astro.params;
 if (legacyRegionAliases[lang]) return Astro.redirect(`/${legacyRegionAliases[lang]}/`, 301);
 const langCode = regionMap[lang] || "zh";
 
-const allPosts = await getCollection("posts", ({ data }) => !data.draft && data.lang === langCode);
+const allPosts = await getCollection("posts", ({ id, data }) => !data.draft && data.lang === langCode && id.startsWith(lang + "/"));
 const posts = allPosts.sort((a, b) => b.data.date.valueOf() - a.data.date.valueOf());
 
 const featured = posts.filter(p => p.data.featured).slice(0, 3);
