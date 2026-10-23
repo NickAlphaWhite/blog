@@ -3,7 +3,7 @@ title: "At Last! Mastercard Comes to Apple Pay in Mainland China (How to Set It 
 subtitle: "Three months after Visa's launch, Mastercard arrives with four banks"
 date: 2026-04-16
 lang: en
-image: "https://tse1.mm.bing.net/th/id/OIF.GD5GSfI97XhcLm4yTMVtLg?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+image: "https://images.unsplash.com/photo-1705948353932-505cb52be4a5?w=1200&q=85"
 category: "Card"
 subcategory: "Credit"
 tags: ["mastercard", "apple-pay", "debit-card", "credit-card"]

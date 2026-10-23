@@ -3,7 +3,7 @@ title: "Mastercard Apple Pay Adds Two More Banks: CMB and Ping An, Plus an In-De
 subtitle: "Six banks now support it—and CMB's Mastercard debit card is still my top pick for minors"
 date: 2026-07-22
 lang: en
-image: "https://cnews.com.tw/wp-content/uploads/2024/10/2024-10-01_18-13-44_660230.jpg"
+image: "https://images.unsplash.com/photo-1705948354275-d55101017fb6?w=1200&q=85"
 category: "Card"
 subcategory: "Debit"
 tags: ["cmb", "mastercard", "apple-pay", "debit-card", "underage"]

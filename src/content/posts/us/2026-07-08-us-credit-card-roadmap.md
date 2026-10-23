@@ -5,7 +5,7 @@ date: 2026-07-08
 category: "Card"
 subcategory: "Guide"
 lang: en
-image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200"
+image: "https://images.unsplash.com/photo-1646992914433-de93d0d06c98?w=1200&q=85"
 featured: false
 ---
 

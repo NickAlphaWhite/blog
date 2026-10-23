@@ -2,7 +2,7 @@
 title: "ANA First Class — The Suite From Tokyo to New York"
 date: 2026-05-15
 lang: en
-image: "https://images.unsplash.com/photo-1464037866556-6812c9d1c72e?w=1200"
+image: "https://images.unsplash.com/photo-1762648136811-dc597238ed91?w=1200&q=85"
 category: "Aviation"
 subcategory: "Trip Reports"
 tags: ["ana", "first-class", "the-suite", "tokyo", "new-york"]

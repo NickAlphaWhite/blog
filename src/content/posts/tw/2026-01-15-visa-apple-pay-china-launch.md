@@ -3,7 +3,7 @@ title: "首發！國內 Apple Pay 今起支持 Visa 卡"
 subtitle: "首批八家銀行同日上線，基本覆蓋主流髮卡行"
 date: 2026-01-15
 lang: zh-tw
-image: "https://tse3.mm.bing.net/th/id/OIP.wIvWz4E9MQkI1L8fEt3peQAAAA?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+image: "https://images.unsplash.com/photo-1705948482595-606e2848c65b?w=1200&q=85"
 category: "Card"
 subcategory: "Credit"
 tags: ["visa", "apple-pay", "credit-card", "debit-card"]

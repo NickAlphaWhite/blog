@@ -2,7 +2,7 @@
 title: "韋斯·安德森的配色藝術"
 date: 2026-03-10
 lang: zh-tw
-image: "https://images.unsplash.com/photo-1481277542470-605612bd2d61?w=1200"
+image: "https://images.unsplash.com/photo-1757253353793-a1cac26082a3?w=1200&q=85"
 category: "Visual"
 subcategory: "Film"
 tags: ["wes-anderson", "film", "color", "aesthetics"]

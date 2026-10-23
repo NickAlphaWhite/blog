@@ -3,7 +3,7 @@ title: "终于！国行万事达 Apple Pay 正式上线（附攻略）"
 subtitle: "继 Visa 三个月前首发之后，万事达也来了——首发四家银行"
 date: 2026-04-16
 lang: zh
-image: "https://tse1.mm.bing.net/th/id/OIF.GD5GSfI97XhcLm4yTMVtLg?r=0&rs=1&pid=ImgDetMain&o=7&rm=3"
+image: "https://images.unsplash.com/photo-1705948353932-505cb52be4a5?w=1200&q=85"
 category: "Card"
 subcategory: "Credit"
 tags: ["mastercard", "apple-pay", "debit-card", "credit-card"]
