@@ -1,3 +1,4 @@
+import { localizedSlug } from "./src/lib/permalinks.mjs";
 import express from "express";
 import { writeFileSync, mkdirSync, existsSync, readdirSync, readFileSync, unlinkSync, utimesSync } from "node:fs";
 import { join, dirname } from "node:path";
@@ -446,8 +447,12 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
     const filePath = join(postsDir, req.params.file);
     if (!existsSync(filePath)) return res.status(404).json({ error: "Not found" });
     const { title, subtitle, date, category, subcategory, group, image, content, featured, slug: customSlug } = req.body;
+    const storedPost = readFileSync(filePath, "utf8");
+    const priorTitleSlug = (storedPost.match(/^urlSlug:\s*"([^"]+)"/m) || [])[1] || (storedPost.match(/^title:\s*"([^"]+)"/m) || [])[1] || title;
+    const stableUrl = localizedSlug(customSlug || priorTitleSlug);
     const frontmatter = [
       "---",
+      `urlSlug: "${stableUrl}"`,
       `title: "${title}"`,
       subtitle ? `subtitle: "${subtitle}"` : null,
       `date: ${date || new Date().toISOString().split("T")[0]}`,
@@ -462,21 +467,14 @@ app.put("/api/posts/:file", sessionAuth, async (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
 
-    // If slug changed, rename the file
-    if (customSlug) {
-      const newBase = customSlug.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
-      const newSlug = (date || new Date().toISOString().split("T")[0]) + "-" + newBase;
-      const newPath = join(postsDir, `${newSlug}.md`);
-      if (newPath !== filePath) {
-        if (existsSync(filePath)) unlinkSync(filePath);
-        writeFileSync(newPath, frontmatter, "utf-8");
-        touchAstroConfig();
-        const pushResult = await pushToGitHub(`src/content/posts/${region}/${newSlug}.md`, frontmatter, `Update post (renamed): ${req.params.file} → ${newSlug}`);
-        // Also delete the old file from GitHub
-        pushAsync(`src/content/posts/${region}/${req.params.file}`, null, `Delete old file after rename: ${req.params.file}`);
-        return res.json({ ok: true, renamed: true, file: `${newSlug}.md`, pushed: pushResult.ok });
-      }
-    }
+    // Public URL slug is metadata, never rename/delete the source Markdown file.
+    // Filename remains the stable Waline comment identity.
+    const otherFiles = readdirSync(postsDir).filter(name => name.endsWith(".md") && name !== req.params.file);
+    if (otherFiles.some(name => {
+      const raw = readFileSync(join(postsDir, name), "utf8");
+      const otherSlug = (raw.match(/^urlSlug:\s*"([^"]+)"/m) || [])[1] || (raw.match(/^title:\s*"([^"]+)"/m) || [])[1] || name;
+      return localizedSlug(otherSlug) === stableUrl;
+    })) return res.status(409).json({ error: "This URL is already used by another article in this region." });
 
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
@@ -572,11 +570,16 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
       return res.status(400).json({ error: "Title and category are required" });
     }
 
-    const base = customSlug || (group || title).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "untitled";
-    const slug = date + "-" + base;
+    const base = localizedSlug(customSlug || title);
+    const slug = (date || new Date().toISOString().split("T")[0]) + "-" + base;
+    const postsDir = getPostsDir(region);
+    if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
+    const filePath = join(postsDir, `${slug}.md`);
+    if (existsSync(filePath)) return res.status(409).json({ error: "An article already has this filename" });
 
     const frontmatter = [
       "---",
+      `urlSlug: "${base}"`,
       `title: "${title}"`,
       subtitle ? `subtitle: "${subtitle}"` : null,
       `date: ${date || new Date().toISOString().split("T")[0]}`,
@@ -591,9 +594,6 @@ app.post("/api/publish", sessionAuth, async (req, res) => {
       content || "",
     ].filter(Boolean).join("\n");
 
-    const postsDir = getPostsDir(region);
-    if (!existsSync(postsDir)) mkdirSync(postsDir, { recursive: true });
-    const filePath = join(postsDir, `${slug}.md`);
     writeFileSync(filePath, frontmatter, "utf-8");
     touchAstroConfig();
 
@@ -617,7 +617,7 @@ app.get("/api/posts", sessionAuth, (req, res) => {
       const fm = (raw.match(/^---\n([\s\S]*?)\n---/) || [])[1] || "";
       return {
         file: f,
-        slug: f.replace(/\.md$/, ""),
+        slug: localizedSlug((fm.match(/^urlSlug:\s*"([^"]+)"/m) || [])[1] || (fm.match(/^title:\s*"([^"]+)"/m) || [])[1] || f.replace(/\.md$/, "")),
         title: fm.match(/title:\s*"(.*)"/)?.[1] || f,
         group: fm.match(/group:\s*"([^"]+)"/)?.[1] || "",
         date: fm.match(/date:\s*"?([^\n"]+)"?/)?.[1] || "",

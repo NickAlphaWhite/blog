@@ -1,3 +1,4 @@
+import { postSlug } from "./permalinks.mjs";
 import { getCollection } from "astro:content";
 
 // ── Country/region editions, managed in one source of truth ──
@@ -12,6 +13,7 @@ export const regionNames: Record<string, string> = Object.fromEntries(
 );
 export const legacyRegionAliases: Record<string, string> = regionConfig.aliases;
 export const allRegions = Object.keys(regionMap);
+export { postSlug };
 export const allLangs = [...new Set(Object.values(regionMap))];
 
 // Language labels (for chooser pages)
@@ -89,7 +91,7 @@ export function buildDdObj(
             .slice(0, 3)
             .map((p: any) => ({
               title: p.data.title,
-              url: `/${lang}/${getSlug(p.id)}`,
+              url: `/${lang}/${postSlug(p.id, p.data)}`,
             })),
           subcategories: Object.entries(subs).map(([key, val]: [string, any]) => ({
             name: typeof val === "object" ? (val[langCode] || val.zh || val.en || key) : (val || key),
@@ -112,6 +114,6 @@ export function buildSearchPosts(
     title: p.data.title,
     excerpt: p.data.titleZh || p.body?.slice(0, 160) || "",
     category: catLabel(p.data.category, langCode, catsConfig),
-    url: `/${lang}/${getSlug(p.id)}`,
+    url: `/${lang}/${postSlug(p.id, p.data)}`,
   }));
 }

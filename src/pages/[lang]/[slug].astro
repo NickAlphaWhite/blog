@@ -4,7 +4,7 @@ import Layout from "../../components/Layout.astro";
 import Nav from "../../components/Nav.astro";
 import Footer from "../../components/Footer.astro";
 import Search from "../../components/Search.astro";
-import { allRegions, regionMap, getCatsConfig, getSlug, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
+import { allRegions, regionMap, getCatsConfig, getSlug, postSlug, catLabel as _catLabel, buildDdObj, buildSearchPosts } from "../../lib/utils";
 
 export async function getStaticPaths() {
   const posts = await getCollection("posts", ({ data }) => !data.draft);
@@ -12,7 +12,7 @@ export async function getStaticPaths() {
   for (const lang of allRegions) {
     const langPosts = posts.filter(p => p.id.startsWith(lang + '/'));
     for (const p of langPosts) {
-      paths.push({ params: { lang, slug: getSlug(p.id) } });
+      paths.push({ params: { lang, slug: postSlug(p.id, p.data) } });
     }
   }
   return paths;
@@ -24,7 +24,7 @@ const catsConfig = await getCatsConfig();
 const catLabel = (key: string) => _catLabel(key, langCode, catsConfig);
 const posts = await getCollection("posts", ({ data }) => !data.draft);
 const regionPosts = posts.filter(p => p.id.startsWith(lang + '/'));
-const post = regionPosts.find(p => getSlug(p.id) === slug);
+const post = regionPosts.find(p => postSlug(p.id, p.data) === slug);
 
 if (!post) return Astro.redirect("/");
 
@@ -69,7 +69,7 @@ const searchPosts = buildSearchPosts(regionPosts, lang, catsConfig, langCode);
       <Content />
     </div>
 
-    <div class="comments-area" id="waline"></div>
+    <div class="comments-area" id="waline" data-comment-path={`/${lang}/${getSlug(post.id)}/`}></div>
   </article>
 
   {related.length > 0 && (
@@ -80,7 +80,7 @@ const searchPosts = buildSearchPosts(regionPosts, lang, catsConfig, langCode);
           <div class="scroll-container" id="scroll-related">
             <div class="scroll-row" id="row-related">
               {related.map(p => (
-                <a href={`/${lang}/${getSlug(p.id)}`} class="card">
+                <a href={`/${lang}/${postSlug(p.id, p.data)}`} class="card">
                   <div class="card-img">
                     {p.data.image ? <img src={p.data.image} alt={p.data.title} loading="lazy" /> : <div style="width:100%;height:100%;background:var(--bg3)"></div>}
                   </div>

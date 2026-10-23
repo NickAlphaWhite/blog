@@ -161,7 +161,7 @@ select{-webkit-appearance:none;cursor:pointer}
             <div class="sel"><span data-i18n="category">分类</span><select name="category" id="catSelect" required><option value="">请选择</option>
             </select></div>
             <div class="sel"><span data-i18n="subcategory">子分类</span><select name="subcategory" id="subcatSelect"><option value="">请选择</option></select></div>
-            <div class="sel"><span>文件名 (Slug)</span><input name="slug" type="text" id="slugField" placeholder="自动生成，留空则使用标题"></div>
+            <div class="sel"><span>文章网址</span><input name="slug" type="text" id="slugField" placeholder="自动根据标题生成，可手动填写"><small id="publicUrlPreview" style="font-size:.75rem;color:var(--txt2);overflow-wrap:anywhere"></small></div>
           </div>
         </div>
         <div class="md-toolbar">
@@ -321,7 +321,7 @@ document.querySelectorAll(".tab").forEach(function(t){
   });
 });
 
-document.getElementById("dateField").value=new Date().toISOString().split("T")[0];
+document.getElementById("dateField").value=new Date().toISOString().split("T")[0];setTimeout(updatePublicUrl,0);
 
 document.getElementById("imageUpload").addEventListener("change",async function(){
   var file=this.files[0];if(!file)return;
@@ -509,6 +509,9 @@ document.getElementById("catSelect").addEventListener("change",function(){
 });
 
 var editingFile=null,groupSlug=null;
+function slugifyTitle(value){return String(value||"").normalize("NFKC").toLocaleLowerCase().trim().replace(/[’\x27`]/g,"").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"").slice(0,115)||"article"}
+function updatePublicUrl(){var title=document.getElementById("langTitle").value,custom=document.getElementById("slugField").value;var el=document.getElementById("publicUrlPreview");if(el)el.textContent="blog.bynaw.top/"+region+"/"+slugifyTitle(custom||title)+"/"}
+["langTitle","slugField"].forEach(function(id){document.getElementById(id).addEventListener("input",updatePublicUrl)});
 document.getElementById("publishForm").addEventListener("submit",async function(e){
   e.preventDefault();
   var fd=new FormData(e.target),data=Object.fromEntries(fd.entries());
@@ -516,7 +519,7 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   var title=data.title,date=data.date||new Date().toISOString().split("T")[0];
   if(!title)return toast("标题不能为空","err");
   var isEdit=!!editingFile;
-  var base=title.toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")||"untitled";
+  var base=title.toLocaleLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")||"article";
   var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
   try{
     var url,method;
@@ -558,11 +561,11 @@ async function editPost(file){
     editingFile=file;document.getElementById("editFile").value=file;
     // Pre-fill slug from current filename (strip date prefix + lang suffix)
     var slugBase=file.replace(/\.md$/,"").replace(/^\d{4}-\d{2}-\d{2}-/,"").replace(/\.\w+(-\w+)?$/,"");
-    document.getElementById("slugField").value=slugBase;
+    document.getElementById("slugField").value=get("urlSlug")||"";
     document.getElementById("submitBtn").textContent="更新";
     document.getElementById("cancelEditBtn").style.display="";
     document.querySelector('[data-view="write"]').click();window.scrollTo(0,0);
-    setTimeout(updatePreview,100);
+    setTimeout(function(){updatePreview();updatePublicUrl()},100);
   }catch(e){toast("加载失败","err")}
 }
 
@@ -644,5 +647,69 @@ function toast(msg,type){var t=document.createElement("div");t.className="toast"
 <script>
 document.getElementById("regionLabel").textContent=regionNames[region]||region;
 </script>
+
+<style>
+#nawUploadZone{margin-top:12px;border:1.5px dashed var(--txt3);border-radius:12px;padding:18px 16px;text-align:center;color:var(--txt2);font-size:.86rem;cursor:pointer;background:var(--bg);transition:border-color .15s,background .15s}
+#nawUploadZone.dragging{border-color:#007aff;background:rgba(0,122,255,.07)}
+#nawUploadZone button{border:0;background:none;color:var(--txt);font-size:inherit;text-decoration:underline;cursor:pointer}
+#nawEditorState{display:flex;align-items:center;gap:14px;font-size:.76rem;color:var(--txt2);margin-top:12px;flex-wrap:wrap}
+#nawDraftActions button{background:none;border:0;color:var(--txt2);text-decoration:underline;padding:0;cursor:pointer;font:inherit}
+</style>
+<script>
+(function(){
+  var editor=document.getElementById("contentTA"),form=document.getElementById("publishForm");
+  if(!editor||!form)return;
+  var upload=document.createElement("div");
+  upload.id="nawUploadZone";
+  upload.innerHTML='拖入图片、粘贴截图，或 <button type="button">选择图片</button>';
+  editor.parentElement.appendChild(upload);
+  var picker=document.createElement("input");picker.type="file";picker.accept="image/png,image/jpeg,image/webp,image/gif";picker.multiple=true;picker.hidden=true;upload.appendChild(picker);
+  upload.querySelector("button").onclick=function(){picker.click()};
+  var state=document.createElement("div");state.id="nawEditorState";
+  state.innerHTML='<span id="nawDraftMessage">草稿尚未保存</span><span id="nawDraftActions"><button type="button" id="nawRestoreDraft">恢复草稿</button> · <button type="button" id="nawDiscardDraft">删除本地草稿</button></span>';
+  upload.after(state);
+  var status=document.getElementById("nawDraftMessage");
+  function currentRegion(){return typeof region!=="undefined"?region:"cn"}
+  function storageKey(){return "naw-draft-v2:"+currentRegion()+":"+(typeof editingFile!=="undefined"&&editingFile?editingFile:"new")}
+  var draftTimer=0;
+  function draftData(){var out={};["title","subtitle","date","category","subcategory","image","slug","content"].forEach(function(k){var field=form.elements.namedItem(k);if(field)out[k]=field.value});out.featured=!!form.elements.namedItem("featured")?.checked;return out}
+  function saveDraft(){
+    try{localStorage.setItem(storageKey(),JSON.stringify({saved:Date.now(),fields:draftData()}));status.textContent="草稿已保存到此浏览器"}catch(e){status.textContent="无法保存草稿：浏览器存储不可用"}
+  }
+  function scheduleSave(){status.textContent="正在保存草稿…";clearTimeout(draftTimer);draftTimer=setTimeout(saveDraft,700)}
+  form.addEventListener("input",scheduleSave);
+  form.addEventListener("change",scheduleSave);
+  document.getElementById("nawRestoreDraft").onclick=function(){
+    var raw=localStorage.getItem(storageKey());if(!raw){status.textContent="这个地区没有可恢复的草稿";return}
+    if(!confirm("将本地草稿恢复到编辑器？当前未保存的编辑将被覆盖。"))return;
+    try{var data=JSON.parse(raw).fields;Object.entries(data).forEach(function(entry){var el=form.elements.namedItem(entry[0]);if(!el)return;if(entry[0]==="featured")el.checked=!!entry[1];else el.value=entry[1]});if(typeof updatePreview==="function")updatePreview();if(typeof updatePublicUrl==="function")updatePublicUrl();status.textContent="草稿已恢复"}catch(e){status.textContent="无法恢复本地草稿"}
+  };
+  document.getElementById("nawDiscardDraft").onclick=function(){localStorage.removeItem(storageKey());status.textContent="本地草稿已删除"};
+  function insertAtCaret(value){var pos=editor.selectionStart;editor.setRangeText((pos>0?"\n\n":"")+value+"\n",pos,editor.selectionEnd,"end");editor.focus();editor.dispatchEvent(new Event("input",{bubbles:true}));if(typeof updatePreview==="function")updatePreview()}
+  async function addImage(file){
+    if(!/^image\/(png|jpeg|webp|gif)$/i.test(file.type)){status.textContent="仅支持 PNG、JPG、WebP、GIF 图片";return}
+    if(file.size>10*1024*1024){status.textContent="单张图片请小于 10 MB";return}
+    var payload=new FormData();payload.append("image",file);
+    status.textContent="正在上传 "+file.name+"…";
+    try{
+      var res=await fetch("/api/upload",{method:"POST",body:payload,credentials:"same-origin"});
+      var data=await res.json();
+      if(!res.ok||!data.url||!data.pushed)throw Error("图片未完成 GitHub 同步");
+      var alt=file.name.replace(/\.[^.]+$/,"").replace(/[\[\]()]/g," ");
+      insertAtCaret("!["+alt+"]("+data.url+")");
+      status.textContent="图片已上传并同步到 GitHub";
+    }catch(e){status.textContent="上传失败："+e.message}
+  }
+  async function addFiles(files){for(var i=0;i<files.length;i++)await addImage(files[i])}
+  picker.onchange=function(){addFiles(Array.from(this.files));this.value=""};
+  editor.addEventListener("paste",function(e){var files=Array.from(e.clipboardData?.files||[]).filter(function(f){return f.type.startsWith("image/")});if(files.length){e.preventDefault();addFiles(files)}});
+  upload.ondragover=function(e){e.preventDefault();upload.classList.add("dragging")};
+  upload.ondragleave=function(){upload.classList.remove("dragging")};
+  upload.ondrop=function(e){e.preventDefault();upload.classList.remove("dragging");addFiles(Array.from(e.dataTransfer.files))};
+  editor.ondragover=function(e){if(e.dataTransfer?.types?.includes("Files"))e.preventDefault()};
+  editor.ondrop=function(e){if(e.dataTransfer?.files?.length){e.preventDefault();addFiles(Array.from(e.dataTransfer.files))}};
+})();
+</script>
+
 </body>
 </html>
