@@ -47,7 +47,7 @@ Regional listings and article detail pages both select markdown by **edition
 folder**, rather than borrowing all posts in the same language. The 44 existing China-region Chinese articles are copied unchanged into
 `src/content/posts/sg-zh/` as initial Singapore Chinese content; the two folders can
 subsequently be edited independently. New editions without posts remain empty.
-Existing `cn` articles are not automatically copied or translated.
+These copies are a one-time snapshot, not an automatic synchronization. Future edits to China-region articles do not automatically update Singapore-region copies, and vice versa. No translation was performed.
 
 ## Admin routes
 
