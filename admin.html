@@ -306,7 +306,7 @@ var siteUrl="https://blog.bynaw.top";
 (async function(){try{var r=await fetch("/api/config");var cfg=await r.json();siteUrl=cfg.siteUrl||siteUrl;document.getElementById("viewSiteLink").href=siteUrl+"/"+region+"/"}catch(e){}})();
 
 (function(){var s=localStorage.getItem("theme");if(s)document.documentElement.setAttribute("data-theme",s);else if(window.matchMedia("(prefers-color-scheme:dark)").matches)document.documentElement.setAttribute("data-theme","dark")})();
-function toggleTheme(){var c=document.documentElement.getAttribute("data-theme"),n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);localStorage.setItem("theme",n)}
+function toggleTheme(){var c=document.documentElement.getAttribute("data-theme"),n=c==="dark"?"light":"dark";document.documentElement.setAttribute("data-theme",n);document.documentElement.style.colorScheme=n;localStorage.setItem("theme",n)}
 
 document.querySelectorAll(".tab").forEach(function(t){
   t.addEventListener("click",function(){
@@ -522,18 +522,20 @@ document.getElementById("publishForm").addEventListener("submit",async function(
   var base=title.toLocaleLowerCase().normalize("NFKC").replace(/[^\p{L}\p{N}]+/gu,"-").replace(/^-|-$/g,"")||"article";
   var pd={title:title,subtitle:data.subtitle||"",date:date,category:data.category,subcategory:data.subcategory,image:data.image,content:data.content,featured:data.featured,group:groupSlug||(date+"-"+base),slug:data.slug||""};
   try{
+    if(window.nawSetPublishState)window.nawSetPublishState("syncing");
     var url,method;
     if(isEdit){url="/api/posts/"+encodeURIComponent(editingFile)+"?region="+region;method="PUT";}
     else{url="/api/publish?region="+region;method="POST";}
     var res=await fetch(url,{method:method,headers:{"Content-Type":"application/json"},body:JSON.stringify(pd)});
     var j=await res.json();
     if(j.ok){
+      if(window.nawSetPublishState)window.nawSetPublishState(j.pushed===false?"failed":"synced");
       if(j.renamed){editingFile=j.file;document.getElementById("editFile").value=j.file}
       if(j.pushed===false)toast("⚠️ Git 同步失败 — 文章仅存在服务器磁盘，重新部署后会丢失","err");
-      toast(isEdit?"已更新":"已发布");
+      if(j.pushed!==false)toast(isEdit?"已更新并同步 GitHub":"已提交至 GitHub，等待网站部署");
       if(!isEdit){resetEditor();document.getElementById("dateField").value=new Date().toISOString().split("T")[0]}
-    }else{toast((isEdit?"更新":"发布")+"失败: "+(j.error||"unknown"),"err");}
-  }catch(e){toast("请求失败: "+e.message,"err")}
+    }else{if(window.nawSetPublishState)window.nawSetPublishState("failed");toast((isEdit?"更新":"发布")+"失败: "+(j.error||"unknown"),"err");}
+  }catch(e){if(window.nawSetPublishState)window.nawSetPublishState("failed");toast("请求失败: "+e.message,"err")}
 });
 function resetEditor(){
   document.getElementById("langTitle").value="";document.getElementById("langSubtitle").value="";document.getElementById("contentTA").value="";document.getElementById("slugField").value="";
@@ -767,6 +769,77 @@ body{background:var(--bg);min-width:0}
 @media(max-width:1240px){.naw-editor-workspace{grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr)}.wrap{padding:70px 18px}.naw-meta-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:960px){.naw-editor-workspace{display:flex;flex-direction:column}.naw-editor-workspace>.card,.naw-preview-aside{width:100%}.naw-preview-aside{position:static}}
 @media(max-width:700px){.nav{position:sticky;width:100%;height:58px;border-right:0;border-bottom:1px solid var(--hairline)}.nav-inner{padding:0 15px;flex-direction:row;align-items:center;justify-content:space-between}.nav-right{flex-direction:row;margin:0;align-items:center}.naw-logo{height:32px;width:32px}.wrap{margin:0;padding:28px 15px 50px}.tabs{position:static;flex-direction:row;width:auto;overflow:auto;margin-bottom:25px;padding:0;gap:4px}.tab{width:auto;flex:0 0 auto;text-align:center;padding:10px 13px}.naw-workspace-title h1{font-size:1.6rem}#view-write>.naw-editor-workspace>.card{padding:19px}.naw-meta-fields{grid-template-columns:1fr 1fr}.naw-preview-reader{padding:23px 18px}}
+
+/* Admin workspace alignment and full-theme fix. */
+html[data-theme="light"]{color-scheme:light;--bg:#f4f5f8;--card:#ffffff;--bg3:#f7f8fa;--hairline:rgba(24,28,36,.085);--txt:#22252b;--txt2:#666b73;--txt3:#8b919b}
+html[data-theme="dark"]{color-scheme:dark;--bg:#101116;--card:#1b1d25;--bg3:#242630;--hairline:rgba(255,255,255,.095);--txt:#f4f4f6;--txt2:#c2c2ca;--txt3:#9193a0}
+body{color:var(--txt)!important;background:var(--bg)!important}
+.nav,.nav-inner,.naw-editor-workspace>.card,.naw-preview-aside,.naw-preview-reader,.post-item{background:var(--card)!important;color:var(--txt)}
+html[data-theme="dark"] .nav{background:var(--card)!important;box-shadow:none}
+html[data-theme="dark"] .tab.active{color:var(--txt);background:var(--bg3)}
+html[data-theme="dark"] .sel input,html[data-theme="dark"] .sel select,html[data-theme="dark"] .sel textarea{background:var(--bg3);color:var(--txt);border-color:var(--hairline)}
+html[data-theme="dark"] input::placeholder,html[data-theme="dark"] textarea::placeholder{color:var(--txt3)}
+.naw-logo{color:#fff;background:#22252b}
+html[data-theme="dark"] .naw-logo{background:#f4f4f6;color:#22252b}
+.nav-inner{padding:20px 16px}
+.naw-brand-group{display:flex;align-items:center;gap:10px;padding:3px 4px 20px;margin-bottom:4px;border-bottom:1px solid var(--hairline)}
+.naw-brand-group .nav-brand{font-size:.94rem;line-height:1.1}
+.naw-brand-subtitle{font-size:.69rem;color:var(--txt3);margin-top:5px}
+.tabs{top:98px}
+.nav-site{display:inline-flex;align-items:center}
+.wrap{padding:84px 28px 72px;max-width:unset}
+.naw-admin-topbar{position:fixed;top:0;left:205px;right:0;z-index:95;height:56px;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 30px;background:var(--card);border-bottom:1px solid var(--hairline)}
+.naw-crumbs{display:flex;align-items:center;gap:12px;font-size:.8rem;color:var(--txt2)}
+.naw-crumbs strong{font-weight:650;color:var(--txt)}
+.naw-top-actions{display:flex;align-items:center;gap:11px}
+.naw-top-actions .naw-status{color:var(--txt3);font-size:.76rem}
+.naw-top-actions button{font:inherit;font-size:.82rem;font-weight:600;border-radius:10px;padding:8px 13px;cursor:pointer}
+.naw-top-save{border:1px solid var(--hairline);background:var(--card);color:var(--txt)}
+.naw-top-publish{border:1px solid var(--txt);background:var(--txt);color:var(--card)}
+.naw-workspace-title{margin:0 0 23px}
+.naw-workspace-title h1{font-size:2.15rem;letter-spacing:-.05em}
+.naw-workspace-title .naw-workspace-state{display:none}
+.naw-editor-workspace{grid-template-columns:minmax(0,1.5fr) minmax(325px,1fr);gap:18px;align-items:start}
+#view-write>.naw-editor-workspace>.card{padding:25px 27px;box-shadow:0 0 0 1px var(--hairline)}
+#publishForm .naw-detail-fields{gap:14px}
+.naw-form-heading{font-size:.76rem;color:var(--txt2);font-weight:720;letter-spacing:.03em;margin:0 0 2px}
+.naw-detail-fields .sel>span,.naw-meta-fields .sel>span,.naw-url-row .sel>span{font-size:.78rem;color:var(--txt2);font-weight:590;text-transform:none;letter-spacing:0}
+#langTitle{background:var(--bg3);font-size:1.15rem}
+.naw-meta-fields{grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.naw-editor-label{display:flex;align-items:center;justify-content:space-between;gap:15px;font-size:.83rem;font-weight:650;border-top:1px solid var(--hairline);padding-top:18px}
+.naw-editor-label span:last-child{font-weight:400;color:var(--txt3);font-size:.74rem}
+#publishForm .md-toolbar{margin:0;display:flex;align-items:center;flex-wrap:nowrap;border-radius:11px 11px 0 0;border:1px solid var(--hairline);border-bottom:0;background:var(--bg3);min-height:44px;gap:3px;overflow:visible;position:relative}
+#publishForm .md-toolbar button{font-size:.78rem}
+#publishForm .md-toolbar button:hover{background:var(--card)}
+#publishForm .editor-split{min-height:0;display:block}
+#publishForm .editor-pane textarea{border:1px solid var(--hairline);border-top:0;border-radius:0 0 12px 12px;background:var(--card);min-height:390px;height:390px;font-family:var(--font);font-size:.93rem;line-height:1.85;padding:18px;resize:vertical;width:100%}
+#publishForm .editor-pane .editor-label{display:none}
+#nawUploadZone{background:var(--bg3)!important;border-color:var(--hairline);border-style:dashed;color:var(--txt2);min-height:80px}
+#nawEditorState{font-size:.78rem;color:var(--txt2)}
+.naw-more-format{display:inline-flex;position:relative;align-items:center;flex-shrink:0}
+.naw-more-format summary{list-style:none;font:inherit;font-size:.78rem;padding:4px 10px;border-radius:6px;color:var(--txt2);cursor:pointer}
+.naw-more-format summary::-webkit-details-marker{display:none}
+.naw-more-format[open] summary,.naw-more-format summary:hover{background:var(--card)}
+.naw-extra-buttons{position:absolute;right:0;top:35px;z-index:15;display:grid;grid-template-columns:repeat(4,auto);min-width:226px;gap:4px;border:1px solid var(--hairline);box-shadow:0 16px 40px rgba(0,0,0,.12);padding:12px;border-radius:12px;background:var(--card)}
+.naw-extra-buttons button{min-width:35px}
+.naw-preview-aside{position:sticky;top:74px;display:flex;flex-direction:column;height:min(860px,calc(100dvh - 96px));min-height:480px;overflow:hidden}
+.naw-preview-heading{flex:0 0 auto;padding:16px 20px;background:var(--card)}
+.naw-preview-reader{flex:1 1 auto;min-height:0;max-height:none;margin:14px 14px 0;padding:23px 20px;overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;border:1px solid var(--hairline);background:var(--card);scrollbar-width:thin;scrollbar-color:var(--txt3) transparent}
+.naw-preview-reader::-webkit-scrollbar{width:6px}
+.naw-preview-reader::-webkit-scrollbar-thumb{background:var(--txt3);border-radius:6px}
+.naw-preview-aside .preview-box{overflow:visible!important;min-height:0!important;background:transparent!important;color:var(--txt)!important;max-height:none;padding:0!important}
+.naw-preview-aside .preview-box h1{font-size:1.35rem}
+.naw-preview-aside .preview-box img{max-width:100%;height:auto}
+.naw-reader-title{overflow-wrap:anywhere;font-size:1.35rem}
+.naw-reader-subtitle{overflow-wrap:anywhere}
+.naw-publish-flow{flex:0 0 auto;padding:15px 20px 18px;border-top:1px solid var(--hairline);background:var(--card);font-size:.78rem}
+.naw-flow-title{font-size:.83rem;font-weight:700;margin-bottom:11px}
+.naw-flow-stage{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:6px 0;color:var(--txt2)}
+.naw-flow-stage strong{font-weight:600;color:var(--txt)}
+.naw-flow-stage .state{font-size:.73rem;color:var(--txt3)}
+@media(max-width:1260px){.naw-editor-workspace{grid-template-columns:minmax(0,1.2fr) minmax(290px,.8fr)}.naw-meta-fields{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:960px){.naw-preview-aside{position:relative;top:0;height:560px;min-height:0}.naw-preview-reader{margin:14px 14px 0}.naw-editor-workspace{display:flex}}
+@media(max-width:700px){.naw-admin-topbar{position:sticky;left:0;top:58px;padding:0 15px;height:51px}.naw-top-actions .naw-status{display:none}.naw-brand-group{border:0;padding:0;margin:0}.naw-brand-subtitle{display:none}.wrap{padding:29px 15px 45px}.naw-more-format .naw-extra-buttons{right:-40px}.naw-preview-aside{height:540px}.naw-top-actions{gap:7px}}
 </style>
 <script id="naw-workspace-init">
 (function(){
@@ -774,10 +847,16 @@ body{background:var(--bg);min-width:0}
   const view=document.getElementById("view-write");
   const navTitle=document.getElementById("navTitle");
   if(!form||!view||document.querySelector(".naw-editor-workspace"))return;
-  const logo=document.createElement("span");logo.className="naw-logo";logo.textContent="NAW";navTitle.before(logo);
+  const logo=document.createElement("span");logo.className="naw-logo";logo.textContent="NAW";
+  const brand=document.createElement("div");brand.className="naw-brand-group";
+  const brandNames=document.createElement("div");
+  brandNames.append(navTitle);
+  const brandSub=document.createElement("div");brandSub.className="naw-brand-subtitle";brandSub.textContent="Journal editor";
+  brandNames.append(brandSub);brand.append(logo,brandNames);
+  document.querySelector(".nav-inner").prepend(brand);
   const intro=document.createElement("header");
   intro.className="naw-workspace-title";
-  intro.innerHTML='<h1>撰写文章</h1><span class="naw-workspace-state" id="nawTopState">草稿将在浏览器中保存</span>';
+  intro.innerHTML='<h1>写一篇新文章</h1><span class="naw-workspace-state" id="nawTopState">本地草稿</span>';
   view.prepend(intro);
   const card=view.querySelector(".card");
   const workspace=document.createElement("div");workspace.className="naw-editor-workspace";
@@ -792,19 +871,52 @@ body{background:var(--bg);min-width:0}
   [date,cat,subcat].forEach(el=>el&&meta.append(el));
   if(cover)details.append(cover);
   if(slug)permalink.append(slug);
+  details.prepend(Object.assign(document.createElement("div"),{className:"naw-form-heading",textContent:"文章信息"}));
   columns.replaceWith(details,meta,permalink);
   const split=form.querySelector(".editor-split");
+  const toolbar=form.querySelector(".md-toolbar");
+  const editorLabel=document.createElement("div");editorLabel.className="naw-editor-label";
+  editorLabel.innerHTML="<span>正文内容</span><span>Markdown · 支持上传和粘贴图片</span>";
+  toolbar.before(editorLabel);
+  const format=toolbar.querySelectorAll(":scope > button");
+  if(format.length>12){
+    const overflow=document.createElement("details");overflow.className="naw-more-format";
+    overflow.innerHTML='<summary aria-label="更多格式">更多格式 ▾</summary>';
+    const extra=document.createElement("div");extra.className="naw-extra-buttons";overflow.append(extra);
+    Array.from(format).slice(12).forEach(btn=>extra.append(btn));
+    toolbar.append(overflow);
+    document.addEventListener("click",event=>{if(!overflow.contains(event.target))overflow.open=false});
+  }
   const preview=split.children[1];
   const aside=document.createElement("aside");aside.className="naw-preview-aside";
-  aside.innerHTML='<div class="naw-preview-heading"><span>实时预览</span><span style="color:var(--txt3);font-size:.75rem;font-weight:400">LIVE</span></div><div class="naw-preview-reader"><div class="naw-reader-meta" id="nawReaderMeta"></div><h2 class="naw-reader-title" id="nawReaderTitle"></h2><p class="naw-reader-subtitle" id="nawReaderSubtitle"></p></div>';
+  aside.innerHTML='<div class="naw-preview-heading"><span>实时预览</span><span style="color:var(--txt3);font-size:.75rem;font-weight:400">可独立滚动</span></div><div class="naw-preview-reader" tabindex="0" aria-label="文章预览滚动区"><div class="naw-reader-meta" id="nawReaderMeta"></div><h2 class="naw-reader-title" id="nawReaderTitle"></h2><p class="naw-reader-subtitle" id="nawReaderSubtitle"></p></div><div class="naw-publish-flow"><div class="naw-flow-title">发布状态</div><div class="naw-flow-stage"><strong>本地草稿</strong><span class="state" id="nawStageDraft">尚未保存</span></div><div class="naw-flow-stage"><strong>GitHub 同步</strong><span class="state" id="nawStageGithub">尚未提交</span></div><div class="naw-flow-stage"><strong>Cloudflare 部署</strong><span class="state" id="nawStageCloudflare">尚未验证</span></div></div>';
   aside.querySelector(".naw-preview-reader").append(preview);
   workspace.append(aside);
+  const topbar=document.createElement("div");
+  topbar.className="naw-admin-topbar";
+  topbar.innerHTML='<div class="naw-crumbs"><span>Journal</span><span>/</span><strong>新建文章</strong></div><div class="naw-top-actions"><span class="naw-status">当前地区：'+(typeof regionName==="string"?regionName:"")+'</span><button class="naw-top-save" type="button" id="nawQuickSave">保存草稿</button><button class="naw-top-publish" type="button" id="nawQuickPublish">发布文章 ↑</button></div>';
+  document.querySelector(".nav").after(topbar);
+  document.getElementById("nawQuickSave").addEventListener("click",()=>{
+    form.dispatchEvent(new Event("input",{bubbles:true}));
+    document.getElementById("nawTopState").textContent="正在保存草稿";
+  });
+  document.getElementById("nawQuickPublish").addEventListener("click",()=>form.requestSubmit());
+  window.nawSetPublishState=function(state){
+    const github=document.getElementById("nawStageGithub");
+    const cloudflare=document.getElementById("nawStageCloudflare");
+    if(github)github.textContent=state==="syncing"?"正在同步…":state==="synced"?"同步成功":state==="failed"?"同步失败":"尚未提交";
+    if(cloudflare)cloudflare.textContent=state==="synced"?"等待部署验证":"尚未验证";
+  };
   function refresh(){
     document.getElementById("nawReaderTitle").textContent=title.querySelector("input").value||"文章标题";
     document.getElementById("nawReaderSubtitle").textContent=subtitle.querySelector("input").value||"";
     document.getElementById("nawReaderMeta").textContent=(cat.querySelector("select").selectedOptions[0]?.textContent||"") + " · " + (date.querySelector("input").value||"");
     const draft=document.getElementById("nawDraftMessage");
-    if(draft)document.getElementById("nawTopState").textContent=draft.textContent;
+    if(draft){
+      document.getElementById("nawTopState").textContent=draft.textContent;
+      const state=document.getElementById("nawStageDraft");
+      if(state)state.textContent=draft.textContent;
+    }
   }
   form.addEventListener("input",refresh);form.addEventListener("change",refresh);
   new MutationObserver(refresh).observe(document.getElementById("nawDraftMessage"),{childList:true,subtree:true,characterData:true});
